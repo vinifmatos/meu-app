@@ -25,7 +25,6 @@ jobs:
           script: |
             export PR_NUMBER=$PR_NUMBER
             export BRANCH=$BRANCH
-            export PR_PATH=pr-$PR_NUMBER
             export DEPLOY_TOKEN=$DEPLOY_TOKEN
 
             echo "Deploying preview PR-${PR_NUMBER}"
