@@ -31,7 +31,7 @@ jobs:
 
             cd /opt/app
 
-            if [ $PR_ACTION" = "closed" ]; then
+            if [ "$PR_ACTION" = "closed" ]; then
               echo "Removing preview PR-${PR_NUMBER}"
 
               docker compose \
