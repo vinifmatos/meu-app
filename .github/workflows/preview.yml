@@ -41,7 +41,7 @@ jobs:
 
             # Clonar ou atualizar repositório
             if [ ! -d "pr-${PR_NUMBER}" ]; then
-              git clone git@github.com:SEU_USUARIO/SEU_REPO.git pr-${PR_NUMBER}
+              git clone git@github.com:vinifmatos/meu-app.git pr-${PR_NUMBER}
             fi
 
             cd pr-${PR_NUMBER}
