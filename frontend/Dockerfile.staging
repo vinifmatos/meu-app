@@ -10,7 +10,7 @@ COPY . .
 
 ARG PR_PATH
 
-RUN yarn build -- --base-href=/${PR_PATH}/ --deploy-url=/${PR_PATH}/
+RUN yarn build --base-href=/${PR_PATH}/ --deploy-url=/${PR_PATH}/
 
 # ---------- NGINX ----------
 FROM nginx:alpine
