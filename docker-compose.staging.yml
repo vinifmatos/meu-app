@@ -46,6 +46,9 @@ services:
       - "traefik.http.routers.front-${PR_NUMBER}.rule=Host(`viniciusfreire.dev.br`) && PathPrefix(`/pr-${PR_NUMBER}`)"
       - "traefik.http.routers.front-${PR_NUMBER}.entrypoints=websecure"
       - "traefik.http.routers.front-${PR_NUMBER}.tls.certresolver=le"
+      - "traefik.http.routers.front-${PR_NUMBER}.middlewares=front-${PR_NUMBER}-strip"
+
+      - "traefik.http.middlewares.front-${PR_NUMBER}-strip.stripprefix.prefixes=/pr-${PR_NUMBER}"
 
       - "traefik.http.services.front-${PR_NUMBER}.loadbalancer.server.port=80"
     networks:
