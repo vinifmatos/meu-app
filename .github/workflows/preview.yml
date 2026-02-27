@@ -23,6 +23,7 @@ jobs:
           script: |
             PR_NUMBER=${{ github.event.pull_request.number }}
             BRANCH=${{ github.head_ref }}
+            export PR_PATH=pr-${PR_NUMBER}
 
             echo "Deploying preview PR-${PR_NUMBER}"
 
