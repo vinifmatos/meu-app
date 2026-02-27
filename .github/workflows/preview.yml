@@ -1,0 +1,54 @@
+name: Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set PR variables
+        run: |
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/app
+
+            if [ "${{ github.event.action }}" = "closed" ]; then
+              echo "Removing preview PR-${PR_NUMBER}"
+
+              docker compose \
+                -f pr-${PR_NUMBER}/docker-compose.staging.yml \
+                --project-name pr-${PR_NUMBER} \
+                down -v
+              rm -rf pr-${PR_NUMBER}
+              exit 0
+            fi
+
+            echo "Deploying preview PR-${PR_NUMBER}"
+
+            # Clonar ou atualizar repositório
+            if [ ! -d "pr-${PR_NUMBER}" ]; then
+              git clone git@github.com:SEU_USUARIO/SEU_REPO.git pr-${PR_NUMBER}
+            fi
+
+            cd pr-${PR_NUMBER}
+            git fetch origin
+            git checkout ${BRANCH}
+            git pull origin ${BRANCH}
+
+            export PR_NUMBER=${PR_NUMBER}
+
+            docker compose \
+              -f docker-compose.staging.yml \
+              --project-name pr-${PR_NUMBER} \
+              up -d --build

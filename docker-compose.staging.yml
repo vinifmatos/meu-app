@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: always
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.le.acme.email=seu-email@viniciusfreire.dev.br"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik/acme.json:/letsencrypt/acme.json"
+
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      RAILS_ENV: staging
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/app_pr_${PR_NUMBER}
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-${PR_NUMBER}.rule=Host(`viniciusfreire.dev.br`) && PathPrefix(`/pr-${PR_NUMBER}/api`)"
+      - "traefik.http.routers.api-${PR_NUMBER}.entrypoints=websecure"
+      - "traefik.http.routers.api-${PR_NUMBER}.tls.certresolver=le"
+
+      - "traefik.http.middlewares.api-${PR_NUMBER}-strip.stripprefix.prefixes=/pr-${PR_NUMBER}"
+      - "traefik.http.routers.api-${PR_NUMBER}.middlewares=api-${PR_NUMBER}-strip"
+
+      - "traefik.http.services.api-${PR_NUMBER}.loadbalancer.server.port=3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        PR_PATH: pr-${PR_NUMBER}
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.front-${PR_NUMBER}.rule=Host(`viniciusfreire.dev.br`) && PathPrefix(`/pr-${PR_NUMBER}`)"
+      - "traefik.http.routers.front-${PR_NUMBER}.entrypoints=websecure"
+      - "traefik.http.routers.front-${PR_NUMBER}.tls.certresolver=le"
+
+      - "traefik.http.middlewares.front-${PR_NUMBER}-strip.stripprefix.prefixes=/pr-${PR_NUMBER}"
+      - "traefik.http.routers.front-${PR_NUMBER}.middlewares=front-${PR_NUMBER}-strip"
+
+      - "traefik.http.services.front-${PR_NUMBER}.loadbalancer.server.port=80"
+
+volumes:
+  pgdata:
