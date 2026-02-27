@@ -1,4 +1,5 @@
 require_relative "boot"
+require_relative "../lib/middleware/json_key_transformer"
 
 require "rails"
 # Pick the frameworks you want:
@@ -16,6 +17,7 @@ require "action_cable/engine"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
+
 Bundler.require(*Rails.groups)
 
 module MeuApp
@@ -27,6 +29,10 @@ module MeuApp
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_paths += %W[#{config.root}/app/services]
+
+    config.middleware.use ::JsonKeyTransformer
+
 
     # Configuration for the application, engines, and railties goes here.
     #

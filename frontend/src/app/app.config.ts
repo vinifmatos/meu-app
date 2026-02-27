@@ -1,12 +1,30 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import {
+  APP_INITIALIZER,
+  ApplicationConfig,
+  inject,
+  provideBrowserGlobalErrorListeners,
+  provideZoneChangeDetection,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
+import { provideHttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
+import { Config } from './core/services/config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes)
-  ]
+    provideRouter(routes),
+    provideHttpClient(),
+    provideBrowserGlobalErrorListeners(),
+    Config,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: () => {
+        const config = inject(Config);
+        return () => config.load();
+      },
+      multi: true,
+    },
+  ],
 };

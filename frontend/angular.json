@@ -89,7 +89,8 @@
               "buildTarget": "meu-app:build:production"
             },
             "development": {
-              "buildTarget": "meu-app:build:development"
+              "buildTarget": "meu-app:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

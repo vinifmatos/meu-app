@@ -7,15 +7,14 @@ module JsonResponseHelper
     rescue_from StandardError, with: :handle_standard_error
   end
 
-  def render_json_success(template: nil, locals: {}, message: nil, status: :ok)
+  def render_json_success(template: "#{controller_path}/#{action_name}", locals: {}, message: nil, status: :ok, data: nil)
     if status == :no_content
       head :no_content
     else
-      template ||= "#{controller_path}/#{action_name}"
       template = "#{controller_path}/#{template}" if template.is_a?(Symbol)
       @response_message = message
       @response_errors = nil
-      @response_data = { template: template, locals: locals }
+      @response_data = { template: template, locals: locals, data: data }
       render template: "shared/wrapper", status: status
     end
   end
