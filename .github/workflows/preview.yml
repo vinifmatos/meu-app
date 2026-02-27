@@ -11,16 +11,18 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          BRANCH: ${{ github.head_ref }}
-          PR_ACTION: ${{ github.event.action }}
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: vinicius
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            echo "Set environment variables"
+
+            export PR_NUMBER=${{ github.event.pull_request.number }}
+            export BRANCH=${{ github.head_ref }}
+            export PR_ACTION=${{ github.event.action }}
+            export DEPLOY_TOKEN=${{ secrets.DEPLOY_TOKEN }}
+
             echo "Deploying preview PR-${PR_NUMBER}"
 
             cd /opt/app
