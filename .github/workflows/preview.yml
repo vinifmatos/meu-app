@@ -14,6 +14,7 @@ jobs:
           echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           echo "BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
           echo "PR_ACTION=${{ github.event.action }}" >> $GITHUB_ENV
+          echo DEPLOY_TOKEN=${{ secrets.DEPLOY_TOKEN }} >> $GITHUB_ENV
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -25,7 +26,7 @@ jobs:
             export PR_NUMBER=$PR_NUMBER
             export BRANCH=$BRANCH
             export PR_PATH=pr-$PR_NUMBER
-            DEPLOY_TOKEN=${{ secrets.DEPLOY_TOKEN }}
+            export DEPLOY_TOKEN=$DEPLOY_TOKEN
 
             echo "Deploying preview PR-${PR_NUMBER}"
 
