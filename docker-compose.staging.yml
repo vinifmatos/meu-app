@@ -31,7 +31,9 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.staging
     restart: always
     depends_on:
       - postgres
@@ -53,6 +55,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile.staging
       args:
         PR_PATH: pr-${PR_NUMBER}
     restart: always
