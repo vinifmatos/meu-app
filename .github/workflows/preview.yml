@@ -24,6 +24,7 @@ jobs:
             export PR_NUMBER=${{ github.event.pull_request.number }}
             export BRANCH=${{ github.head_ref }}
             export PR_PATH=pr-${PR_NUMBER}
+            DEPLOY_TOKEN=${{ secrets.DEPLOY_TOKEN }}
 
             echo "Deploying preview PR-${PR_NUMBER}"
 
@@ -42,7 +43,7 @@ jobs:
 
             # Clonar ou atualizar repositório
             if [ ! -d "pr-${PR_NUMBER}" ]; then
-              git clone git@github.com:vinifmatos/meu-app.git pr-${PR_NUMBER}
+              git clone https://$DEPLOY_TOKEN@github.com/vinifmatos/meu-app.git pr-${PR_NUMBER}
             fi
 
             cd pr-${PR_NUMBER}
@@ -50,7 +51,6 @@ jobs:
             git checkout ${BRANCH}
             git pull origin ${BRANCH}
 
-            docker compose \
-              -f docker-compose.staging.yml \
-              --project-name pr-${PR_NUMBER} \
-              up -d --build
+            docker compose -f docker-compose.staging.yml down
+            docker compose -f docker-compose.staging.yml \
+              --project-name pr-${PR_NUMBER} up -d --build

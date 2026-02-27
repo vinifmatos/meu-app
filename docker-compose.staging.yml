@@ -1,26 +1,6 @@
 version: "3.9"
 
 services:
-  traefik:
-    image: traefik:v3.0
-    container_name: traefik
-    restart: always
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.le.acme.httpchallenge=true"
-      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.le.acme.email=seu-email@viniciusfreire.dev.br"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./traefik/acme.json:/letsencrypt/acme.json"
-
   postgres:
     image: postgres:16
     restart: always
@@ -29,6 +9,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - postgres
 
   backend:
     build:
@@ -47,10 +29,10 @@ services:
       - "traefik.http.routers.api-${PR_NUMBER}.entrypoints=websecure"
       - "traefik.http.routers.api-${PR_NUMBER}.tls.certresolver=le"
 
-      - "traefik.http.middlewares.api-${PR_NUMBER}-strip.stripprefix.prefixes=/pr-${PR_NUMBER}"
-      - "traefik.http.routers.api-${PR_NUMBER}.middlewares=api-${PR_NUMBER}-strip"
-
       - "traefik.http.services.api-${PR_NUMBER}.loadbalancer.server.port=3000"
+    networks:
+      - postgres
+      - proxy
 
   frontend:
     build:
@@ -65,10 +47,16 @@ services:
       - "traefik.http.routers.front-${PR_NUMBER}.entrypoints=websecure"
       - "traefik.http.routers.front-${PR_NUMBER}.tls.certresolver=le"
 
-      - "traefik.http.middlewares.front-${PR_NUMBER}-strip.stripprefix.prefixes=/pr-${PR_NUMBER}"
-      - "traefik.http.routers.front-${PR_NUMBER}.middlewares=front-${PR_NUMBER}-strip"
-
       - "traefik.http.services.front-${PR_NUMBER}.loadbalancer.server.port=80"
+    networks:
+      - proxy
 
 volumes:
   pgdata:
+
+networks:
+  postgres:
+
+  proxy:
+    external: true
+
