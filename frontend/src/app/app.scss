@@ -1,0 +1,32 @@
+$padding: 1rem;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.wrapper {
+  display: flex;
+  height: 100%;
+}
+
+.content {
+  flex: 1;
+  height: 100%;
+  padding-top: 1rem;
+  padding-top: $padding;
+  padding-bottom: $padding;
+  padding-right: $padding;
+  padding-left: calc($padding / 2);
+  overflow: auto;
+}
+
+.menu {
+  min-width: 250px;
+  height: 100%;
+  padding-top: $padding;
+  padding-bottom: $padding;
+  padding-left: $padding;
+  padding-right: calc($padding / 2);
+  overflow: auto;
+}

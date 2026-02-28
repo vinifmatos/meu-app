@@ -1,10 +1,10 @@
 module Version
   def major
-    1
+    0
   end
 
   def minor
-    0
+    1
   end
 
   def patch
@@ -12,7 +12,7 @@ module Version
   end
 
   def to_s
-    "#{major}.#{minor}.#{patch}"
+    "v#{major}.#{minor}.#{patch}"
   end
 
   def api_version
