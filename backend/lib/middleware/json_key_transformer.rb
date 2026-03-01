@@ -54,5 +54,7 @@ class JsonKeyTransformer
         key.to_s.camelize(:lower).to_sym
       end
     end
+
+    original_hash.with_indifferent_access
   end
 end

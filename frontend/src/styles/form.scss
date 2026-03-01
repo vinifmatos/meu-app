@@ -1,0 +1,14 @@
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field label {
+  font-weight: 600;
+  line-height: normal;
+}
+
+.form-field input {
+  width: 100%;
+}

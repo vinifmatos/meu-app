@@ -12,7 +12,7 @@ class Api::V1::UsuariosController < ApplicationController
   end
 
   def create
-    @usuario = usuario.create!(usuario_params)
+    @usuario = Usuario.create!(usuario_params)
     render_json_success(template: :show, locals: { usuario: @usuario }, message: "Usuário criado com sucesso")
   end
 
@@ -29,10 +29,10 @@ class Api::V1::UsuariosController < ApplicationController
   private
 
   def set_usuario
-    @usuario = usuario.find(params[:id])
+    @usuario = Usuario.find(params[:id])
   end
 
   def usuario_params
-    params.require(:usuario).permit(:username, :name, :password, :password_confirmation)
+    params.require(:usuario).permit(:username, :name, :password, :password_confirmation, :role, :old_password)
   end
 end

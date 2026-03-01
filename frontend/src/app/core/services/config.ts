@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { ApiData } from '@core/interfaces/api-response';
 import { AppConfig } from '../interfaces/app-config';
 import { Api } from './api';
 
@@ -11,7 +12,7 @@ export class Config {
 
   async load() {
     try {
-      const response = await this.api.get<AppConfig>('config');
+      const response = (await this.api.get<AppConfig>('config')) as ApiData<AppConfig>;
       this._config = response.data!;
       if (!this._config) {
         throw new Error('Dados ausentes');
@@ -19,6 +20,10 @@ export class Config {
     } catch (error) {
       console.error('Erro ao carregar a configuração:', error);
     }
+  }
+
+  get version() {
+    return this._config.version;
   }
 
   get config(): AppConfig {
