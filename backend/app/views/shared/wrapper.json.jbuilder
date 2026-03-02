@@ -1,5 +1,5 @@
 json.message @response_message if @response_message
-json.errors @response_errors if @response_errors
+json.validation_errors @response_validation_errors if @response_validation_errors
 
 if @response_data
   json.data do

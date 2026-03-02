@@ -3,4 +3,6 @@ export interface IUsuario {
   username: string;
   nome: string;
   role: 'admin' | 'usuario';
+  createdAt: string;
+  updatedAt: string;
 }

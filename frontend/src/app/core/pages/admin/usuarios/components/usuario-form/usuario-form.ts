@@ -5,12 +5,22 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogService, DynamicDialog, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputText } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
+import { PasswordModule } from 'primeng/password';
+import { SelectModule } from 'primeng/select';
 import { IUsuario } from '../../usuario.interface';
 import { UsuariosService } from '../../usuarios.service';
 
 @Component({
   selector: 'app-usuario-form',
-  imports: [ReactiveFormsModule, ButtonModule, InputText],
+  imports: [
+    ReactiveFormsModule,
+    ButtonModule,
+    InputText,
+    PasswordModule,
+    SelectModule,
+    MessageModule,
+  ],
   templateUrl: './usuario-form.html',
   styleUrl: './usuario-form.scss',
 })
@@ -21,8 +31,13 @@ export class UsuarioForm implements OnInit, OnDestroy {
   private ref: DynamicDialogRef = inject(DynamicDialogRef);
   private fb: FormBuilder = inject(FormBuilder);
   private messageService = inject(MessageService);
+  roles = [
+    { label: 'Administrador', value: 'admin' },
+    { label: 'Usuário', value: 'usuario' },
+  ];
   usuario?: IUsuario;
   form!: FormGroup;
+  errors: Record<string, string[]> = {};
 
   ngOnInit() {
     this.instance = this.dialogService.getInstance(this.ref);
@@ -32,11 +47,11 @@ export class UsuarioForm implements OnInit, OnDestroy {
     }
 
     this.form = this.fb.group({
+      username: [this.usuario?.username ?? ''],
       nome: [this.usuario?.nome ?? ''],
       role: [this.usuario?.role ?? 'usuario'],
       password: [''],
       passwordConfirmation: [''],
-      oldPassword: [''],
     });
   }
 
@@ -44,11 +59,18 @@ export class UsuarioForm implements OnInit, OnDestroy {
     return !this.usuario?.id;
   }
 
+  clearError(field: string) {
+    if (this.errors[field]) {
+      delete this.errors[field];
+    }
+  }
+
   close() {
     this.ref.close();
   }
 
   async save() {
+    this.errors = {};
     try {
       if (this.isNew) {
         await this.service.criarUsuario(this.form.value);
@@ -59,9 +81,9 @@ export class UsuarioForm implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'success',
         summary: 'Sucesso',
-        detail: 'Usuário salvo com sucesso',
+        detail: 'Usuário criado com sucesso',
       });
-      this.ref.close();
+      this.ref.close(true);
     } catch (e: any) {
       if (e instanceof ErrorEvent) {
         this.messageService.add({
@@ -74,11 +96,12 @@ export class UsuarioForm implements OnInit, OnDestroy {
 
       if (e.status === 422) {
         const err = e.error as ApiValidationError;
+        this.errors = err.validationErrors;
 
         this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: err.message ?? 'Ocorreu um erro ao salvar o usuário',
+          severity: 'warn',
+          summary: 'Atenção',
+          detail: err.message ?? 'Não foi possível salvar o usuário',
         });
       }
     }

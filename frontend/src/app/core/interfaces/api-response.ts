@@ -7,7 +7,7 @@ export interface ApiError {
 }
 
 export interface ApiValidationError extends ApiError {
-  errors: Record<string, string[]>;
+  validationErrors: Record<string, string[]>;
 }
 
 export type ApiResponse<T = unknown> = ApiData<T> | ApiError | ApiValidationError;

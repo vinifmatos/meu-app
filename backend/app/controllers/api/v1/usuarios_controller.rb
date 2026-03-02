@@ -2,7 +2,7 @@ class Api::V1::UsuariosController < ApplicationController
   before_action :set_usuario, only: %i[show update destroy]
 
   def index
-    @usuarios = Usuario.all
+    @usuarios = Usuario.all.order(:id)
 
     render_json_success(locals: { usuarios: @usuarios })
   end
@@ -33,6 +33,6 @@ class Api::V1::UsuariosController < ApplicationController
   end
 
   def usuario_params
-    params.require(:usuario).permit(:username, :name, :password, :password_confirmation, :role, :old_password)
+    params.require(:usuario).permit(:username, :nome, :password, :password_confirmation, :role, :old_password)
   end
 end

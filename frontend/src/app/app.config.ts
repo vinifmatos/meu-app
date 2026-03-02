@@ -11,8 +11,10 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
-import { MessageService } from 'primeng/api';
+import { pt_BR } from 'primelocale/js/pt_BR.js';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
+import { DialogService } from 'primeng/dynamicdialog';
 import { routes } from './app.routes';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { Config } from './core/services/config';
@@ -52,6 +54,7 @@ export const appConfig: ApplicationConfig = {
     },
     provideAnimationsAsync(),
     providePrimeNG({
+      translation: pt_BR,
       theme: {
         preset: primengPreset,
         options: {
@@ -62,5 +65,7 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     MessageService,
+    ConfirmationService,
+    DialogService,
   ],
 };

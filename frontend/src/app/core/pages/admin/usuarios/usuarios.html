@@ -9,6 +9,7 @@
     <tr>
       <th>ID</th>
       <th>Username</th>
+      <th>Nome</th>
       <th>Role</th>
       <th></th>
     </tr>
@@ -17,11 +18,13 @@
     <tr>
       <td>{{ usuario.id }}</td>
       <td>{{ usuario.username }}</td>
+      <td>{{ usuario.nome }}</td>
       <td>{{ usuario.role }}</td>
       <td>
         <div class="flex justify-center gap-2">
-          <button pButton type="button" icon="pi pi-pencil" text (click)="openDialog()"></button>
-          <button pButton type=" button" icon="pi pi-trash" text severity="danger"></button>
+          <button pButton type="button" icon="pi pi-pencil" text (click)="openDialog(usuario)"></button>
+          <button pButton type=" button" icon="pi pi-trash" text severity="danger"
+            (click)="excluirUsuario($event, usuario)"></button>
         </div>
       </td>
     </tr>

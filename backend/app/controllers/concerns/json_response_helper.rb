@@ -2,9 +2,9 @@ module JsonResponseHelper
   extend ActiveSupport::Concern
 
   included do
-    rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
-    rescue_from ActiveRecord::RecordNotFound, with: :handle_record_not_found
     rescue_from StandardError, with: :handle_standard_error
+    rescue_from ActiveRecord::RecordNotFound, with: :handle_record_not_found
+    rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
   end
 
   def render_json_success(template: "#{controller_path}/#{action_name}", locals: {}, message: nil, status: :ok, data: nil)
@@ -19,9 +19,9 @@ module JsonResponseHelper
     end
   end
 
-  def render_json_error(message: "Não foi possível processar a requisição", errors: nil, status: :unprocessable_entity)
+  def render_json_error(message: "Não foi possível processar a requisição", validation_errors: nil, status: :unprocessable_entity)
     @response_message = message
-    @response_errors = errors
+    @response_validation_errors = validation_errors
     @response_data = nil
     render template: "shared/wrapper", status: status
   end
@@ -31,8 +31,8 @@ module JsonResponseHelper
   def handle_record_invalid(exception)
     record = exception.record
     render_json_error(
-      message: "Falha na validação",
-      errors: record.errors.full_messages,
+      message: "Campos obrigatórios não informados ou inválidos",
+      validation_errors: record.errors,
       status: :unprocessable_entity
     )
   end
