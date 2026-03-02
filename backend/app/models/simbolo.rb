@@ -1,0 +1,2 @@
+class SimboloCarta < ApplicationRecord
+end
