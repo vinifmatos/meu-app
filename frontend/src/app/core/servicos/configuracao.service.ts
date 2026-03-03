@@ -1,21 +1,21 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
 import { AppConfig } from '../interfaces/app-configuracao.interface';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConfiguracaoService {
-  private readonly http = inject(HttpClient);
+  private readonly api = inject(ApiService);
   private config: AppConfig | null = null;
 
   async carregar(): Promise<AppConfig | null> {
     try {
-      this.config = await firstValueFrom(this.http.get<AppConfig>('/api/v1/config'));
+      const resposta = await this.api.get<AppConfig>('config');
+      this.config = resposta.data;
       return this.config;
-    } catch (error) {
-      console.error('Erro ao carregar configurações:', error);
+    } catch (erro) {
+      console.error('Erro ao carregar configurações:', erro);
       return null;
     }
   }

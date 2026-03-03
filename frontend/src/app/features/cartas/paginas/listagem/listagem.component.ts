@@ -48,12 +48,13 @@ import { NgOptimizedImage } from '@angular/common';
       >
         <ng-template #grid let-cartas>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            <div *ngFor="let carta of cartas" class="p-4 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-lg shadow-sm flex flex-col items-center">
+            <div *ngFor="let carta of cartas; let i = index" class="p-4 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-lg shadow-sm flex flex-col items-center">
               <div class="relative w-full aspect-[2.5/3.5] mb-4 overflow-hidden rounded-md shadow-md">
                 <img 
                   [ngSrc]="obterImagemCarta(carta)" 
                   [alt]="carta.name" 
                   fill
+                  [priority]="i < 5"
                   class="object-cover"
                 />
               </div>
