@@ -2,11 +2,12 @@ class Carta < ApplicationRecord
   has_many :faces, class_name: :FaceCarta, dependent: :destroy, inverse_of: :carta
 
   def self.import_from_scryfall(data)
-    data.each do |card_data|
-      carta = find_or_initialize_by(scryfall_id: card_data["id"])
-      carta.assign_attributes(
+    cartas_attributes = data.map do |card_data|
+      raise if card_data.is_a?(Array)
+
+      {
+        scryfall_id: card_data["id"],
         oracle_id: card_data["oracle_id"],
-        uri: card_data["uri"],
         power: card_data["power"],
         toughness: card_data["toughness"],
         mana_cost: card_data["mana_cost"],
@@ -20,29 +21,41 @@ class Carta < ApplicationRecord
         type_line: card_data["type_line"],
         oracle_text: card_data["oracle_text"],
         image_uris: card_data["image_uris"]
-      )
-
-      faces_data = card_data["card_faces"].to_a
-
-      if faces_data.any?
-        faces_data.each_with_index do |face_data, index|
-          face_name = index.zero? ? :front : :back
-          face = carta.face_cartas.find_or_initialize_by(face: face_name)
-          face.assign_attributes(
-            power: face_data["power"],
-            toughness: face_data["toughness"],
-            mana_cost: face_data["mana_cost"],
-            colors: face_data["colors"],
-            name: face_data["name"],
-            type_line: face_data["type_line"],
-            oracle_text: face_data["oracle_text"],
-            image_uris: face_data["image_uris"]
-          )
-          face.save!
-        end
-      end
-
-      carta.save!
+      }
     end
+
+    Carta.upsert_all(cartas_attributes, unique_by: :scryfall_id) if cartas_attributes.any?
+
+    scryfall_ids = data.pluck("id")
+    cartas_map = Carta.where(scryfall_id: scryfall_ids).pluck(:scryfall_id, :id).to_h
+
+    faces_attributes = data.flat_map do |card_data|
+      faces_data = card_data["card_faces"].to_a
+      next unless faces_data.any?
+
+      carta_id = cartas_map[card_data["id"]]
+      next unless carta_id
+
+      faces_data.map.with_index do |face_data, index|
+        next unless face_data["illustration_id"].present?
+
+        face_name = index.zero? ? :front : :back
+        {
+          carta_id: carta_id,
+          face: face_name,
+          power: face_data["power"],
+          toughness: face_data["toughness"],
+          mana_cost: face_data["mana_cost"],
+          colors: face_data["colors"],
+          name: face_data["name"],
+          type_line: face_data["type_line"],
+          oracle_text: face_data["oracle_text"],
+          image_uris: face_data["image_uris"],
+          illustration_id: face_data["illustration_id"]
+        }
+      end
+    end.compact
+
+    FaceCarta.upsert_all(faces_attributes, unique_by: [ :carta_id, :face, :illustration_id ]) if faces_attributes.any?
   end
 end

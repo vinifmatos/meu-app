@@ -22,3 +22,5 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
   gem "pry-rails"
 end
+  # gem "yajl-ruby", require: "yajl"
+  gem "yajl-ffi", require: "yajl/ffi"

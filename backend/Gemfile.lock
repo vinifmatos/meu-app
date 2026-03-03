@@ -330,6 +330,8 @@ GEM
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    yajl-ffi (1.0.0)
+      ffi (~> 1.16)
     zeitwerk (2.7.5)
 
 PLATFORMS
@@ -362,6 +364,7 @@ DEPENDENCIES
   solid_queue
   thruster
   tzinfo-data
+  yajl-ffi
 
 BUNDLED WITH
    2.7.2
