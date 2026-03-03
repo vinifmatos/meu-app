@@ -1,1 +1,9 @@
-json.extract! @usuario, :id, :username, :nome, :role, :created_at, :updated_at
+json.call(
+  usuario,
+  :id,
+  :nome,
+  :username,
+  :role,
+  :created_at,
+  :updated_at
+)

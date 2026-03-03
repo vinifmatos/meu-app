@@ -2,23 +2,23 @@ class Api::V1::UsuariosController < ApplicationController
   before_action :set_usuario, only: %i[show update destroy]
 
   def index
-    @usuarios = Usuario.all.order(:id)
+    @usuarios = Usuario.all.order(:id).page(params[:page]).per(params[:per_page] || 20)
 
-    render_json_success(locals: { usuarios: @usuarios })
+    render_json_success(template: "api/v1/usuarios/index", locals: { usuarios: @usuarios })
   end
 
   def show
-    render_json_success(locals: { usuario: @usuario })
+    render_json_success(template: "api/v1/usuarios/show", locals: { usuario: @usuario })
   end
 
   def create
     @usuario = Usuario.create!(usuario_params)
-    render_json_success(template: :show, locals: { usuario: @usuario }, message: "Usuário criado com sucesso")
+    render_json_success(template: "api/v1/usuarios/show", locals: { usuario: @usuario }, message: "Usuário criado com sucesso")
   end
 
   def update
     @usuario.update!(usuario_params)
-    render_json_success(template: :show, locals: { usuario: @usuario }, message: "Usuário atualizado com sucesso")
+    render_json_success(template: "api/v1/usuarios/show", locals: { usuario: @usuario }, message: "Usuário atualizado com sucesso")
   end
 
   def destroy
@@ -33,6 +33,6 @@ class Api::V1::UsuariosController < ApplicationController
   end
 
   def usuario_params
-    params.require(:usuario).permit(:username, :nome, :password, :password_confirmation, :role, :old_password)
+    params.require(:data).require(:usuario).permit(:username, :nome, :password, :password_confirmation, :role, :old_password)
   end
 end

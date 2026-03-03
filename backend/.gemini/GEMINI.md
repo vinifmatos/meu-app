@@ -4,6 +4,11 @@ You are an expert in Ruby on Rails API and building scalable, performant, and ma
 
 - Interactions with the user should preferably be in Brazilian Portuguese.
 
+## Documentation
+
+- ALWAYS create or update the documentation in the `docs/` folder for any new feature, API endpoint, or significant architectural change.
+- Keep documentation up-to-date with current code implementation.
+
 ## Ruby Best Practices
 
 - Always run `bundle exec rubocop -A <file_path>` after creating or modifying a Ruby file to ensure it adheres to the project's style guide.

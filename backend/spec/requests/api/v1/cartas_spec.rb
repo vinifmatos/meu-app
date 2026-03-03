@@ -16,6 +16,25 @@ RSpec.describe "Api::V1::Cartas", type: :request do
       expect(json_response["data"]["pagination"]["currentPage"]).to eq(1)
       expect(json_response["data"]["pagination"]["totalPages"]).to eq(3)
     end
+
+    it "filtra as cartas pelo nome" do
+      carta_especifica = create(:carta, name: "Cartinha Especial")
+      get api_v1_cartas_path, params: { filters: { name: "Especial" } }, headers: headers
+
+      expect(response).to have_http_status(:success)
+      json_response = JSON.parse(response.body)
+      expect(json_response["data"]["cartas"].any? { |c| c["name"] == "Cartinha Especial" }).to be_truthy
+    end
+
+    it "ordena as cartas" do
+      create(:carta, name: "Abacaxi")
+      create(:carta, name: "Zebra")
+      get api_v1_cartas_path, params: { sort: "name" }, headers: headers
+
+      expect(response).to have_http_status(:success)
+      json_response = JSON.parse(response.body)
+      expect(json_response["data"]["cartas"].first["name"]).to eq("Abacaxi")
+    end
   end
 
   describe "GET /api/v1/cartas/:id" do
