@@ -4,6 +4,22 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 - Interactions with the user should preferably be in Brazilian Portuguese.
 
+## Architecture & Structure
+
+- **`src/app/core`**: Must contain pages, services, guards, interceptors, and components related to the main application logic and administrative area.
+- **`src/app/features`**: Must contain the application's domain features.
+- **`src/styles`**: Must contain custom SCSS files.
+
+## UI & Styling
+
+- Use **PrimeNG v20** components.
+- Use **Tailwind CSS** classes for layout and styling.
+- Use **tailwindcss-primeui** for PrimeNG and Tailwind integration.
+
+## Naming Conventions
+
+- Names of components, services, guards, and other Angular resources should preferably be in **Brazilian Portuguese**.
+
 ## TypeScript Best Practices
 
 - Use strict type checking
