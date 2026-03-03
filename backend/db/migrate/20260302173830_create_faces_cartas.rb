@@ -8,7 +8,7 @@ class CreateFacesCartas < ActiveRecord::Migration[8.0]
       t.string :type_line
       t.string :mana_cost
       t.jsonb :colors
-      t.string :name, null: false
+      t.string :name
       t.text :oracle_text
       t.jsonb :image_uris
       t.string :illustration_id

@@ -16,18 +16,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_181843) do
 
   create_table "cartas", force: :cascade do |t|
     t.string "scryfall_id", null: false
-    t.string "oracle_id", null: false
+    t.string "oracle_id"
     t.string "power"
     t.string "toughness"
     t.string "mana_cost"
-    t.string "set", null: false
-    t.string "collector_number", null: false
+    t.string "set"
+    t.string "collector_number"
     t.string "lang", null: false
     t.jsonb "colors"
     t.jsonb "color_identity"
     t.jsonb "color_indicator"
-    t.string "name", null: false
-    t.string "type_line", null: false
+    t.string "name"
+    t.string "type_line"
     t.text "oracle_text"
     t.jsonb "image_uris"
     t.datetime "created_at", null: false
@@ -45,7 +45,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_02_181843) do
     t.string "type_line"
     t.string "mana_cost"
     t.jsonb "colors"
-    t.string "name", null: false
+    t.string "name"
     t.text "oracle_text"
     t.jsonb "image_uris"
     t.string "illustration_id"
