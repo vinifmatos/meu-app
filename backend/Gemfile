@@ -14,6 +14,7 @@ gem "thruster", require: false
 gem "rack-cors"
 gem "rails-i18n", "~> 8.0.0"
 gem "http"
+gem "yajl-ffi", require: "yajl/ffi"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -21,6 +22,8 @@ group :development, :test do
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
   gem "pry-rails"
+  gem "rspec-rails", "~> 8.0.0"
+  gem "factory_bot_rails"
+  gem "faker"
+  gem "shoulda-matchers"
 end
-  # gem "yajl-ruby", require: "yajl"
-  gem "yajl-ffi", require: "yajl/ffi"
