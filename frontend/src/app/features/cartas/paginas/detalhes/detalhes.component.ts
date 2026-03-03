@@ -9,6 +9,7 @@ import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
+import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
 
 @Component({
   selector: 'app-detalhes',
@@ -22,7 +23,8 @@ import { FormsModule } from '@angular/forms';
     CardModule,
     DividerModule,
     SelectModule,
-    FormsModule
+    FormsModule,
+    SimbolosPipe
   ],
   template: `
     <div class="container mx-auto p-4 max-w-6xl">
@@ -80,14 +82,14 @@ import { FormsModule } from '@angular/forms';
                   <span class="text-xl font-medium text-surface-600 dark:text-surface-400">{{ carta.typeLine }}</span>
                 </div>
                 @if (carta.manaCost) {
-                  <span class="text-2xl font-bold">{{ carta.manaCost }}</span>
+                  <div class="text-2xl font-bold bg-surface-100 dark:bg-surface-800 px-4 py-2 rounded-full border border-surface-200 dark:border-surface-700 shadow-sm flex items-center justify-center" [innerHTML]="carta.manaCost | simbolos"></div>
                 }
               </div>
 
               <p-divider></p-divider>
 
-              <div class="bg-surface-50 dark:bg-surface-900 p-6 rounded-lg border border-surface-200 dark:border-surface-700 italic whitespace-pre-wrap leading-relaxed text-lg">
-                {{ carta.oracleText || 'Sem texto de regras.' }}
+              <div class="bg-surface-50 dark:bg-surface-900 p-6 rounded-lg border border-surface-200 dark:border-surface-700 italic whitespace-pre-wrap leading-relaxed text-lg"
+                   [innerHTML]="(carta.oracleText || 'Sem texto de regras.') | simbolos">
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
@@ -178,7 +180,6 @@ export class DetalhesComponent implements OnInit {
   }
 
   aoMudarIdioma(): void {
-    // Ao mudar o idioma, recarregamos a carta atual (que filtrará as versões por esse idioma)
     if (this.carta()) {
       this.carregarDadosCarta(this.carta()!.id);
     }

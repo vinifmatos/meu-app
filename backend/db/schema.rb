@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_03_213134) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_03_215403) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -36,6 +36,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_03_213134) do
     t.string "rarity"
     t.string "printed_name"
     t.string "printed_type_line"
+    t.text "printed_text"
     t.index ["lang"], name: "index_cartas_on_lang"
     t.index ["oracle_id"], name: "index_cartas_on_oracle_id"
     t.index ["scryfall_id"], name: "index_cartas_on_scryfall_id", unique: true
@@ -55,6 +56,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_03_213134) do
     t.string "illustration_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "printed_name"
+    t.string "printed_type_line"
+    t.text "printed_text"
     t.index ["carta_id", "face", "illustration_id"], name: "index_faces_cartas_on_carta_id_and_face_and_illustration_id", unique: true
     t.index ["carta_id"], name: "index_faces_cartas_on_carta_id"
     t.index ["face"], name: "index_faces_cartas_on_face"

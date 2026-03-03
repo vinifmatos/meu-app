@@ -112,7 +112,12 @@ import { SelectModule } from 'primeng/select';
       </p-dataView>
     </div>
   `,
-  styles: [`:host { display: block; width: 100%; }`],
+  styles: [`
+    :host { display: block; width: 100%; }
+    :host ::ng-deep .p-dataview-content {
+      padding: 1.5rem; /* gap-6 do tailwind em todos os lados */
+    }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListagemComponent implements OnInit {

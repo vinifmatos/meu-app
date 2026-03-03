@@ -26,7 +26,7 @@ export class MenuComponent {
         },
         {
           label: 'Cartas',
-          icon: 'pi pi-search',
+          icon: 'pi pi-objects-column',
           routerLink: '/cartas',
         },
       ],

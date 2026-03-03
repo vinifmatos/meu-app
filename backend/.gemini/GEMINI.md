@@ -33,6 +33,7 @@ You are an expert in Ruby on Rails API and building scalable, performant, and ma
 ## Testing (RSpec)
 
 - ALWAYS create or update tests for any new feature, bug fix, or endpoint.
+- ALWAYS run related tests after any code change to ensure no regressions were introduced.
 - Write tests that are clear, concise, and easy to understand.
 - **Prefer Request specs** over Controller specs for testing the API.
 - Use `let` and `let!` to set up test data.

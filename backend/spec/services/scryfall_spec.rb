@@ -1,11 +1,11 @@
 require "rails_helper"
 
-RSpec.describe Scryfall::CardsJsonParser do
-  let(:parser) { Scryfall::CardsJsonParser.new }
-  let(:batch_size) { Scryfall::CardsJsonParser::BATCH_SIZE }
+RSpec.describe Scryfall::ParserCartasJson do
+  let(:parser) { Scryfall::ParserCartasJson.new }
+  let(:tamanho_lote) { Scryfall::ParserCartasJson::BATCH_SIZE }
 
   describe "#<<" do
-    it "acumula cartas no batch e as importa quando o tamanho do lote é atingido" do
+    it "acumula cartas no lote e as importa quando o tamanho do lote é atingido" do
       # Criamos um JSON com 2 cartas e um array raiz
       json_data = [
         { id: "1", name: "Carta 1", image_uris: { small: "url1" } },
@@ -13,12 +13,12 @@ RSpec.describe Scryfall::CardsJsonParser do
       ].to_json
 
       # Mock do método de importação para verificar se é chamado
-      expect(Carta).to receive(:import_from_scryfall).once do |batch|
-        expect(batch.size).to eq(2)
-        expect(batch[0]["name"]).to eq("Carta 1")
-        expect(batch[0]["image_uris"]["small"]).to eq("url1")
-        expect(batch[1]["name"]).to eq("Carta 2")
-        expect(batch[1]["colors"]).to eq([ "W", "U" ])
+      expect(Carta).to receive(:import_from_scryfall).once do |lote|
+        expect(lote.size).to eq(2)
+        expect(lote[0]["name"]).to eq("Carta 1")
+        expect(lote[0]["image_uris"]["small"]).to eq("url1")
+        expect(lote[1]["name"]).to eq("Carta 2")
+        expect(lote[1]["colors"]).to eq([ "W", "U" ])
       end
 
       # Simulamos a leitura em chunks pequenos
@@ -29,7 +29,7 @@ RSpec.describe Scryfall::CardsJsonParser do
       parser.finish!
     end
 
-    it "limpa a stack após cada objeto raiz (carta) ser processado" do
+    it "limpa a pilha (stack) após cada objeto raiz (carta) ser processado" do
       json_data = [ { id: "1", name: "Carta 1" } ].to_json
 
       # Forçamos a importação para garantir que o processo ocorreu

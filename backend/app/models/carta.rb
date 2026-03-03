@@ -24,7 +24,8 @@ class Carta < ApplicationRecord
         released_at: card_data["released_at"],
         rarity: card_data["rarity"],
         printed_name: card_data["printed_name"],
-        printed_type_line: card_data["printed_type_line"]
+        printed_type_line: card_data["printed_type_line"],
+        printed_text: card_data["printed_text"]
       }
     end
 
@@ -55,7 +56,10 @@ class Carta < ApplicationRecord
           type_line: face_data["type_line"],
           oracle_text: face_data["oracle_text"],
           image_uris: face_data["image_uris"],
-          illustration_id: face_data["illustration_id"]
+          illustration_id: face_data["illustration_id"],
+          printed_name: face_data["printed_name"],
+          printed_type_line: face_data["printed_type_line"],
+          printed_text: face_data["printed_text"]
         }
       end
     end.compact
@@ -69,5 +73,9 @@ class Carta < ApplicationRecord
 
   def tipo_exibicao
     printed_type_line || type_line
+  end
+
+  def texto_exibicao
+    printed_text || oracle_text
   end
 end

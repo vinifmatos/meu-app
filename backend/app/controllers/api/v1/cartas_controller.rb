@@ -26,7 +26,7 @@ module Api
         end
 
         @cartas = Carta.from("(#{@cartas.to_sql}) AS cartas")
-                       .order(params[:sort] || :name)
+                       .order(Arel.sql("COALESCE(cartas.printed_name, cartas.name) ASC"))
                        .page(params[:page])
                        .per(params[:per_page] || 20)
 

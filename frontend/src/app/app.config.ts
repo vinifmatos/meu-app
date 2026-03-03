@@ -21,6 +21,7 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { routes } from './app.routes';
 import { erroInterceptor } from '@core/interceptores/erro.interceptor';
 import { ConfiguracaoService } from '@core/servicos/configuracao.service';
+import { SimbolosService } from '@core/servicos/simbolos.service';
 
 registerLocaleData(localePt, 'pt-BR');
 
@@ -50,11 +51,16 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     { provide: LOCALE_ID, useValue: 'pt-BR' },
     ConfiguracaoService,
+    SimbolosService,
     {
       provide: APP_INITIALIZER,
       useFactory: () => {
         const config = inject(ConfiguracaoService);
-        return () => config.carregar();
+        const simbolos = inject(SimbolosService);
+        return async () => {
+          await config.carregar();
+          await simbolos.carregarSimbolos();
+        };
       },
       multi: true,
     },
