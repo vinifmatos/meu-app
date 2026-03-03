@@ -12,5 +12,9 @@ export const routes: Routes = [
   {
     path: 'cartas',
     loadComponent: () => import('./features/cartas/paginas/listagem/listagem.component').then(m => m.ListagemComponent)
+  },
+  {
+    path: 'cartas/:id',
+    loadComponent: () => import('./features/cartas/paginas/detalhes/detalhes.component').then(m => m.DetalhesComponent)
   }
 ];

@@ -1,10 +1,10 @@
+json.id carta.id
+json.scryfall_id carta.scryfall_id
+json.oracle_id carta.oracle_id
+json.name carta.nome_exibicao
+json.type_line carta.tipo_exibicao
 json.call(
   carta,
-  :id,
-  :scryfall_id,
-  :oracle_id,
-  :name,
-  :type_line,
   :mana_cost,
   :oracle_text,
   :power,

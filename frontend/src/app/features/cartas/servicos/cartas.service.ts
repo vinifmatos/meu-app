@@ -26,10 +26,15 @@ export class CartasService {
       query['filters']['set'] = filtros.edicao;
     }
 
+    if (filtros.idioma) {
+      query['filters']['lang'] = filtros.idioma;
+    }
+
     return from(this.api.get<{ cartas: Carta[], pagination: Paginacao }>(this.endpoint, { query }));
   }
 
-  obterCarta(id: number): Observable<ApiResposta<{ carta: Carta }>> {
-    return from(this.api.get<{ carta: Carta }>(`${this.endpoint}/${id}`));
+  obterCarta(id: number, idioma?: string): Observable<ApiResposta<{ carta: Carta, versoes: Carta[], idiomasDisponiveis: string[] }>> {
+    const query = idioma ? { idioma } : {};
+    return from(this.api.get<{ carta: Carta, versoes: Carta[], idiomasDisponiveis: string[] }>(`${this.endpoint}/${id}`, { query }));
   }
 }

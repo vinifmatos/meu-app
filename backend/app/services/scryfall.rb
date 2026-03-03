@@ -6,7 +6,7 @@ module Scryfall
       @client = HTTP.use(:auto_inflate).headers("Accept" => "application/json")
     end
 
-    def download_symbols
+    def baixar_simbolos
       response = @client.get("#{BASE_URL}/symbology")
 
       if response.status.success?
@@ -18,35 +18,35 @@ module Scryfall
       raise ApiError, "Erro ao baixar o arquivo dos simbolos: #{e.message}"
     end
 
-    def download_all_cards(force: false)
-      bulk_data = latest_bulk_data
+    def baixar_todas_cartas(force: false)
+      bulk_data = ultimo_bulk_data
       return unless bulk_data && bulk_data["download_uri"]
 
-      fazer_download = bulk_file_outdated?(bulk_data["updated_at"]) ||
-        bulk_file_corrupted? ||
-        force
-      return bulk_file_path unless fazer_download
+      fazer_download = arquivo_bulk_desatualizado?(bulk_data["updated_at"]) ||
+                       arquivo_bulk_corrompido? ||
+                       force
+      return caminho_arquivo_bulk unless fazer_download
 
-      download_bulk_to_file(bulk_data["download_uri"])
+      baixar_bulk_para_arquivo(bulk_data["download_uri"])
     rescue StandardError => e
       raise ApiError, "Erro ao baixar o arquivo do bulk data: #{e.message}"
     end
 
     private
 
-    def bulk_file_path
+    def caminho_arquivo_bulk
       Rails.root.join("tmp", "scryfall", "all_cards.json")
     end
 
-    def ensure_bulk_directory
-      FileUtils.mkdir_p(File.dirname(bulk_file_path))
+    def garantir_diretorio_bulk
+      FileUtils.mkdir_p(File.dirname(caminho_arquivo_bulk))
     end
 
-    def bulk_file_exists?
-      File.exist?(bulk_file_path)
+    def arquivo_bulk_existe?
+      File.exist?(caminho_arquivo_bulk)
     end
 
-    def latest_bulk_data
+    def ultimo_bulk_data
       response = @client.get("#{BASE_URL}/bulk-data/all_cards")
 
       if response.status.success?
@@ -56,8 +56,8 @@ module Scryfall
       end
     end
 
-    def download_bulk_to_file(download_uri)
-      ensure_bulk_directory
+    def baixar_bulk_para_arquivo(download_uri)
+      garantir_diretorio_bulk
 
       response = @client.get(download_uri)
 
@@ -65,41 +65,41 @@ module Scryfall
         raise ApiError, "Failed to download bulk data"
       end
 
-      File.open("#{bulk_file_path}.lock", "w") do |lock|
+      File.open("#{caminho_arquivo_bulk}.lock", "w") do |lock|
         lock.flock(File::LOCK_EX)
 
         # verifica novamente depois de pegar o lock
-        return bulk_file_path if bulk_file_exists?
+        return caminho_arquivo_bulk if arquivo_bulk_existe?
 
-        File.open(bulk_file_path, "wb") do |file|
+        File.open(caminho_arquivo_bulk, "wb") do |file|
           response.body.each do |chunk|
             file.write(chunk)
           end
         end
       end
 
-      bulk_file_path
+      caminho_arquivo_bulk
     end
 
-    def bulk_file_outdated?(updated_at)
-      return true unless bulk_file_exists?
+    def arquivo_bulk_desatualizado?(updated_at)
+      return true unless arquivo_bulk_existe?
 
       remote_time = Time.zone.parse(updated_at)
-      File.mtime(bulk_file_path) < remote_time
+      File.mtime(caminho_arquivo_bulk) < remote_time
     end
 
-    def bulk_file_corrupted?
-      return false unless bulk_file_exists?
+    def arquivo_bulk_corrompido?
+      return false unless arquivo_bulk_existe?
 
-      corrupted = File.size(bulk_file_path) < 2.gigabytes
-      File.delete(bulk_file_path) if corrupted
+      corrupted = File.size(caminho_arquivo_bulk) < 2.gigabytes
+      File.delete(caminho_arquivo_bulk) if corrupted
 
       corrupted
     end
   end
 
-  class CardsJsonParser
-    BATCH_SIZE = 500
+  class ParserCartasJson
+    BATCH_SIZE = Rails.env.production? ? 5000 : 10000
 
     def initialize
       @parser = Yajl::FFI::Parser.new
@@ -158,7 +158,7 @@ module Scryfall
     end
 
     def finish!
-      import_batch if @batch.any?
+      importar_lote if @batch.any?
     end
 
     private
@@ -169,10 +169,10 @@ module Scryfall
       return unless item.is_a?(Hash) && item.any?
 
       @batch << item
-      import_batch if @batch.size >= BATCH_SIZE
+      importar_lote if @batch.size >= BATCH_SIZE
     end
 
-    def import_batch
+    def importar_lote
       Carta.import_from_scryfall(@batch)
       @batch.clear
     end
@@ -191,30 +191,30 @@ module Scryfall
     end
   end
 
-  class Importer
-    def self.import
-      Importer.new.import!
+  class Importador
+    def self.importar
+      Importador.new.importar!
     end
 
-    def self.import!
-      Importer.new.import!
+    def self.importar!
+      Importador.new.importar!
     end
 
-    def import!
-      import(force: true)
+    def importar!
+      importar_dados(force: true)
     end
 
-    def import(force: false)
+    def importar_dados(force: false)
       api = Api.new
 
-      import_symbols(api)
-      import_cards(api, force: force)
+      importar_simbolos(api)
+      importar_cartas(api, force: force)
 
       nil
     end
 
-    def import_symbols(api)
-      symbols_data = api.download_symbols
+    def importar_simbolos(api)
+      symbols_data = api.baixar_simbolos
       Simbolo.import_from_scryfall(symbols_data)
     rescue StandardError => e
       raise e if Rails.env.development?
@@ -222,9 +222,9 @@ module Scryfall
       raise ImportError, "Erro ao importar os simbolos: #{e.message}"
     end
 
-    def import_cards(api, force: false)
-      file_path = api.download_all_cards(force: force)
-      parser = CardsJsonParser.new
+    def importar_cartas(api, force: false)
+      file_path = api.baixar_todas_cartas(force: force)
+      parser = ParserCartasJson.new
 
       File.open(file_path, "rb") do |file|
         while chunk = file.read(16 * 1024)

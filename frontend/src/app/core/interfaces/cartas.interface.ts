@@ -14,6 +14,8 @@ export interface Carta {
   set: string;
   collectorNumber: string;
   lang: string;
+  releasedAt: string;
+  rarity: string;
   imageUris: {
     small: string;
     normal: string;

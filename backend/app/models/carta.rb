@@ -20,7 +20,11 @@ class Carta < ApplicationRecord
         name: card_data["name"],
         type_line: card_data["type_line"],
         oracle_text: card_data["oracle_text"],
-        image_uris: card_data["image_uris"]
+        image_uris: card_data["image_uris"],
+        released_at: card_data["released_at"],
+        rarity: card_data["rarity"],
+        printed_name: card_data["printed_name"],
+        printed_type_line: card_data["printed_type_line"]
       }
     end
 
@@ -57,5 +61,13 @@ class Carta < ApplicationRecord
     end.compact
 
     FaceCarta.upsert_all(faces_attributes, unique_by: [ :carta_id, :face, :illustration_id ]) if faces_attributes.any?
+  end
+
+  def nome_exibicao
+    printed_name || name
+  end
+
+  def tipo_exibicao
+    printed_type_line || type_line
   end
 end

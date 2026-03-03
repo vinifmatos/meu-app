@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { CartasService } from '@features/cartas/servicos/cartas.service';
 import { Carta, Paginacao } from '@core/interfaces/cartas.interface';
 import { DataViewModule } from 'primeng/dataview';
@@ -7,10 +8,13 @@ import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms';
-import { NgOptimizedImage } from '@angular/common';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-listagem',
+  standalone: true,
   imports: [
     CommonModule, 
     DataViewModule, 
@@ -18,23 +22,43 @@ import { NgOptimizedImage } from '@angular/common';
     InputTextModule, 
     ButtonModule, 
     FormsModule,
-    NgOptimizedImage
+    NgOptimizedImage,
+    RouterLink,
+    IconFieldModule,
+    InputIconModule,
+    SelectModule
   ],
   template: `
     <div class="card p-4">
-      <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <h2 class="text-2xl font-bold">Listagem de Cartas</h2>
-        <span class="p-input-icon-left w-full md:w-auto">
-          <i class="pi pi-search"></i>
-          <input 
-            type="text" 
-            pInputText 
-            placeholder="Buscar por nome..." 
-            [(ngModel)]="filtroNome" 
-            (keyup.enter)="buscar()" 
-            class="w-full"
-          />
-        </span>
+      <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
+        <div class="flex flex-col">
+          <h2 class="text-3xl font-extrabold text-surface-900 dark:text-surface-0">Explorar Cartas</h2>
+          <p class="text-surface-500 dark:text-surface-400">Encontre as melhores versões das suas cartas favoritas.</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <p-select 
+            [options]="opcoesIdiomas" 
+            [(ngModel)]="idiomaSelecionado" 
+            (onChange)="buscar()"
+            optionLabel="label" 
+            optionValue="value"
+            placeholder="Idioma"
+            class="w-full sm:w-44"
+          ></p-select>
+
+          <p-iconField iconPosition="left" class="w-full md:w-80">
+            <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+            <input 
+              type="text" 
+              pInputText 
+              placeholder="Buscar por nome..." 
+              [(ngModel)]="filtroNome" 
+              (keyup.enter)="buscar()" 
+              class="w-full h-12 shadow-sm"
+            />
+          </p-iconField>
+        </div>
       </div>
 
       <p-dataView 
@@ -43,13 +67,17 @@ import { NgOptimizedImage } from '@angular/common';
         [rows]="20" 
         [lazy]="true" 
         [totalRecords]="totalItems()"
+        [first]="first"
         (onLazyLoad)="onPageChange($event)"
         layout="grid"
       >
         <ng-template #grid let-cartas>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            <div *ngFor="let carta of cartas; let i = index" class="p-4 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-lg shadow-sm flex flex-col items-center">
-              <div class="relative w-full aspect-[2.5/3.5] mb-4 overflow-hidden rounded-md shadow-md">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div *ngFor="let carta of cartas; let i = index" 
+                 [routerLink]="['/cartas', carta.id]"
+                 class="group p-4 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-xl shadow-sm flex flex-col items-center cursor-pointer hover:border-primary-500 hover:shadow-xl transition-all duration-300">
+              
+              <div class="relative w-full aspect-[2.5/3.5] mb-4 overflow-hidden rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300">
                 <img 
                   [ngSrc]="obterImagemCarta(carta)" 
                   [alt]="carta.name" 
@@ -58,75 +86,139 @@ import { NgOptimizedImage } from '@angular/common';
                   class="object-cover"
                 />
               </div>
+
               <div class="text-center w-full">
-                <div class="text-lg font-semibold mb-1 truncate" [title]="carta.name">{{ carta.name }}</div>
-                <div class="text-sm text-surface-500 mb-2">{{ carta.typeLine }}</div>
-                <p-tag [value]="carta.set" severity="secondary"></p-tag>
+                <div class="text-lg font-bold mb-1 truncate text-surface-900 dark:text-surface-0" [title]="carta.name">
+                  {{ carta.name }}
+                </div>
+                <div class="text-sm text-surface-500 mb-3 truncate">{{ carta.typeLine }}</div>
+                
+                <div class="flex justify-center gap-2 flex-wrap">
+                  <p-tag [value]="carta.set.toUpperCase()" severity="secondary" styleClass="px-2"></p-tag>
+                  <p-tag [value]="obterRaridadeTraduzida(carta.rarity)" [severity]="obterRaridadeSeverity(carta.rarity)"></p-tag>
+                </div>
               </div>
             </div>
           </div>
         </ng-template>
 
         <ng-template #empty>
-          <div class="flex flex-col items-center justify-center p-12 text-surface-500">
-            <i class="pi pi-search text-5xl mb-4"></i>
-            <span class="text-xl">Nenhuma carta encontrada</span>
+          <div class="flex flex-col items-center justify-center p-20 text-surface-400">
+            <i class="pi pi-search text-6xl mb-4 opacity-20"></i>
+            <span class="text-2xl font-medium">Nenhuma carta encontrada</span>
+            <p>Tente ajustar os termos da sua busca ou trocar o idioma.</p>
           </div>
         </ng-template>
       </p-dataView>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-      width: 100%;
-    }
-  `],
+  styles: [`:host { display: block; width: 100%; }`],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListagemComponent implements OnInit {
   private readonly cartasService = inject(CartasService);
+  private readonly STORAGE_KEY = 'deckbuilder_filtros_cartas';
 
-  // Estados com Signals
   cartas = signal<Carta[]>([]);
   paginacao = signal<Paginacao | null>(null);
+  
   filtroNome = '';
+  idiomaSelecionado = 'en';
+  paginaAtual = 1;
+  first = 0;
+
+  opcoesIdiomas = [
+    { label: 'Inglês (EN)', value: 'en' },
+    { label: 'Português (PT)', value: 'pt' },
+    { label: 'Espanhol (ES)', value: 'es' },
+    { label: 'Francês (FR)', value: 'fr' },
+    { label: 'Alemão (DE)', value: 'de' },
+    { label: 'Italiano (IT)', value: 'it' },
+    { label: 'Japonês (JA)', value: 'ja' },
+    { label: 'Coreano (KO)', value: 'ko' },
+    { label: 'Chinês (ZH)', value: 'zhs' }
+  ];
   
   totalItems = computed(() => this.paginacao()?.totalCount || 0);
 
   ngOnInit(): void {
+    this.carregarFiltrosSalvos();
     this.carregarCartas();
   }
 
-  carregarCartas(pagina: number = 1): void {
-    this.cartasService.obterCartas(pagina, 20, { nome: this.filtroNome }).subscribe({
+  carregarCartas(): void {
+    const filtros = { 
+      nome: this.filtroNome,
+      idioma: this.idiomaSelecionado
+    };
+
+    this.cartasService.obterCartas(this.paginaAtual, 20, filtros).subscribe({
       next: (resposta) => {
         if (resposta.data) {
           this.cartas.set(resposta.data.cartas);
           this.paginacao.set(resposta.data.pagination);
+          this.salvarFiltros();
         }
       }
     });
   }
 
   buscar(): void {
-    this.carregarCartas(1);
+    this.paginaAtual = 1;
+    this.first = 0;
+    this.carregarCartas();
   }
 
   onPageChange(event: any): void {
-    const pagina = (event.first / event.rows) + 1;
-    this.carregarCartas(pagina);
+    this.paginaAtual = (event.first / event.rows) + 1;
+    this.first = event.first;
+    this.carregarCartas();
+  }
+
+  private carregarFiltrosSalvos(): void {
+    const salvos = localStorage.getItem(this.STORAGE_KEY);
+    if (salvos) {
+      try {
+        const filtros = JSON.parse(salvos);
+        this.filtroNome = filtros.nome || '';
+        this.idiomaSelecionado = filtros.idioma || 'en';
+        this.paginaAtual = filtros.pagina || 1;
+        this.first = (this.paginaAtual - 1) * 20;
+      } catch (e) {
+        console.error('Erro ao carregar filtros salvos', e);
+      }
+    }
+  }
+
+  private salvarFiltros(): void {
+    const dados = {
+      nome: this.filtroNome,
+      idioma: this.idiomaSelecionado,
+      pagina: this.paginaAtual
+    };
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dados));
   }
 
   obterImagemCarta(carta: Carta): string {
-    if (carta.imageUris?.normal) {
-      return carta.imageUris.normal;
-    }
-    
-    if (carta.faces?.length > 0 && carta.faces[0].imageUris?.normal) {
-      return carta.faces[0].imageUris.normal;
-    }
+    if (carta.imageUris?.normal) return carta.imageUris.normal;
+    if (carta.faces?.length > 0 && carta.faces[0].imageUris?.normal) return carta.faces[0].imageUris.normal;
+    return 'assets/images/placeholder-card.jpg';
+  }
 
-    return 'assets/images/placeholder-card.jpg'; // Placeholder caso não tenha imagem
+  obterRaridadeTraduzida(raridade: string): string {
+    const mapa: Record<string, string> = {
+      'common': 'Comum', 'uncommon': 'Incomum', 'rare': 'Rara', 'mythic': 'Mítica'
+    };
+    return mapa[raridade] || raridade;
+  }
+
+  obterRaridadeSeverity(raridade: string): "secondary" | "info" | "success" | "warn" | "danger" | "contrast" | undefined {
+    switch (raridade) {
+      case 'common': return 'secondary';
+      case 'uncommon': return 'info';
+      case 'rare': return 'warn';
+      case 'mythic': return 'danger';
+      default: return 'secondary';
+    }
   }
 }
