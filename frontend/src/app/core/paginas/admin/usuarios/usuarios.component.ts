@@ -1,51 +1,51 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ApiValidationError } from '@core/interfaces/api-response';
+import { ApiResposta } from '@core/interfaces/api-resposta.interface';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { DialogService, DynamicDialogModule, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TableModule } from 'primeng/table';
-import { UsuarioForm } from './components/usuario-form/usuario-form';
+import { UsuarioFormularioComponent } from './componentes/usuario-formulario/usuario-formulario.component';
 import { IUsuario } from './usuario.interface';
 import { UsuariosService } from './usuarios.service';
 
 @Component({
   selector: 'app-usuarios',
   imports: [TableModule, ButtonModule, DynamicDialogModule, ConfirmPopupModule],
-  templateUrl: './usuarios.html',
-  styleUrl: './usuarios.scss',
+  templateUrl: './usuarios.component.html',
+  styleUrl: './usuarios.component.scss',
 })
-export class Usuarios implements OnInit {
-  private service = inject(UsuariosService);
+export class UsuariosComponent implements OnInit {
+  private servico = inject(UsuariosService);
   usuarios: IUsuario[] = [];
   private dialogService = inject(DialogService);
   private dialogRef: DynamicDialogRef | null = null;
-  private confimationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
+  private confirmacaoService = inject(ConfirmationService);
+  private mensagemService = inject(MessageService);
 
   ngOnInit() {
-    this.refreshUsuarios();
+    this.atualizarUsuarios();
   }
 
-  openDialog(usuario?: IUsuario) {
-    this.dialogRef = this.dialogService.open(UsuarioForm, {
+  abrirDialogo(usuario?: IUsuario) {
+    this.dialogRef = this.dialogService.open(UsuarioFormularioComponent, {
       header: usuario ? 'Editar Usuário' : 'Novo Usuário',
       width: '50%',
       data: { usuario },
     });
 
     if (this.dialogRef) {
-      this.dialogRef.onClose.subscribe((result) => {
-        if (result) {
-          this.refreshUsuarios();
+      this.dialogRef.onClose.subscribe((resultado) => {
+        if (resultado) {
+          this.atualizarUsuarios();
         }
       });
     }
   }
 
-  async excluirUsuario(e: Event, usuario: IUsuario) {
-    this.confimationService.confirm({
-      target: e.currentTarget as EventTarget,
+  async excluirUsuario(evento: Event, usuario: IUsuario) {
+    this.confirmacaoService.confirm({
+      target: evento.currentTarget as EventTarget,
       message: 'Tem certeza que deseja excluir este usuário?',
       header: 'Confirmação',
       icon: 'pi pi-exclamation-triangle',
@@ -53,27 +53,27 @@ export class Usuarios implements OnInit {
       acceptButtonProps: { severity: 'danger' },
       accept: async () => {
         try {
-          await this.service.deletarUsuario(usuario.id);
-          this.refreshUsuarios();
-          this.messageService.add({
+          await this.servico.deletarUsuario(usuario.id);
+          this.atualizarUsuarios();
+          this.mensagemService.add({
             severity: 'success',
             summary: 'Sucesso',
             detail: 'Usuário excluído com sucesso',
           });
-        } catch (e: any) {
-          if (e instanceof ErrorEvent) {
-            this.messageService.add({
+        } catch (erro: any) {
+          if (erro instanceof ErrorEvent) {
+            this.mensagemService.add({
               severity: 'error',
               summary: 'Erro',
-              detail: `Ocorreu um erro de rede: ${e.message}`,
+              detail: `Ocorreu um erro de rede: ${erro.message}`,
             });
             return;
           }
 
-          if (e.status === 422) {
-            const err = e.error as ApiValidationError;
+          if (erro.status === 422) {
+            const err = erro.error as ApiResposta<unknown>;
 
-            this.messageService.add({
+            this.mensagemService.add({
               severity: 'warn',
               summary: 'Atenção',
               detail: err.message ?? 'Não foi possível excluir o usuário',
@@ -84,7 +84,7 @@ export class Usuarios implements OnInit {
     });
   }
 
-  private async refreshUsuarios() {
-    this.usuarios = await this.service.getUsuarios();
+  private async atualizarUsuarios() {
+    this.usuarios = await this.servico.getUsuarios();
   }
 }

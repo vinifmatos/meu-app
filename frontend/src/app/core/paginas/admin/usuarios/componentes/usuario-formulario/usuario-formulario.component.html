@@ -1,0 +1,43 @@
+<form [formGroup]="formulario" (ngSubmit)="salvar()" class="flex flex-col gap-4 p-4">
+  <div class="flex flex-col gap-2">
+    <label for="nome" class="font-bold">Nome</label>
+    <input pInputText id="nome" formControlName="nome" (input)="limparErro('nome')" />
+    @if (erros['nome']) {
+      <p-message severity="error" [text]="erros['nome'].join(', ')"></p-message>
+    }
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label for="username" class="font-bold">Usuário (Login)</label>
+    <input pInputText id="username" formControlName="username" (input)="limparErro('username')" />
+    @if (erros['username']) {
+      <p-message severity="error" [text]="erros['username'].join(', ')"></p-message>
+    }
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label for="role" class="font-bold">Perfil</label>
+    <p-select id="role" [options]="perfis" formControlName="role" optionLabel="label" optionValue="value" class="w-full"></p-select>
+    @if (erros['role']) {
+      <p-message severity="error" [text]="erros['role'].join(', ')"></p-message>
+    }
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label for="password" class="font-bold">Senha</label>
+    <p-password id="password" formControlName="password" [toggleMask]="true" (input)="limparErro('password')"></p-password>
+    @if (erros['password']) {
+      <p-message severity="error" [text]="erros['password'].join(', ')"></p-message>
+    }
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label for="passwordConfirmation" class="font-bold">Confirmar Senha</label>
+    <p-password id="passwordConfirmation" formControlName="passwordConfirmation" [toggleMask]="true" [feedback]="false"></p-password>
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4">
+    <p-button label="Cancelar" severity="secondary" (click)="fechar()"></p-button>
+    <p-button [label]="ehNovo ? 'Criar' : 'Salvar'" type="submit"></p-button>
+  </div>
+</form>

@@ -1,6 +1,6 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ApiValidationError } from '@core/interfaces/api-response';
+import { ApiResposta } from '@core/interfaces/api-resposta.interface';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogService, DynamicDialog, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -12,7 +12,8 @@ import { IUsuario } from '../../usuario.interface';
 import { UsuariosService } from '../../usuarios.service';
 
 @Component({
-  selector: 'app-usuario-form',
+  selector: 'app-usuario-formulario',
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     ButtonModule,
@@ -21,32 +22,33 @@ import { UsuariosService } from '../../usuarios.service';
     SelectModule,
     MessageModule,
   ],
-  templateUrl: './usuario-form.html',
-  styleUrl: './usuario-form.scss',
+  templateUrl: './usuario-formulario.component.html',
+  styleUrl: './usuario-formulario.component.scss',
 })
-export class UsuarioForm implements OnInit, OnDestroy {
-  private dialogService = inject(DialogService);
-  private service = inject(UsuariosService);
-  private instance?: DynamicDialog;
+export class UsuarioFormularioComponent implements OnInit, OnDestroy {
+  private servicoDialogo = inject(DialogService);
+  private servicoUsuarios = inject(UsuariosService);
+  private instancia?: DynamicDialog;
   private ref: DynamicDialogRef = inject(DynamicDialogRef);
   private fb: FormBuilder = inject(FormBuilder);
-  private messageService = inject(MessageService);
-  roles = [
+  private servicoMensagem = inject(MessageService);
+  
+  perfis = [
     { label: 'Administrador', value: 'admin' },
     { label: 'Usuário', value: 'usuario' },
   ];
   usuario?: IUsuario;
-  form!: FormGroup;
-  errors: Record<string, string[]> = {};
+  formulario!: FormGroup;
+  erros: Record<string, string[]> = {};
 
   ngOnInit() {
-    this.instance = this.dialogService.getInstance(this.ref);
+    this.instancia = this.servicoDialogo.getInstance(this.ref);
 
-    if (this.instance && this.instance.data) {
-      this.usuario = this.instance.data['usuario'];
+    if (this.instancia && this.instancia.data) {
+      this.usuario = this.instancia.data['usuario'];
     }
 
-    this.form = this.fb.group({
+    this.formulario = this.fb.group({
       username: [this.usuario?.username ?? ''],
       nome: [this.usuario?.nome ?? ''],
       role: [this.usuario?.role ?? 'usuario'],
@@ -55,50 +57,50 @@ export class UsuarioForm implements OnInit, OnDestroy {
     });
   }
 
-  get isNew() {
+  get ehNovo() {
     return !this.usuario?.id;
   }
 
-  clearError(field: string) {
-    if (this.errors[field]) {
-      delete this.errors[field];
+  limparErro(campo: string) {
+    if (this.erros[campo]) {
+      delete this.erros[campo];
     }
   }
 
-  close() {
+  fechar() {
     this.ref.close();
   }
 
-  async save() {
-    this.errors = {};
+  async salvar() {
+    this.erros = {};
     try {
-      if (this.isNew) {
-        await this.service.criarUsuario(this.form.value);
+      if (this.ehNovo) {
+        await this.servicoUsuarios.criarUsuario(this.formulario.value);
       } else {
-        await this.service.atualizarUsuario(this.usuario!.id, this.form.value);
+        await this.servicoUsuarios.atualizarUsuario(this.usuario!.id, this.formulario.value);
       }
 
-      this.messageService.add({
+      this.servicoMensagem.add({
         severity: 'success',
         summary: 'Sucesso',
-        detail: 'Usuário criado com sucesso',
+        detail: 'Usuário salvo com sucesso',
       });
       this.ref.close(true);
-    } catch (e: any) {
-      if (e instanceof ErrorEvent) {
-        this.messageService.add({
+    } catch (erro: any) {
+      if (erro instanceof ErrorEvent) {
+        this.servicoMensagem.add({
           severity: 'error',
           summary: 'Erro',
-          detail: `Ocorreu um erro de rede: ${e.message}`,
+          detail: `Ocorreu um erro de rede: ${erro.message}`,
         });
         return;
       }
 
-      if (e.status === 422) {
-        const err = e.error as ApiValidationError;
-        this.errors = err.validationErrors;
+      if (erro.status === 422) {
+        const err = erro.error as ApiResposta<unknown>;
+        this.erros = err.validationErrors || {};
 
-        this.messageService.add({
+        this.servicoMensagem.add({
           severity: 'warn',
           summary: 'Atenção',
           detail: err.message ?? 'Não foi possível salvar o usuário',
