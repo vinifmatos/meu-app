@@ -22,6 +22,11 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Names of components, services, guards, and other Angular resources should preferably be in **Brazilian Portuguese**.
 - Use the **Angular naming convention** for files and folders as defined in `angular.json` or the default convention for the project's Angular version (e.g., `folder-name/file-name.component.ts`).
 
+## Documentation
+
+- ALWAYS create or update the documentation in the `docs/` folder for any new feature, API integration, or significant architectural change.
+- Keep documentation up-to-date with current code implementation.
+
 ## TypeScript Best Practices
 
 - Use strict type checking
