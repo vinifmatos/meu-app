@@ -17,6 +17,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use **PrimeNG v20** components.
 - Use **Tailwind CSS** classes for layout and styling.
 - Use **tailwindcss-primeui** for PrimeNG and Tailwind integration.
+- **Surface Classes**: When using PrimeUI surface classes (e.g., `bg-surface`, `text-surface`, `border-surface`), DO NOT use the `dark:` prefix or any numeric suffix (e.g., avoid `bg-surface-0` or `dark:bg-surface-900`). Use only the base semantic classes which will automatically adapt to light and dark modes.
 
 ## Naming Conventions
 

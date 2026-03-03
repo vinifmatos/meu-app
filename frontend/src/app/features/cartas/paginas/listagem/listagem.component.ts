@@ -39,8 +39,8 @@ import { TagModule } from 'primeng/tag';
     <div class="card p-4">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
         <div class="flex flex-col">
-          <h2 class="text-3xl font-extrabold text ">Explorar Cartas</h2>
-          <p class="text ">Encontre as melhores versões das suas cartas favoritas.</p>
+          <h2 class="text-3xl font-extrabold text-surface">Explorar Cartas</h2>
+          <p class="text-surface">Encontre as melhores versões das suas cartas favoritas.</p>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -54,8 +54,7 @@ import { TagModule } from 'primeng/tag';
             class="w-full sm:w-44"
           ></p-select>
 
-          <p-iconField iconPosition="left" class="w-full md:w-80">
-            <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+          <p-iconField class="w-full md:w-80">
             <input
               type="text"
               pInputText
@@ -64,6 +63,7 @@ import { TagModule } from 'primeng/tag';
               (keyup.enter)="buscar()"
               class="w-full h-12 shadow-sm"
             />
+            <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
           </p-iconField>
         </div>
       </div>
@@ -85,7 +85,7 @@ import { TagModule } from 'primeng/tag';
             <div
               *ngFor="let carta of cartas; let i = index"
               [routerLink]="['/cartas', carta.id]"
-              class="group p-4 border border-surface rounded-xl shadow-sm flex flex-col items-center cursor-pointer hover:border-primary-500 hover:shadow-xl transition-all duration-300"
+              class="group p-4 border border-surface bg-surface rounded-xl shadow-sm flex flex-col items-center cursor-pointer hover:border-primary-500 hover:shadow-xl transition-all duration-300"
             >
               <div
                 class="relative w-full aspect-[2.5/3.5] mb-4 overflow-hidden rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300"
@@ -100,10 +100,10 @@ import { TagModule } from 'primeng/tag';
               </div>
 
               <div class="text-center w-full">
-                <div class="text-lg font-bold mb-1 truncate text " [title]="carta.name">
+                <div class="text-lg font-bold mb-1 truncate text-surface" [title]="carta.name">
                   {{ carta.name }}
                 </div>
-                <div class="text-sm text mb-3 truncate">{{ carta.typeLine }}</div>
+                <div class="text-sm text-surface mb-3 truncate">{{ carta.typeLine }}</div>
 
                 <div class="flex justify-center gap-2 flex-wrap">
                   <p-tag
@@ -122,7 +122,7 @@ import { TagModule } from 'primeng/tag';
         </ng-template>
 
         <ng-template #empty>
-          <div class="flex flex-col items-center justify-center p-20 text">
+          <div class="flex flex-col items-center justify-center p-20 text-surface">
             <i class="pi pi-search text-6xl mb-4 opacity-20"></i>
             <span class="text-2xl font-medium">Nenhuma carta encontrada</span>
             <p>Tente ajustar os termos da sua busca ou trocar o idioma.</p>

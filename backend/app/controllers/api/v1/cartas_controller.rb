@@ -4,7 +4,6 @@ module Api
       def index
         idioma = params.dig(:filters, :lang) || "en"
 
-        # Prioridade: Idioma selecionado > Inglês > Outros
         priority_sql = <<~SQL.squish
           CASE
             WHEN lang = #{Carta.connection.quote(idioma)} THEN 1
@@ -17,9 +16,21 @@ module Api
                        .select("DISTINCT ON (cartas.oracle_id) cartas.*, #{priority_sql} AS lang_priority")
                        .order("cartas.oracle_id, lang_priority ASC, cartas.released_at DESC")
 
-        # Filtros Adicionais
+        # Full-Text Search com suporte a prefixo (busca parcial)
         if params.dig(:filters, :name).present?
-          @cartas = @cartas.where("cartas.name ILIKE ?", "%#{params.dig(:filters, :name)}%")
+          termo = params.dig(:filters, :name).strip
+          
+          # Preparamos o termo para busca de prefixo:
+          # "dia do julg" -> "dia & do & julg:*"
+          # Substituímos espaços por ' & ' e adicionamos ':*' ao final de cada palavra
+          query_parcial = termo.split(/\s+/).map { |w| "#{w}:*" }.join(" & ")
+
+          oracle_ids = Carta.where(lang: [idioma, "en"])
+                            .where("search_vector @@ to_tsquery('simple', ?)", query_parcial)
+                            .distinct
+                            .pluck(:oracle_id)
+          
+          @cartas = @cartas.where(oracle_id: oracle_ids)
         end
 
         if params.dig(:filters, :set).present?
@@ -30,15 +41,18 @@ module Api
           @cartas = @cartas.where(oracle_id: params.dig(:filters, :oracle_id))
         end
 
-        # Quando filtramos por oracle_id e set especificamente, queremos o registro exato, 
-        # ignorando o DISTINCT ON da listagem geral se necessário.
+        # Filtro exato por oracle_id e set
         if params.dig(:filters, :oracle_id).present? && params.dig(:filters, :set).present?
-           @cartas = Carta.includes(:faces)
-                          .where(oracle_id: params.dig(:filters, :oracle_id), set: params.dig(:filters, :set), lang: idioma)
+          @cartas = Carta.includes(:faces)
+                         .where(oracle_id: params.dig(:filters, :oracle_id), set: params.dig(:filters, :set), lang: idioma)
         end
 
+        # Ordenação final e paginação
+        # Se houve busca, podemos ordenar por relevância (opcional)
+        ordenacao = Arel.sql("COALESCE(cartas.printed_name, cartas.name) ASC")
+        
         @cartas = Carta.from("(#{@cartas.to_sql}) AS cartas")
-                       .order(Arel.sql("COALESCE(cartas.printed_name, cartas.name) ASC"))
+                       .order(ordenacao)
                        .page(params[:page])
                        .per(params[:per_page] || 20)
 
@@ -48,7 +62,6 @@ module Api
       def show
         @carta = Carta.includes(:faces).find(params[:id])
 
-        # No detalhe, as outras impressões devem seguir o idioma da CARTA ATUAL
         @versoes = Carta.where(oracle_id: @carta.oracle_id)
                         .where(lang: @carta.lang)
                         .order(released_at: :desc)
