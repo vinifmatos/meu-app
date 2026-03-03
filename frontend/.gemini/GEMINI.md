@@ -6,6 +6,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 ## Architecture & Structure
 
+- **Package Manager**: ALWAYS use **Yarn** for managing dependencies and running scripts in the frontend project.
 - **`src/app/core`**: Must contain pages, services, guards, interceptors, and components related to the main application logic and administrative area. Accessible via `@core` alias.
 - **`src/app/features`**: Must contain the application's domain features. Each feature should have its own alias (e.g., `@features/cartas`).
 - **`src/styles`**: Must contain custom SCSS files.
@@ -26,6 +27,11 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 - ALWAYS create or update the documentation in the `docs/` folder for any new feature, API integration, or significant architectural change.
 - Keep documentation up-to-date with current code implementation.
+
+## Testing
+
+- ALWAYS create E2E tests using **Playwright** for any new feature or critical user flow.
+- E2E tests should be located in `frontend/e2e/specs` and follow the `nome.spec.ts` naming convention.
 
 ## TypeScript Best Practices
 
