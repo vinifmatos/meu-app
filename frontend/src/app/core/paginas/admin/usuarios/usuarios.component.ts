@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ApiResposta } from '@core/interfaces/api-resposta.interface';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +12,14 @@ import { UsuariosService } from './usuarios.service';
 
 @Component({
   selector: 'app-usuarios',
-  imports: [TableModule, ButtonModule, DynamicDialogModule, ConfirmPopupModule],
+  standalone: true,
+  imports: [
+    TableModule,
+    ButtonModule,
+    DynamicDialogModule,
+    ConfirmPopupModule,
+    DatePipe
+  ],
   templateUrl: './usuarios.component.html',
   styleUrl: './usuarios.component.scss',
 })

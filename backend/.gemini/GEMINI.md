@@ -12,8 +12,8 @@ You are an expert in Ruby on Rails API and building scalable, performant, and ma
 ## Ruby Best Practices
 
 - Always run `bundle exec rubocop -A <file_path>` after creating or modifying a Ruby file to ensure it adheres to the project's style guide.
-- Model, controller, and service names should preferably be in Brazilian Portuguese.
-- Inflection configurations for these names must be added to `config/initializers/inflections.rb`.
+- Model, controller, and service names should **preferably be in Brazilian Portuguese**, but English names are also accepted.
+- Inflection configurations for Portuguese names must be added to `config/initializers/inflections.rb`.
 - Prefer `each` over `for` for iteration.
 - Use guard clauses to handle edge cases early.
 - Use keyword arguments for methods with more than two arguments.

@@ -3,21 +3,22 @@ import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 import { ConfirmPopup } from 'primeng/confirmpopup';
 import { Toast } from 'primeng/toast';
-import { Menu } from './core/layout/menu/menu';
-import { Config } from './core/services/config';
+import { MenuComponent } from './core/layout/menu/menu.component';
+import { ConfiguracaoService } from '@core/servicos/configuracao.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Menu, Toast, ConfirmPopup],
+  imports: [RouterOutlet, MenuComponent, Toast, ConfirmPopup],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
-  config = inject(Config);
+  private configuracaoService = inject(ConfiguracaoService);
   title = inject(Title);
   titulo = signal('Deck builder MTG');
 
   ngOnInit(): void {
-    this.title.setTitle(`Deck builder MTG - ${this.config.version}`);
+    const versao = this.configuracaoService.valor?.version ?? '';
+    this.title.setTitle(`Deck builder MTG - ${versao}`);
   }
 }

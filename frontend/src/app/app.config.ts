@@ -4,8 +4,11 @@ import {
   inject,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
+  LOCALE_ID
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -16,8 +19,10 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { DialogService } from 'primeng/dynamicdialog';
 import { routes } from './app.routes';
-import { erroInterceptor } from './core/interceptores/erro.interceptor';
-import { Config } from './core/services/config';
+import { erroInterceptor } from '@core/interceptores/erro.interceptor';
+import { ConfiguracaoService } from '@core/servicos/configuracao.service';
+
+registerLocaleData(localePt, 'pt-BR');
 
 const primengPreset = definePreset(Aura, {
   semantic: {
@@ -43,12 +48,13 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([erroInterceptor])),
     provideBrowserGlobalErrorListeners(),
-    Config,
+    { provide: LOCALE_ID, useValue: 'pt-BR' },
+    ConfiguracaoService,
     {
       provide: APP_INITIALIZER,
       useFactory: () => {
-        const config = inject(Config);
-        return () => config.load();
+        const config = inject(ConfiguracaoService);
+        return () => config.carregar();
       },
       multi: true,
     },

@@ -51,8 +51,28 @@ A estrutura segue uma divisão clara entre lógica global e funcionalidades espe
 
 ## 5. Padrão de Comunicação com API
 
-Todas as requisições devem passar pelo `ApiService` ou serviços específicos de funcionalidade que seguem o contrato definido no backend:
+Todas as requisições ao backend devem obrigatoriamente utilizar o `ApiService` (`@core/servicos/api.service`) como base, em vez de injetar o `HttpClient` diretamente nos serviços de funcionalidade. Isso garante:
 
+- Padronização de URLs base e versões da API.
+- Cabeçalhos consistentes (ex: `Accept`, `Content-Type`).
+- Tratamento global de erros via interceptores.
+- Formatação automática de parâmetros complexos (objetos, arrays, datas) para o formato esperado pelo Rails.
+
+### Exemplo de Uso em um Serviço:
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class ExemploService {
+  private readonly api = inject(ApiService);
+
+  async obterDados() {
+    const resposta = await this.api.get<Dados[]>('recurso');
+    return resposta.data;
+  }
+}
+```
+
+### Estrutura de Requisição:
 - **Envio de Dados**: Dados de recursos devem ser encapsulados em uma chave `data`.
   ```typescript
   this.api.post('usuarios', { data: { usuario: { ... } } });

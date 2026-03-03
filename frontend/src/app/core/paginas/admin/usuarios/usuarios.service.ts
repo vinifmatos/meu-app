@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiResposta } from '@core/interfaces/api-resposta.interface';
-import { ApiService } from '@core/services/api.service';
+import { ApiService } from '@core/servicos/api.service';
 import { IUsuarioFormularioDados } from './usuario-formulario-dados.interface';
 import { IUsuario } from './usuario.interface';
 

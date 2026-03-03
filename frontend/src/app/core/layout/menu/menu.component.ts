@@ -9,10 +9,10 @@ import { RippleModule } from 'primeng/ripple';
 @Component({
   selector: 'app-menu',
   imports: [MenuModule, BadgeModule, RippleModule, AvatarModule, CommonModule],
-  templateUrl: './menu.html',
-  styleUrl: './menu.scss',
+  templateUrl: './menu.component.html',
+  styleUrl: './menu.component.scss',
 })
-export class Menu {
+export class MenuComponent {
   titulo = input<string>();
 
   itens: MenuItem[] = [
@@ -20,14 +20,19 @@ export class Menu {
       label: 'Decks',
       items: [
         {
-          label: 'Home',
+          label: 'Início',
           icon: 'pi pi-home',
           routerLink: '/',
+        },
+        {
+          label: 'Cartas',
+          icon: 'pi pi-search',
+          routerLink: '/cartas',
         },
       ],
     },
     {
-      label: 'Admin',
+      label: 'Administração',
       items: [
         {
           label: 'Usuários',

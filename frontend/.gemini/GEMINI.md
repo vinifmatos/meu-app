@@ -20,7 +20,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 ## Naming Conventions
 
-- Names of components, services, guards, and other Angular resources should preferably be in **Brazilian Portuguese**.
+- Names of components, services, guards, and other Angular resources should **preferably be in Brazilian Portuguese**, but English names are also accepted.
 - Use the **Angular naming convention** for files and folders as defined in `angular.json` or the default convention for the project's Angular version (e.g., `folder-name/file-name.component.ts`).
 
 ## Documentation
@@ -78,3 +78,4 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+- **Backend Communication**: ALL services that make HTTP requests to the backend MUST use `@core/servicos/api.service` as their base instead of `HttpClient` directly. This ensures consistent handling of base URLs, versions, headers, and request formatting.

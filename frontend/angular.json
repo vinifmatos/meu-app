@@ -8,7 +8,7 @@
   "projects": {
     "meu-app": {
       "i18n": {
-        "sourceLocale": "pt-BR"
+        "sourceLocale": "pt"
       },
       "projectType": "application",
       "schematics": {
