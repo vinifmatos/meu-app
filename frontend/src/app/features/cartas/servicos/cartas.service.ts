@@ -22,12 +22,16 @@ export class CartasService {
       query['filters']['name'] = filtros.nome;
     }
 
-    if (filtros.edicao) {
-      query['filters']['set'] = filtros.edicao;
-    }
-
     if (filtros.idioma) {
       query['filters']['lang'] = filtros.idioma;
+    }
+
+    if (filtros.oracleId) {
+      query['filters']['oracle_id'] = filtros.oracleId;
+    }
+
+    if (filtros.edicao) {
+      query['filters']['set'] = filtros.edicao;
     }
 
     return from(this.api.get<{ cartas: Carta[], pagination: Paginacao }>(this.endpoint, { query }));

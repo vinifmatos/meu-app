@@ -17,12 +17,24 @@ module Api
                        .select("DISTINCT ON (cartas.oracle_id) cartas.*, #{priority_sql} AS lang_priority")
                        .order("cartas.oracle_id, lang_priority ASC, cartas.released_at DESC")
 
+        # Filtros Adicionais
         if params.dig(:filters, :name).present?
           @cartas = @cartas.where("cartas.name ILIKE ?", "%#{params.dig(:filters, :name)}%")
         end
 
         if params.dig(:filters, :set).present?
           @cartas = @cartas.where(set: params.dig(:filters, :set))
+        end
+
+        if params.dig(:filters, :oracle_id).present?
+          @cartas = @cartas.where(oracle_id: params.dig(:filters, :oracle_id))
+        end
+
+        # Quando filtramos por oracle_id e set especificamente, queremos o registro exato, 
+        # ignorando o DISTINCT ON da listagem geral se necessário.
+        if params.dig(:filters, :oracle_id).present? && params.dig(:filters, :set).present?
+           @cartas = Carta.includes(:faces)
+                          .where(oracle_id: params.dig(:filters, :oracle_id), set: params.dig(:filters, :set), lang: idioma)
         end
 
         @cartas = Carta.from("(#{@cartas.to_sql}) AS cartas")
@@ -36,13 +48,10 @@ module Api
       def show
         @carta = Carta.includes(:faces).find(params[:id])
 
-        # Busca todas as impressões da mesma carta (mesmo oracle_id)
-        @versoes = Carta.where(oracle_id: @carta.oracle_id).order(released_at: :desc)
-
-        # Aplica filtro de idioma se fornecido
-        if params[:idioma].present?
-          @versoes = @versoes.where(lang: params[:idioma])
-        end
+        # No detalhe, as outras impressões devem seguir o idioma da CARTA ATUAL
+        @versoes = Carta.where(oracle_id: @carta.oracle_id)
+                        .where(lang: @carta.lang)
+                        .order(released_at: :desc)
 
         render_json_success(template: "api/v1/cartas/show_template", locals: { carta: @carta, versoes: @versoes })
       end

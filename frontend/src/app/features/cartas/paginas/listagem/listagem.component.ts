@@ -1,47 +1,54 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { CartasService } from '@features/cartas/servicos/cartas.service';
-import { Carta, Paginacao } from '@core/interfaces/cartas.interface';
-import { DataViewModule } from 'primeng/dataview';
-import { TagModule } from 'primeng/tag';
-import { InputTextModule } from 'primeng/inputtext';
-import { ButtonModule } from 'primeng/button';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { Carta, Paginacao } from '@core/interfaces/cartas.interface';
+import { CartasService } from '@features/cartas/servicos/cartas.service';
+import { ButtonModule } from 'primeng/button';
+import { DataViewModule } from 'primeng/dataview';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
 
 @Component({
   selector: 'app-listagem',
   standalone: true,
   imports: [
-    CommonModule, 
-    DataViewModule, 
-    TagModule, 
-    InputTextModule, 
-    ButtonModule, 
+    CommonModule,
+    DataViewModule,
+    TagModule,
+    InputTextModule,
+    ButtonModule,
     FormsModule,
     NgOptimizedImage,
     RouterLink,
     IconFieldModule,
     InputIconModule,
-    SelectModule
+    SelectModule,
   ],
   template: `
     <div class="card p-4">
       <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
         <div class="flex flex-col">
-          <h2 class="text-3xl font-extrabold text-surface-900 dark:text-surface-0">Explorar Cartas</h2>
-          <p class="text-surface-500 dark:text-surface-400">Encontre as melhores versões das suas cartas favoritas.</p>
+          <h2 class="text-3xl font-extrabold text ">Explorar Cartas</h2>
+          <p class="text ">Encontre as melhores versões das suas cartas favoritas.</p>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <p-select 
-            [options]="opcoesIdiomas" 
-            [(ngModel)]="idiomaSelecionado" 
+          <p-select
+            [options]="opcoesIdiomas"
+            [(ngModel)]="idiomaSelecionado"
             (onChange)="buscar()"
-            optionLabel="label" 
+            optionLabel="label"
             optionValue="value"
             placeholder="Idioma"
             class="w-full sm:w-44"
@@ -49,38 +56,43 @@ import { SelectModule } from 'primeng/select';
 
           <p-iconField iconPosition="left" class="w-full md:w-80">
             <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
-            <input 
-              type="text" 
-              pInputText 
-              placeholder="Buscar por nome..." 
-              [(ngModel)]="filtroNome" 
-              (keyup.enter)="buscar()" 
+            <input
+              type="text"
+              pInputText
+              placeholder="Buscar por nome..."
+              [(ngModel)]="filtroNome"
+              (keyup.enter)="buscar()"
               class="w-full h-12 shadow-sm"
             />
           </p-iconField>
         </div>
       </div>
 
-      <p-dataView 
-        [value]="cartas()" 
-        [paginator]="true" 
-        [rows]="20" 
-        [lazy]="true" 
+      <p-dataView
+        [value]="cartas()"
+        [paginator]="true"
+        [rows]="20"
+        [lazy]="true"
         [totalRecords]="totalItems()"
         [first]="first"
         (onLazyLoad)="onPageChange($event)"
         layout="grid"
       >
         <ng-template #grid let-cartas>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            <div *ngFor="let carta of cartas; let i = index" 
-                 [routerLink]="['/cartas', carta.id]"
-                 class="group p-4 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded-xl shadow-sm flex flex-col items-center cursor-pointer hover:border-primary-500 hover:shadow-xl transition-all duration-300">
-              
-              <div class="relative w-full aspect-[2.5/3.5] mb-4 overflow-hidden rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300">
-                <img 
-                  [ngSrc]="obterImagemCarta(carta)" 
-                  [alt]="carta.name" 
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+          >
+            <div
+              *ngFor="let carta of cartas; let i = index"
+              [routerLink]="['/cartas', carta.id]"
+              class="group p-4 border border-surface rounded-xl shadow-sm flex flex-col items-center cursor-pointer hover:border-primary-500 hover:shadow-xl transition-all duration-300"
+            >
+              <div
+                class="relative w-full aspect-[2.5/3.5] mb-4 overflow-hidden rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300"
+              >
+                <img
+                  [ngSrc]="obterImagemCarta(carta)"
+                  [alt]="carta.name"
                   fill
                   [priority]="i < 5"
                   class="object-cover"
@@ -88,14 +100,21 @@ import { SelectModule } from 'primeng/select';
               </div>
 
               <div class="text-center w-full">
-                <div class="text-lg font-bold mb-1 truncate text-surface-900 dark:text-surface-0" [title]="carta.name">
+                <div class="text-lg font-bold mb-1 truncate text " [title]="carta.name">
                   {{ carta.name }}
                 </div>
-                <div class="text-sm text-surface-500 mb-3 truncate">{{ carta.typeLine }}</div>
-                
+                <div class="text-sm text mb-3 truncate">{{ carta.typeLine }}</div>
+
                 <div class="flex justify-center gap-2 flex-wrap">
-                  <p-tag [value]="carta.set.toUpperCase()" severity="secondary" styleClass="px-2"></p-tag>
-                  <p-tag [value]="obterRaridadeTraduzida(carta.rarity)" [severity]="obterRaridadeSeverity(carta.rarity)"></p-tag>
+                  <p-tag
+                    [value]="carta.set.toUpperCase()"
+                    severity="secondary"
+                    styleClass="px-2"
+                  ></p-tag>
+                  <p-tag
+                    [value]="obterRaridadeTraduzida(carta.rarity)"
+                    [severity]="obterRaridadeSeverity(carta.rarity)"
+                  ></p-tag>
                 </div>
               </div>
             </div>
@@ -103,7 +122,7 @@ import { SelectModule } from 'primeng/select';
         </ng-template>
 
         <ng-template #empty>
-          <div class="flex flex-col items-center justify-center p-20 text-surface-400">
+          <div class="flex flex-col items-center justify-center p-20 text">
             <i class="pi pi-search text-6xl mb-4 opacity-20"></i>
             <span class="text-2xl font-medium">Nenhuma carta encontrada</span>
             <p>Tente ajustar os termos da sua busca ou trocar o idioma.</p>
@@ -112,13 +131,18 @@ import { SelectModule } from 'primeng/select';
       </p-dataView>
     </div>
   `,
-  styles: [`
-    :host { display: block; width: 100%; }
-    :host ::ng-deep .p-dataview-content {
-      padding: 1.5rem; /* gap-6 do tailwind em todos os lados */
-    }
-  `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styles: [
+    `
+      :host {
+        display: block;
+        width: 100%;
+      }
+      :host ::ng-deep .p-dataview-content {
+        padding: 1.5rem; /* gap-6 do tailwind em todos os lados */
+      }
+    `,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListagemComponent implements OnInit {
   private readonly cartasService = inject(CartasService);
@@ -126,7 +150,7 @@ export class ListagemComponent implements OnInit {
 
   cartas = signal<Carta[]>([]);
   paginacao = signal<Paginacao | null>(null);
-  
+
   filtroNome = '';
   idiomaSelecionado = 'en';
   paginaAtual = 1;
@@ -141,9 +165,9 @@ export class ListagemComponent implements OnInit {
     { label: 'Italiano (IT)', value: 'it' },
     { label: 'Japonês (JA)', value: 'ja' },
     { label: 'Coreano (KO)', value: 'ko' },
-    { label: 'Chinês (ZH)', value: 'zhs' }
+    { label: 'Chinês (ZH)', value: 'zhs' },
   ];
-  
+
   totalItems = computed(() => this.paginacao()?.totalCount || 0);
 
   ngOnInit(): void {
@@ -152,9 +176,9 @@ export class ListagemComponent implements OnInit {
   }
 
   carregarCartas(): void {
-    const filtros = { 
+    const filtros = {
       nome: this.filtroNome,
-      idioma: this.idiomaSelecionado
+      idioma: this.idiomaSelecionado,
     };
 
     this.cartasService.obterCartas(this.paginaAtual, 20, filtros).subscribe({
@@ -164,7 +188,7 @@ export class ListagemComponent implements OnInit {
           this.paginacao.set(resposta.data.pagination);
           this.salvarFiltros();
         }
-      }
+      },
     });
   }
 
@@ -175,7 +199,7 @@ export class ListagemComponent implements OnInit {
   }
 
   onPageChange(event: any): void {
-    this.paginaAtual = (event.first / event.rows) + 1;
+    this.paginaAtual = event.first / event.rows + 1;
     this.first = event.first;
     this.carregarCartas();
   }
@@ -199,31 +223,42 @@ export class ListagemComponent implements OnInit {
     const dados = {
       nome: this.filtroNome,
       idioma: this.idiomaSelecionado,
-      pagina: this.paginaAtual
+      pagina: this.paginaAtual,
     };
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dados));
   }
 
   obterImagemCarta(carta: Carta): string {
     if (carta.imageUris?.normal) return carta.imageUris.normal;
-    if (carta.faces?.length > 0 && carta.faces[0].imageUris?.normal) return carta.faces[0].imageUris.normal;
+    if (carta.faces?.length > 0 && carta.faces[0].imageUris?.normal)
+      return carta.faces[0].imageUris.normal;
     return 'assets/images/placeholder-card.jpg';
   }
 
   obterRaridadeTraduzida(raridade: string): string {
     const mapa: Record<string, string> = {
-      'common': 'Comum', 'uncommon': 'Incomum', 'rare': 'Rara', 'mythic': 'Mítica'
+      common: 'Comum',
+      uncommon: 'Incomum',
+      rare: 'Rara',
+      mythic: 'Mítica',
     };
     return mapa[raridade] || raridade;
   }
 
-  obterRaridadeSeverity(raridade: string): "secondary" | "info" | "success" | "warn" | "danger" | "contrast" | undefined {
+  obterRaridadeSeverity(
+    raridade: string,
+  ): 'secondary' | 'info' | 'success' | 'warn' | 'danger' | 'contrast' | undefined {
     switch (raridade) {
-      case 'common': return 'secondary';
-      case 'uncommon': return 'info';
-      case 'rare': return 'warn';
-      case 'mythic': return 'danger';
-      default: return 'secondary';
+      case 'common':
+        return 'secondary';
+      case 'uncommon':
+        return 'info';
+      case 'rare':
+        return 'warn';
+      case 'mythic':
+        return 'danger';
+      default:
+        return 'secondary';
     }
   }
 }
