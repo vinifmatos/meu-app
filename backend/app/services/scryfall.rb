@@ -109,51 +109,36 @@ module Scryfall
       @current_key = nil
 
       @parser.start_array do
-        array = []
-        if @stack.empty?
-          @stack.push(array)
-        else
+        # Ignora o array raiz. Se a stack não estiver vazia, é um array aninhado.
+        if @stack.any?
+          array = []
           add_value(@stack.last, @current_key, array)
           @stack.push(array)
         end
       end
 
       @parser.end_array do
-        completed = @stack.pop
-
-        # Se terminou um elemento do array raiz
-        if @stack.size == 1
-          @batch << completed
-
-          if @batch.size >= BATCH_SIZE
-            Carta.import_from_scryfall(@batch)
-            @batch.clear
-          end
+        if @stack.any?
+          @stack.pop
+          # Se após o pop a stack ficar vazia, significaria que um array era o objeto raiz.
+          # No Scryfall o objeto raiz é sempre um Hash (carta), mas mantemos a segurança.
+          check_and_clear_stack if @stack.empty?
         end
       end
 
       @parser.start_object do
         hash = {}
-        if @stack.empty?
-          @stack.push(hash)
-        else
+        if @stack.any?
           add_value(@stack.last, @current_key, hash)
-          @stack.push(hash)
         end
+        @stack.push(hash)
       end
 
       @parser.end_object do
         completed = @stack.pop
-
-        # Se é objeto direto do array raiz
-        if @stack.size == 1
-          @batch << completed
-
-          if @batch.size >= BATCH_SIZE
-            Carta.import_from_scryfall(@batch)
-            @batch.clear
-            GC.start
-          end
+        if @stack.empty?
+          handle_completed_item(completed)
+          @stack.clear # Garante que a stack esteja limpa para o próximo objeto do array raiz
         end
       end
 
@@ -162,7 +147,9 @@ module Scryfall
       end
 
       @parser.value do |value|
-        add_value(@stack.last, @current_key, value)
+        if @stack.any?
+          add_value(@stack.last, @current_key, value)
+        end
       end
     end
 
@@ -171,13 +158,29 @@ module Scryfall
     end
 
     def finish!
-      if @batch.any?
-        Carta.import_from_scryfall(@batch)
-        @batch.clear
-      end
+      import_batch if @batch.any?
     end
 
     private
+
+    def handle_completed_item(item)
+      # No Scryfall, o arquivo é um array de objetos.
+      # Se o item for um Hash com dados, adicionamos ao batch.
+      return unless item.is_a?(Hash) && item.any?
+
+      @batch << item
+      import_batch if @batch.size >= BATCH_SIZE
+    end
+
+    def import_batch
+      Carta.import_from_scryfall(@batch)
+      @batch.clear
+    end
+
+    def check_and_clear_stack
+      # Método auxiliar para garantir integridade se necessário
+      @stack.clear
+    end
 
     def add_value(container, key, value)
       if container.is_a?(Array)
