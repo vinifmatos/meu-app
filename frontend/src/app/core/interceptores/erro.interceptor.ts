@@ -7,9 +7,9 @@ import {
 import { inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { catchError, throwError } from 'rxjs';
-import { ApiError } from '../interfaces/api-response';
+import { ApiResposta } from '../interfaces/api-resposta.interface';
 
-export const errorInterceptor: HttpInterceptorFn = (
+export const erroInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ) => {
@@ -22,38 +22,37 @@ export const errorInterceptor: HttpInterceptorFn = (
         return throwError(() => error);
       }
 
-      let errorMessage = 'Ocorreu um erro desconhecido.';
+      let mensagemErro = 'Ocorreu um erro desconhecido.';
 
       if (error.error instanceof ErrorEvent) {
         // Erro do lado do cliente ou de rede.
-        errorMessage = error.error.message;
+        mensagemErro = error.error.message;
       } else {
         // Erro retornado pelo backend.
-        const serverError = error.error as ApiError;
-        const message = serverError?.message;
+        const erroServidor = error.error as ApiResposta<unknown>;
+        const mensagem = erroServidor?.message;
 
         switch (error.status) {
           case 400:
-            errorMessage = `Requisição inválida: ${message || 'O servidor não entendeu a requisição.'}`;
+            mensagemErro = `Requisição inválida: ${mensagem || 'O servidor não entendeu a requisição.'}`;
             break;
           case 401:
-            errorMessage = 'Acesso não autorizado. Por favor, faça login novamente.';
-            // Opcional: aqui você pode adicionar uma lógica para deslogar o usuário ou redirecioná-lo.
+            mensagemErro = 'Acesso não autorizado. Por favor, faça login novamente.';
             break;
           case 403:
-            errorMessage = 'Você não tem permissão para executar esta ação.';
+            mensagemErro = 'Você não tem permissão para executar esta ação.';
             break;
           case 404:
-            errorMessage = 'O recurso solicitado não foi encontrado.';
+            mensagemErro = 'O recurso solicitado não foi encontrado.';
             break;
           case 500:
-            errorMessage = 'Ocorreu um erro interno no servidor. Tente novamente mais tarde.';
+            mensagemErro = 'Ocorreu um erro interno no servidor. Tente novamente mais tarde.';
             break;
           default:
-            if (message) {
-              errorMessage = `Erro ${error.status}: ${message}`;
+            if (mensagem) {
+              mensagemErro = `Erro ${error.status}: ${mensagem}`;
             } else {
-              errorMessage = `Erro ${error.status}: ${error.statusText || 'Ocorreu uma falha na comunicação com o servidor.'}`;
+              mensagemErro = `Erro ${error.status}: ${error.statusText || 'Ocorreu uma falha na comunicação com o servidor.'}`;
             }
             break;
         }
@@ -62,7 +61,7 @@ export const errorInterceptor: HttpInterceptorFn = (
       messageService.add({
         severity: 'error',
         summary: 'Erro',
-        detail: errorMessage,
+        detail: mensagemErro,
       });
 
       return throwError(() => error);

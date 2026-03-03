@@ -9,4 +9,8 @@ export const routes: Routes = [
     path: 'admin',
     loadChildren: () => import('./core/core.routes').then((m) => m.coreRoutes),
   },
+  {
+    path: 'cartas',
+    loadComponent: () => import('./features/cartas/paginas/listagem/listagem.component').then(m => m.ListagemComponent)
+  }
 ];

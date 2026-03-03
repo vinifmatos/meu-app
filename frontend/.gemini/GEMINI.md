@@ -6,9 +6,10 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 ## Architecture & Structure
 
-- **`src/app/core`**: Must contain pages, services, guards, interceptors, and components related to the main application logic and administrative area.
-- **`src/app/features`**: Must contain the application's domain features.
+- **`src/app/core`**: Must contain pages, services, guards, interceptors, and components related to the main application logic and administrative area. Accessible via `@core` alias.
+- **`src/app/features`**: Must contain the application's domain features. Each feature should have its own alias (e.g., `@features/cartas`).
 - **`src/styles`**: Must contain custom SCSS files.
+- **Imports**: ALWAYS use path aliases (e.g., `@core/interfaces/cartas.interface`) instead of long relative paths (e.g., `../../../../core/...`).
 
 ## UI & Styling
 
@@ -19,6 +20,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## Naming Conventions
 
 - Names of components, services, guards, and other Angular resources should preferably be in **Brazilian Portuguese**.
+- Use the **Angular naming convention** for files and folders as defined in `angular.json` or the default convention for the project's Angular version (e.g., `folder-name/file-name.component.ts`).
 
 ## TypeScript Best Practices
 

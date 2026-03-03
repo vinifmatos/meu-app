@@ -16,7 +16,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import { DialogService } from 'primeng/dynamicdialog';
 import { routes } from './app.routes';
-import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { erroInterceptor } from './core/interceptores/erro.interceptor';
 import { Config } from './core/services/config';
 
 const primengPreset = definePreset(Aura, {
@@ -41,7 +41,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([errorInterceptor])),
+    provideHttpClient(withInterceptors([erroInterceptor])),
     provideBrowserGlobalErrorListeners(),
     Config,
     {
