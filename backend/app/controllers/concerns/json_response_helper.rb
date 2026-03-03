@@ -40,7 +40,6 @@ module JsonResponseHelper
   def handle_record_not_found(exception)
     render_json_error(
       message: "Registro não encontrado",
-      errors: [ exception.message ],
       status: :not_found
     )
   end

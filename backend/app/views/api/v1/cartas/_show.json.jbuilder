@@ -1,0 +1,36 @@
+json.call(
+  carta,
+  :id,
+  :scryfall_id,
+  :oracle_id,
+  :name,
+  :type_line,
+  :mana_cost,
+  :oracle_text,
+  :power,
+  :toughness,
+  :colors,
+  :color_identity,
+  :color_indicator,
+  :set,
+  :collector_number,
+  :lang,
+  :image_uris
+)
+
+json.faces(carta.faces) do |face|
+  json.call(
+    face,
+    :id,
+    :face,
+    :name,
+    :type_line,
+    :mana_cost,
+    :oracle_text,
+    :power,
+    :toughness,
+    :colors,
+    :image_uris,
+    :illustration_id
+  )
+end
