@@ -34,7 +34,7 @@ export default defineConfig({
     },
     {
       command: process.env['CI'] 
-        ? 'npx http-server dist/meu-app/browser -p 4200 -g --proxy http://localhost:4200/api=http://localhost:3333/api'
+        ? 'npx local-web-server --directory dist/meu-app/browser --port 4200 --spa index.html --proxy "/api/* -> http://localhost:3333/api/$1"'
         : 'yarn start --port 4200 --proxy-config proxy.e2e.conf.json',
       url: 'http://localhost:4200',
       reuseExistingServer: !process.env['CI'],
