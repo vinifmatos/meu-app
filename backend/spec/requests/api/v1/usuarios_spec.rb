@@ -1,10 +1,10 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Usuarios", type: :request do
-  before { Usuario.delete_all }
+  let!(:admin) { create(:usuario, :admin) }
   let!(:usuarios) { create_list(:usuario, 5) }
   let(:usuario) { usuarios.first }
-  let(:headers) { { "Accept" => "application/json" } }
+  let(:headers) { auth_headers(admin).merge("Accept" => "application/json") }
 
   describe "GET /api/v1/usuarios" do
     it "retorna uma lista de usuários" do
@@ -12,7 +12,7 @@ RSpec.describe "Api::V1::Usuarios", type: :request do
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      expect(json_response["data"]["usuarios"].size).to eq(5)
+      expect(json_response["data"]["usuarios"].size).to eq(6) # 5 + 1 admin
     end
   end
 

@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe "Api::V1::Decks::Cartas", type: :request do
   let!(:deck) { create(:deck) }
   let!(:carta) { create(:carta) }
-  let(:headers) { { "Accept" => "application/json" } }
+  let(:headers) { auth_headers(deck.usuario).merge("Accept" => "application/json") }
 
   describe "POST /api/v1/decks/:deck_id/cartas" do
     let(:valid_params) do

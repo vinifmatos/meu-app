@@ -92,7 +92,7 @@ import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
 
               <p-card>
                 <div class="italic whitespace-pre-wrap text-lg"
-                     [innerHTML]="(carta.oracleText ?? 'Sem texto de regras.') | simbolos">
+                     [innerHTML]="carta.oracleText | simbolos">
                 </div>
               </p-card>
 
