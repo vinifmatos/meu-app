@@ -64,20 +64,26 @@ import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
         </div>
 
         @if (exibirErros && !validacao().valido) {
-          <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            <h3 class="font-bold mb-2">Erros de Validação:</h3>
-            <ul class="list-disc pl-5">
-              @for (erro of validacao().erros; track $index) {
-                <li>{{ erro }}</li>
-              }
-            </ul>
+          <div class="mb-6">
+            <p-message severity="error" styleClass="w-full justify-start">
+              <ng-template #content>
+                <div class="flex flex-col gap-2">
+                  <h3 class="font-bold">Erros de Validação:</h3>
+                  <ul class="list-disc pl-5">
+                    @for (erro of validacao().erros; track $index) {
+                      <li>{{ erro }}</li>
+                    }
+                  </ul>
+                </div>
+              </ng-template>
+            </p-message>
           </div>
         }
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Coluna da Esquerda: Busca -->
           <div class="lg:col-span-4 flex flex-col gap-4">
-            <p-card header="Adicionar Cartas">
+            <p-card header="Adicionar Cartas" styleClass="h-full">
               <div class="flex flex-col gap-4">
                 <p-iconField iconPosition="left">
                   <p-inputIcon [styleClass]="carregandoBusca() ? 'pi pi-spin pi-spinner' : 'pi pi-search'"></p-inputIcon>
@@ -86,7 +92,7 @@ import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
                 <div class="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
                   @for (c of resultadosBusca(); track c.id) {
-                    <div class="flex items-center justify-between p-2 hover:bg-surface-50 rounded-lg border border-transparent hover:border-surface-200 transition-all"
+                    <div class="flex items-center justify-between p-2 hover:bg-surface-emphasis rounded-lg border border-transparent hover:border-surface transition-all"
                          (mouseenter)="mostrarPreview(c, $event)"
                          (mouseleave)="esconderPreview()">
                       <div class="flex items-center gap-3">
@@ -94,7 +100,7 @@ import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
                           <img [ngSrc]="obterImagemSmall(c)" [alt]="c.name" fill class="object-cover" />
                         </div>
                         <div class="flex flex-col">
-                          <span class="text-sm font-bold truncate w-32 md:w-40">{{ c.name }}</span>
+                          <span class="text-sm font-bold truncate w-32 md:w-40 text-surface-900 dark:text-surface-0">{{ c.name }}</span>
                           <span class="text-xs text-surface-500 uppercase">{{ c.set }}</span>
                         </div>
                       </div>
@@ -119,20 +125,20 @@ import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
           <div class="lg:col-span-8 flex flex-col gap-6">
             @for (cat of categorias(); track cat.titulo) {
               @if (cat.cartas.length > 0) {
-                <div class="bg-surface rounded-xl border border-surface overflow-hidden">
-                  <div class="bg-surface-50 px-4 py-2 border-b border-surface flex justify-between items-center">
-                    <h3 class="font-bold text-lg">{{ cat.titulo }}</h3>
+                <div class="bg-surface rounded-xl border border-surface overflow-hidden shadow-sm">
+                  <div class="bg-surface-emphasis px-4 py-2 border-b border-surface flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-surface-900 dark:text-surface-0">{{ cat.titulo }}</h3>
                     <p-tag [value]="cat.total.toString()" severity="secondary"></p-tag>
                   </div>
-                  <div class="divide-y divide-surface-100">
+                  <div class="divide-y divide-surface">
                     @for (item of cat.cartas; track item.carta.id + (item.ehComandante ? '-cmd' : '')) {
-                      <div class="flex items-center justify-between p-3 hover:bg-surface-50 group"
+                      <div class="flex items-center justify-between p-3 hover:bg-surface-emphasis group transition-colors"
                            (mouseenter)="mostrarPreview(item.carta, $event)"
                            (mouseleave)="esconderPreview()">
                         <div class="flex items-center gap-4">
                           <span class="font-mono font-bold text-primary-500 w-6 text-center">{{ item.quantidade }}</span>
                           <div class="flex flex-col">
-                            <span class="font-bold hover:text-primary-500 cursor-pointer" [routerLink]="['/cartas', item.carta.id]">{{ item.carta.name }}</span>
+                            <span class="font-bold hover:text-primary-500 cursor-pointer text-surface-900 dark:text-surface-0" [routerLink]="['/cartas', item.carta.id]">{{ item.carta.name }}</span>
                             <div class="flex items-center gap-2">
                               <span class="text-xs text-surface-500 uppercase">{{ item.carta.set }}</span>
                               @if (item.ehComandante) {
