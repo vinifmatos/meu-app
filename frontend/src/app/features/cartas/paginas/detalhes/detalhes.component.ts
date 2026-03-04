@@ -118,11 +118,11 @@ import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
                   <h3 class="text-2xl font-bold mb-4 uppercase text-surface">Formatos</h3>
                   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     @for (item of listarLegalities(carta.legalities); track item.formato) {
-                      <div class="flex flex-col gap-1 p-2 border border-surface rounded-lg bg-surface-50 shadow-sm">
-                        <span class="text-[9px] font-extrabold uppercase text-surface-500 leading-none">{{ item.formato }}</span>
+                      <div class="flex flex-col gap-1 p-2 border border-surface rounded-lg bg-emphasis shadow-sm">
+                        <span class="text-[9px] font-extrabold uppercase text-color/70 leading-none">{{ item.formato }}</span>
                         <div class="flex items-center gap-2">
-                          <div class="w-2 h-2 rounded-full" [class]="item.cor"></div>
-                          <span class="text-xs font-bold">{{ item.status }}</span>
+                          <div class="w-2 h-2 rounded-full shadow-sm" [class]="item.cor"></div>
+                          <span class="text-xs font-bold text-color">{{ item.status }}</span>
                         </div>
                       </div>
                     }
@@ -139,13 +139,13 @@ import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
                       <div 
                         (click)="selecionarImagem(obterImagemNormal(versao))"
                         [class.border-primary-500]="imagemExibida() === obterImagemNormal(versao)"
-                        class="flex flex-col items-center gap-2 p-2 border-2 border-transparent rounded-lg hover:bg-surface cursor-pointer transition-all"
+                        class="flex flex-col items-center gap-2 p-2 border-2 border-transparent rounded-lg hover:bg-highlight group cursor-pointer transition-all"
                       >
                         <div class="relative w-full aspect-[2.5/3.5] rounded-md overflow-hidden shadow-sm">
                           <img [ngSrc]="obterImagemNormal(versao, 'small')" [alt]="versao.name" fill class="object-cover" />
                         </div>
                         <div class="flex flex-col items-center">
-                          <span class="text-[10px] font-bold uppercase text-surface">{{ versao.set }}</span>
+                          <span class="text-[10px] font-bold uppercase text-surface group-hover:text-color-emphasis">{{ versao.set }}</span>
                         </div>
                       </div>
                     }
