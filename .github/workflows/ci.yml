@@ -79,6 +79,10 @@ jobs:
           bundler-cache: true
           working-directory: backend
 
+      - name: Instalar Gems (Backend)
+        working-directory: backend
+        run: bundle install
+
       - name: Instalar Node.js
         uses: actions/setup-node@v4
         with:
