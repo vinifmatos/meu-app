@@ -57,7 +57,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
         >
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-3">
-              <p-button icon="pi pi-arrow-left" [text]="true" routerLink="/decks"></p-button>
+              <p-button icon="pi pi-arrow-left" [text]="true" routerLink="/meus-decks"></p-button>
               <h1 class="text-3xl font-bold">{{ d.nome }}</h1>
               <p-tag
                 [value]="d.formato.toUpperCase()"
@@ -217,9 +217,10 @@ import { PreviewCartaComponent } from './preview-carta.component';
                               >{{ item.carta.name }}</span
                             >
                             <div class="flex items-center gap-2">
-                              <span class="text-xs text-surface uppercase group-hover:text-color-emphasis/80">{{
-                                item.carta.set
-                              }}</span>
+                              <span
+                                class="text-xs text-surface uppercase group-hover:text-color-emphasis/80"
+                                >{{ item.carta.set }}</span
+                              >
                               @if (item.ehComandante) {
                                 <p-tag
                                   value="COMANDANTE"
@@ -494,7 +495,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
       } else {
         this.deck.set(d);
       }
-      this.validarLocalmente();
     }
   }
 
@@ -552,7 +552,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
 
       return novoDeck;
     });
-    this.validarLocalmente();
   }
 
   removerDoDeckLocal(carta: Carta, comoComandante: boolean = false, tudo: boolean = false) {
@@ -584,7 +583,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
         estatisticas: { ...d.estatisticas, totalCartas: d.estatisticas.totalCartas - qtdRemover },
       };
     });
-    this.validarLocalmente();
   }
 
   private obterCategoriaCarta(c: Carta, comoComandante: boolean): keyof Deck['cartas'] {
@@ -634,7 +632,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
         } else {
           this.deck.set(resultado);
           this.deckOriginal.set(JSON.stringify(this.serializarParaLocal(resultado)));
-          this.validarLocalmente();
         }
       }
     } catch (e) {
