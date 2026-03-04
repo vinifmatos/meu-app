@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, effect, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, effect, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { DecksService } from '@core/servicos/decks.service';
@@ -13,9 +13,10 @@ import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { PreviewCartaComponent } from './preview-carta.component';
 import { AuthService } from '@core/servicos/auth.service';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-editor-deck',
@@ -33,6 +34,7 @@ import { AuthService } from '@core/servicos/auth.service';
     InputIconModule,
     MessageModule,
     FormsModule,
+    ReactiveFormsModule,
     PreviewCartaComponent
   ],
   template: `
@@ -78,8 +80,8 @@ import { AuthService } from '@core/servicos/auth.service';
             <p-card header="Adicionar Cartas">
               <div class="flex flex-col gap-4">
                 <p-iconField iconPosition="left">
-                  <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
-                  <input type="text" pInputText placeholder="Nome da carta..." [(ngModel)]="buscaTermo" (keyup.enter)="buscarCartas()" class="w-full" />
+                  <p-inputIcon [styleClass]="carregandoBusca() ? 'pi pi-spin pi-spinner' : 'pi pi-search'"></p-inputIcon>
+                  <input type="text" pInputText placeholder="Nome da carta..." [formControl]="buscaControl" class="w-full" />
                 </p-iconField>
 
                 <div class="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
@@ -104,7 +106,7 @@ import { AuthService } from '@core/servicos/auth.service';
                       </div>
                     </div>
                   } @empty {
-                    @if (buscaTermo && !carregandoBusca) {
+                    @if (buscaControl.value && !carregandoBusca()) {
                       <p class="text-center text-surface-400 py-4 italic">Nenhuma carta encontrada.</p>
                     }
                   }
@@ -168,12 +170,13 @@ import { AuthService } from '@core/servicos/auth.service';
   styles: [`:host { display: block; }`],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EditorDeckComponent implements OnInit {
+export class EditorDeckComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly decksService = inject(DecksService);
   private readonly cartasService = inject(CartasService);
   private readonly authService = inject(AuthService);
+  private readonly destroy$ = new Subject<void>();
 
   deck = signal<Deck | null>(null);
   deckOriginal = signal<string>('');
@@ -186,17 +189,14 @@ export class EditorDeckComponent implements OnInit {
     const d = this.deck();
     if (!d) return false;
     if (this.isNovoDeck() && d.estatisticas.totalCartas === 0) {
-       // Se for novo e estiver vazio, mas veio de uma intenção de criação (nome definido),
-       // consideramos que tem mudanças para permitir salvar o deck vazio se desejar,
-       // ou pelo menos aparecer o botão para o usuário.
        return true;
     }
     return JSON.stringify(this.serializarParaLocal(d)) !== this.deckOriginal();
   });
 
-  buscaTermo = '';
+  buscaControl = new FormControl('');
   resultadosBusca = signal<Carta[]>([]);
-  carregandoBusca = false;
+  carregandoBusca = signal(false);
 
   // Preview
   cartaPreview = signal<Carta | null>(null);
@@ -223,7 +223,6 @@ export class EditorDeckComponent implements OnInit {
   });
 
   constructor() {
-    // Efeito para salvar no localStorage quando o deck muda
     effect(() => {
       const d = this.deck();
       if (d && this.authService.estaAutenticado()) {
@@ -247,10 +246,26 @@ export class EditorDeckComponent implements OnInit {
         this.carregarDeck(+id);
       }
     });
+
+    this.configurarBuscaAutomatica();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private configurarBuscaAutomatica() {
+    this.buscaControl.valueChanges.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(termo => {
+      this.buscarCartas(termo || '');
+    });
   }
 
   private serializarParaLocal(d: Deck) {
-    // Reduz o objeto para salvar apenas o necessário
     return {
       nome: d.nome,
       formato: d.formato,
@@ -259,7 +274,7 @@ export class EditorDeckComponent implements OnInit {
            cartaId: dc.carta.id,
            quantidade: dc.quantidade,
            ehComandante: dc.ehComandante,
-           carta: dc.carta // Salvamos o objeto carta para evitar nova busca ao restaurar
+           carta: dc.carta
         }));
         return acc;
       }, {} as any)
@@ -284,7 +299,6 @@ export class EditorDeckComponent implements OnInit {
           updatedAt: new Date().toISOString()
         };
         this.deck.set(d);
-        // Não definimos deckOriginal aqui para que 'hasChanges' funcione se houve alteração antes do refresh
         return;
       } catch (e) {
         console.error('Erro ao restaurar deck do localStorage', e);
@@ -323,7 +337,6 @@ export class EditorDeckComponent implements OnInit {
     if (d) {
       this.deckOriginal.set(JSON.stringify(this.serializarParaLocal(d)));
       
-      // Verifica se tem algo no localStorage para restaurar
       const chave = `deck_edicao_${id}`;
       const salvo = localStorage.getItem(chave);
       if (salvo) {
@@ -335,12 +348,16 @@ export class EditorDeckComponent implements OnInit {
     }
   }
 
-  buscarCartas() {
-    if (!this.buscaTermo) return;
-    this.carregandoBusca = true;
-    this.cartasService.obterCartas(1, 15, { nome: this.buscaTermo }).subscribe(res => {
+  buscarCartas(termo: string) {
+    if (!termo || termo.trim().length === 0) {
+      this.resultadosBusca.set([]);
+      return;
+    }
+    
+    this.carregandoBusca.set(true);
+    this.cartasService.obterCartas(1, 15, { nome: termo }).subscribe(res => {
       this.resultadosBusca.set(res.data?.cartas ?? []);
-      this.carregandoBusca = false;
+      this.carregandoBusca.set(false);
     });
   }
 
@@ -424,7 +441,6 @@ export class EditorDeckComponent implements OnInit {
     try {
       let resultado: Deck | null;
       
-      // Preparamos a lista de cartas para o formato que o backend espera (ou simulamos um batch)
       const listaSimples: { carta_id: number, quantidade: number, eh_comandante: boolean }[] = [];
       Object.values(d.cartas).flat().forEach((dc: any) => {
         listaSimples.push({
@@ -460,8 +476,6 @@ export class EditorDeckComponent implements OnInit {
   }
 
   private async validarLocalmente() {
-    // Por enquanto apenas sinaliza que precisa salvar para validar real no backend
-    // Ou podemos implementar uma validação básica de regras aqui
   }
 
   mostrarPreview(c: Carta, event: MouseEvent) {
@@ -486,4 +500,5 @@ export class EditorDeckComponent implements OnInit {
     return c.imageUris?.small ?? c.faces[0]?.imageUris?.small ?? '';
   }
 }
+
 
