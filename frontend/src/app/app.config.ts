@@ -6,7 +6,7 @@ import {
   provideZoneChangeDetection,
   LOCALE_ID
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
 
@@ -47,7 +47,7 @@ const primengPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([authInterceptor, erroInterceptor])),
     provideBrowserGlobalErrorListeners(),
     { provide: LOCALE_ID, useValue: 'pt-BR' },

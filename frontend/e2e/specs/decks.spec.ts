@@ -6,12 +6,15 @@ test.describe('Gerenciamento de Decks', () => {
     await page.goto('/login');
     await page.fill('input#username', 'admin');
     await page.fill('#password input', 'password123');
-    await page.click('button[type="submit"]');
+    
+    const btnSubmit = page.locator('button[type="submit"]');
+    await expect(btnSubmit).toBeEnabled();
+    await btnSubmit.click();
     
     // Aguarda o redirecionamento ou a navegação para a home/decks
-    await expect(page).not.toHaveURL(/\/login/);
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 30000 });
     
-    await page.goto('/decks');
+    await page.goto('/meus-decks');
   });
 
   test('deve abrir o diálogo de criação de deck', async ({ page }) => {
@@ -19,7 +22,7 @@ test.describe('Gerenciamento de Decks', () => {
     await expect(btnNovo).toBeVisible({ timeout: 15000 });
     await btnNovo.click();
     
-    await expect(page.locator('h2:has-text("Criar Novo Deck")')).toBeVisible();
+    await expect(page.locator('.p-dialog-title:has-text("Criar Novo Deck")')).toBeVisible();
   });
 
   test('deve redirecionar para o editor ao clicar em criar no modal sem enviar para a API', async ({ page }) => {

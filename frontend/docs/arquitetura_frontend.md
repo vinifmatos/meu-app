@@ -81,4 +81,23 @@ export class ExemploService {
 - **Respostas**: Padronizadas através da interface `ApiResposta<T>`.
 
 ---
+
+## 6. Testes E2E (End-to-End)
+
+A aplicação utiliza **Playwright** para garantir a integridade dos fluxos críticos de usuário.
+
+### Estrutura de Testes
+- Localização: `frontend/e2e/specs/`.
+- Nomenclatura: `nome.spec.ts`.
+
+### Diretrizes de Teste
+- **Ambiente**: Os testes rodam contra um backend em `RAILS_ENV=test` e o frontend na porta `4242`.
+- **Integridade de Rotas**: Existem testes específicos (`rotas_publicas.spec.ts`) para garantir que as páginas acessíveis sem login (Home, Cartas, Decks da Comunidade) carreguem sem erros de console ou falhas de autorização (HTTP 401).
+- **Autenticação**: Fluxos privados devem validar o redirecionamento para o login e a persistência da sessão após a entrada bem-sucedida.
+
+### Execução
+- `yarn e2e`: Executa todos os testes configurados.
+- `npx playwright test --ui`: Abre a interface interativa do Playwright para depuração.
+
+---
 *Este documento deve ser atualizado sempre que houver mudanças significativas na arquitetura ou padrões do frontend.*

@@ -29,6 +29,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/decks/paginas/listagem/listagem.component').then(m => m.ListagemDecksComponent)
   },
   {
+    path: 'meus-decks',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/decks/paginas/listagem/listagem.component').then(m => m.ListagemDecksComponent),
+    data: { apenasMeus: true }
+  },
+  {
     path: 'decks/:id',
     canActivate: [authGuard],
     loadComponent: () => import('./features/decks/paginas/editor/editor.component').then(m => m.EditorDeckComponent)

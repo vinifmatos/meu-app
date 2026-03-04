@@ -95,6 +95,7 @@ export class LoginComponent {
       const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/';
       this.router.navigateByUrl(returnUrl);
     } else {
+      console.error('Falha na autenticação: Credenciais inválidas ou erro de conexão.');
       this.erro.set('Credenciais inválidas ou erro de conexão.');
     }
 

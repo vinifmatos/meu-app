@@ -13,6 +13,11 @@ export interface Deck {
   nome: string;
   formato: FormatoDeck;
   usuarioId: number;
+  usuario?: {
+    id: number;
+    nome: string;
+    username: string;
+  };
   cartas: {
     comandantes: DeckCarta[];
     terrenos: DeckCarta[];

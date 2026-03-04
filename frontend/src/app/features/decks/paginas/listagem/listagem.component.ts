@@ -1,38 +1,56 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
-import { DecksService } from '@core/servicos/decks.service';
-import { AuthService } from '@core/servicos/auth.service';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, input } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { Deck } from '@core/interfaces/decks.interface';
+import { AuthService } from '@core/servicos/auth.service';
+import { DecksService } from '@core/servicos/decks.service';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
-import { FormsModule } from '@angular/forms';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { CriarDeckComponent } from './criar-deck.component';
 
 @Component({
   selector: 'app-listagem-decks',
   standalone: true,
-  imports: [CommonModule, RouterLink, ButtonModule, CardModule, TagModule, FormsModule, InputTextModule, SelectModule],
+  imports: [
+    CommonModule,
+    RouterLink,
+    ButtonModule,
+    CardModule,
+    TagModule,
+  ],
+  providers: [DialogService],
   template: `
     <div class="container mx-auto p-6 max-w-6xl">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-extrabold text-surface">Meus Decks</h1>
-        @if (estaAutenticado()) {
-          <p-button label="Novo Deck" icon="pi pi-plus" (click)="exibirCriacao = true"></p-button>
+        <h1 class="text-3xl font-extrabold text-surface">{{ titulo() }}</h1>
+        @if (apenasMeus() && estaAutenticado()) {
+          <p-button label="Novo Deck" icon="pi pi-plus" (click)="abrirCriacao()"></p-button>
         }
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (deck of decks(); track deck.id) {
-          <p-card [header]="deck.nome" class="hover:shadow-md transition-shadow cursor-pointer" [routerLink]="['/decks', deck.id]">
+          <p-card
+            [header]="deck.nome"
+            class="hover:shadow-md transition-shadow cursor-pointer"
+            [routerLink]="['/decks', deck.id]"
+          >
             <div class="flex flex-col gap-3">
               <div class="flex justify-between items-center">
-                <p-tag [value]="deck.formato.toUpperCase()" [severity]="deck.formato === 'pauper' ? 'info' : 'warn'"></p-tag>
-                <span class="text-sm text-surface-500">{{ deck.estatisticas.totalCartas }} cartas</span>
+                <p-tag
+                  [value]="deck.formato.toUpperCase()"
+                  [severity]="deck.formato === 'pauper' ? 'info' : 'warn'"
+                ></p-tag>
+                <div class="flex flex-col items-end">
+                   <span class="text-sm text-surface-500">{{ deck.estatisticas.totalCartas }} cartas</span>
+                   @if (!apenasMeus()) {
+                     <span class="text-[10px] text-surface-400 font-bold uppercase tracking-tighter">Por {{ deck.usuario?.nome }}</span>
+                   }
+                </div>
               </div>
-              
+
               <div class="flex items-center gap-2">
                 @if (deck.estatisticas.valido) {
                   <i class="pi pi-check-circle text-green-500"></i>
@@ -46,78 +64,69 @@ import { SelectModule } from 'primeng/select';
               <div class="flex items-center gap-2 mt-2 pt-2 border-t border-surface-100">
                 <i class="pi pi-calendar text-surface-400 text-xs"></i>
                 <span class="text-[10px] text-surface-400 uppercase font-medium">
-                  Criado em {{ deck.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                  Atualizado em {{ deck.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
                 </span>
               </div>
             </div>
           </p-card>
         } @empty {
-          <div class="col-span-full p-12 text-center bg-surface-50 border border-surface rounded-xl">
-            <i class="pi pi-folder-open text-5xl mb-4 opacity-20"></i>
-            <p class="text-xl text-surface-500">Você ainda não criou nenhum deck.</p>
+          <div class="col-span-full p-12 text-center  border border-surface rounded-xl">
+            <p class="text-xl text-surface-500">Nenhum deck encontrado.</p>
           </div>
         }
       </div>
-
-      <!-- Diálogo Simples de Criação -->
-      @if (exibirCriacao) {
-        <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div class="bg-surface rounded-xl p-6 w-full max-w-md shadow-2xl">
-            <h2 class="text-2xl font-bold mb-4">Criar Novo Deck</h2>
-            <div class="flex flex-col gap-4">
-              <div class="flex flex-col gap-2">
-                <label class="font-bold">Nome do Deck</label>
-                <input pInputText [(ngModel)]="novoDeckNome" placeholder="Ex: Meu Mono Red" />
-              </div>
-              <div class="flex flex-col gap-2">
-                <label class="font-bold">Formato</label>
-                <p-select [options]="formatos" [(ngModel)]="novoDeckFormato" optionLabel="label" optionValue="value" class="w-full"></p-select>
-              </div>
-              <div class="flex justify-end gap-2 mt-4">
-                <p-button label="Cancelar" severity="secondary" (click)="exibirCriacao = false"></p-button>
-                <p-button label="Criar Deck" (click)="criarDeck()" [disabled]="!novoDeckNome"></p-button>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListagemDecksComponent implements OnInit {
   private readonly decksService = inject(DecksService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly dialogService = inject(DialogService);
   
+  private ref: DynamicDialogRef | null = null;
+
+  apenasMeus = input<boolean>(false);
+  
+  titulo = signal('Decks da Comunidade');
   decks = signal<Deck[]>([]);
   estaAutenticado = this.authService.estaAutenticado;
-  exibirCriacao = false;
-  novoDeckNome = '';
-  novoDeckFormato = 'pauper';
-
-  formatos = [
-    { label: 'Pauper', value: 'pauper' },
-    { label: 'Commander', value: 'commander' }
-  ];
 
   ngOnInit() {
+    if (this.apenasMeus()) {
+      this.titulo.set('Meus Decks');
+    }
     this.carregarDecks();
   }
 
   async carregarDecks() {
-    const lista = await this.decksService.listarDecks();
+    const lista = await this.decksService.listarDecks(this.apenasMeus());
     this.decks.set(lista);
   }
 
-  async criarDeck() {
-    this.exibirCriacao = false;
-    this.router.navigate(['/decks/novo'], { 
-      queryParams: { 
-        nome: this.novoDeckNome, 
-        formato: this.novoDeckFormato 
-      } 
+  abrirCriacao() {
+    this.ref = this.dialogService.open(CriarDeckComponent, {
+      header: 'Criar Novo Deck',
+      width: '400px',
+      modal: true,
+      breakpoints: {
+        '960px': '75vw',
+        '640px': '90vw'
+      }
     });
-    this.novoDeckNome = '';
+
+    if (this.ref) {
+      this.ref.onClose.subscribe((dados: { nome: string, formato: string } | undefined) => {
+        if (dados) {
+          this.router.navigate(['/decks/novo'], {
+            queryParams: {
+              nome: dados.nome,
+              formato: dados.formato,
+            },
+          });
+        }
+      });
+    }
   }
 }
