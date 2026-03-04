@@ -1,4 +1,5 @@
 require_relative "boot"
+require_relative "../lib/middleware/json_key_transformer"
 
 require "rails"
 # Pick the frameworks you want:
