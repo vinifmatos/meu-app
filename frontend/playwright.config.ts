@@ -25,13 +25,17 @@ export default defineConfig({
   // Configuramos múltiplos webServers: um para o backend e outro para o frontend
   webServer: [
     {
-      command: 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333',
+      command: process.env['CI']
+        ? 'cd ../backend && RAILS_ENV=test bundle exec rails server -p 3333'
+        : 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333',
       url: 'http://localhost:3333/api/v1/config',
       reuseExistingServer: !process.env['CI'],
       timeout: 120000,
     },
     {
-      command: 'yarn start --port 4200 --proxy-config proxy.e2e.conf.json',
+      command: process.env['CI'] 
+        ? 'npx live-server dist/meu-app/browser --port=4200 --entry-file=index.html --proxy=/api:http://localhost:3333/api --no-browser'
+        : 'yarn start --port 4200 --proxy-config proxy.e2e.conf.json',
       url: 'http://localhost:4200',
       reuseExistingServer: !process.env['CI'],
       timeout: 120000,

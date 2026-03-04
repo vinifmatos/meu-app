@@ -1,6 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Usuarios", type: :request do
+  before { Usuario.delete_all }
   let!(:usuarios) { create_list(:usuario, 5) }
   let(:usuario) { usuarios.first }
   let(:headers) { { "Accept" => "application/json" } }
