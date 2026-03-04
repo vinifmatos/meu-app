@@ -19,7 +19,10 @@ module Decks
     def validar!
       @erros = []
       
-      return @erros unless @deck.deck_cartas.any?
+      if @deck.deck_cartas.empty?
+        @erros << "O deck não pode estar vazio"
+        return @erros
+      end
 
       case @deck.formato
       when 'pauper'

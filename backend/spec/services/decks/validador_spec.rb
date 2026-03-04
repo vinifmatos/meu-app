@@ -4,6 +4,13 @@ RSpec.describe Decks::Validador, type: :service do
   let(:usuario) { create(:usuario) }
   
   describe '#validar!' do
+    it 'valida que o deck não pode estar vazio' do
+      deck_vazio = create(:deck, usuario: usuario)
+      validador_vazio = described_class.new(deck_vazio)
+      erros = validador_vazio.validar!
+      expect(erros).to include(match(/O deck não pode estar vazio/))
+    end
+
     context 'quando o deck é Pauper' do
       let(:deck) { create(:deck, formato: 'pauper', usuario: usuario) }
       let(:validador) { described_class.new(deck) }
