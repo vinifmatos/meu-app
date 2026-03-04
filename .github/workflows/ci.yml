@@ -1,15 +1,17 @@
-name: CI - Testes Automáticos
+name: CI - Testes Automáticos & Preview
 
 on:
   push:
     branches: [ main ]
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     branches: [ main ]
 
 jobs:
   backend-tests:
     name: Backend (Rails)
     runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
     services:
       postgres:
         image: postgres:16
@@ -59,6 +61,7 @@ jobs:
   frontend-tests:
     name: Frontend (Build & E2E)
     runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
     services:
       postgres:
         image: postgres:16
@@ -128,3 +131,58 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report/
           retention-days: 30
+
+  preview:
+    name: Ambiente de Preview
+    runs-on: ubuntu-latest
+    # Só executa se:
+    # 1. A PR foi fechada (para limpeza)
+    # 2. OU Se os testes passaram (sucesso do backend e frontend)
+    if: |
+      always() && 
+      github.event_name == 'pull_request' && 
+      (github.event.action == 'closed' || (needs.backend-tests.result == 'success' && needs.frontend-tests.result == 'success'))
+    needs: [backend-tests, frontend-tests]
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: vinicius
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            export PR_NUMBER=${{ github.event.pull_request.number }}
+            export BRANCH=${{ github.head_ref }}
+            export PR_ACTION=${{ github.event.action }}
+            export DEPLOY_TOKEN=${{ secrets.DEPLOY_TOKEN }}
+
+            echo "Deploying preview PR-${PR_NUMBER}"
+
+            cd /opt/app
+
+            if [ "$PR_ACTION" = "closed" ]; then
+              echo "Removing preview PR-${PR_NUMBER}"
+
+              docker compose \
+                -f pr-${PR_NUMBER}/docker-compose.staging.yml \
+                --project-name pr-${PR_NUMBER} \
+                down -v
+              rm -rf pr-${PR_NUMBER}
+              exit 0
+            fi
+
+            # Clonar ou atualizar repositório
+            if [ ! -d "pr-${PR_NUMBER}" ]; then
+              git clone https://$DEPLOY_TOKEN@github.com/vinifmatos/meu-app.git pr-${PR_NUMBER}
+            fi
+
+            cd pr-${PR_NUMBER}
+            git fetch origin
+            git checkout ${BRANCH}
+            git pull origin ${BRANCH}
+
+            docker compose -f docker-compose.staging.yml \
+              --project-name pr-${PR_NUMBER} down
+            docker compose -f docker-compose.staging.yml \
+              --project-name pr-${PR_NUMBER} up -d --build
