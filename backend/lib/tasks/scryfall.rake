@@ -19,8 +19,9 @@ namespace :scryfall do
   desc "Importa uma coleção de cartas icônicas para testes e desenvolvimento (gera versões PT fakes)"
   task importar_famosas: :environment do
     cartas_famosas = [
-      "Black Lotus", "Ancestral Recall", "Time Walk", "Mox Pearl", "Mox Sapphire",
-      "Mox Jet", "Mox Ruby", "Mox Emerald", "Counterspell", "Lightning Bolt",
+      "Plains", "Island", "Swamp", "Mountain", "Forest",
+      "Black Lotus", "Ancestral Recall", "Time Walk", "Mox Pearl", "Mox Sapphire", 
+      "Mox Jet", "Mox Ruby", "Mox Emerald", "Counterspell", "Lightning Bolt", 
       "Dark Ritual", "Giant Growth", "Sol Ring", "Command Tower", "Arcane Signet",
       "Atog", "Delver of Secrets", "Brainstorm", "Ponder", "Faithless Looting",
       "Gush", "Daze", "Gitaxian Probe", "Mental Misstep", "Treasure Cruise",

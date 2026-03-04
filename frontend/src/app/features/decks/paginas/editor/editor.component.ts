@@ -107,7 +107,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Coluna da Esquerda: Busca -->
           <div class="lg:col-span-4 flex flex-col gap-4">
-            <p-card header="Adicionar Cartas" styleClass="h-full">
+            <p-card header="Adicionar Cartas">
               <div class="flex flex-col gap-4">
                 <p-iconField iconPosition="left">
                   <p-inputIcon
@@ -126,10 +126,12 @@ import { PreviewCartaComponent } from './preview-carta.component';
                   @for (c of resultadosBusca(); track c.id) {
                     <div
                       class="flex items-center justify-between p-2 hover:bg-highlight group rounded-lg border border-transparent hover:border-surface transition-all"
-                      (mouseenter)="mostrarPreview(c, $event)"
-                      (mouseleave)="esconderPreview()"
                     >
-                      <div class="flex items-center gap-3">
+                      <div
+                        class="flex items-center gap-3 cursor-help"
+                        (mouseenter)="mostrarPreview(c, $event)"
+                        (mouseleave)="esconderPreview()"
+                      >
                         <div class="w-10 h-14 relative rounded overflow-hidden shadow-sm shrink-0">
                           <img
                             [ngSrc]="obterImagemSmall(c)"
@@ -165,6 +167,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
                           size="small"
                           [text]="true"
                           (click)="adicionarAoDeckLocal(c)"
+                          [disabled]="!podeAdicionar(c)"
                           styleClass="group-hover:text-color-emphasis"
                         ></p-button>
                       </div>
@@ -199,8 +202,6 @@ import { PreviewCartaComponent } from './preview-carta.component';
                     ) {
                       <div
                         class="flex items-center justify-between p-3 hover:bg-highlight group transition-colors border-surface"
-                        (mouseenter)="mostrarPreview(item.carta, $event)"
-                        (mouseleave)="esconderPreview()"
                       >
                         <div class="flex items-center gap-4">
                           <span
@@ -211,6 +212,8 @@ import { PreviewCartaComponent } from './preview-carta.component';
                             <span
                               class="font-bold hover:text-primary cursor-pointer text-surface group-hover:text-color-emphasis"
                               [routerLink]="['/cartas', item.carta.id]"
+                              (mouseenter)="mostrarPreview(item.carta, $event)"
+                              (mouseleave)="esconderPreview()"
                               >{{ item.carta.name }}</span
                             >
                             <div class="flex items-center gap-2">
@@ -241,6 +244,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
                               size="small"
                               [text]="true"
                               (click)="adicionarAoDeckLocal(item.carta, item.ehComandante)"
+                              [disabled]="!podeAdicionar(item.carta, item.ehComandante)"
                               styleClass="group-hover:text-color-emphasis"
                             ></p-button>
                             <p-button
@@ -505,6 +509,19 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
       this.resultadosBusca.set(res.data?.cartas ?? []);
       this.carregandoBusca.set(false);
     });
+  }
+
+  podeAdicionar(carta: Carta, comoComandante: boolean = false): boolean {
+    const d = this.deck();
+    if (!d) return false;
+
+    const limite = this.validadorService.obterLimiteCopias(d.formato, carta);
+    const todasAsCartas: DeckCarta[] = Object.values(d.cartas).flat();
+    
+    const itemExistente = todasAsCartas.find(dc => dc.carta.oracleId === carta.oracleId && dc.ehComandante === comoComandante);
+    const quantidadeAtual = itemExistente?.quantidade ?? 0;
+
+    return quantidadeAtual < limite;
   }
 
   adicionarAoDeckLocal(carta: Carta, comoComandante: boolean = false) {

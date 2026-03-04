@@ -123,6 +123,16 @@ export class DecksValidadorService {
     });
   }
 
+  obterLimiteCopias(formato: string, carta: Carta): number {
+    if (this.ehTerrenoBasico(carta)) return 999;
+    
+    switch (formato) {
+      case 'pauper': return 4;
+      case 'commander': return 1;
+      default: return 4;
+    }
+  }
+
   private ehTerrenoBasico(carta: Carta): boolean {
     const tl = carta.typeLine || '';
     return tl.includes('Basic') && tl.includes('Land');
