@@ -38,6 +38,11 @@ export class MenuComponent {
           icon: 'pi pi-objects-column',
           routerLink: '/cartas',
         },
+        {
+          label: 'Meus Decks',
+          icon: 'pi pi-folder',
+          routerLink: '/decks',
+        },
       ],
     },
     {

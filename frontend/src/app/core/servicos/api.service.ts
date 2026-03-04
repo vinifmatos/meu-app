@@ -115,10 +115,12 @@ export class ApiService {
   delete<T>(
     path: string,
     opcoes: {
+      query?: Record<string, any>;
       apiVersao?: ApiVersao;
     } = {},
   ) {
     const url = this.normalizarCaminho(path, opcoes.apiVersao);
-    return firstValueFrom(this.http.delete<ApiResposta<T>>(url, { headers: this.headers }));
+    const params = this.paraHttpParams(opcoes.query);
+    return firstValueFrom(this.http.delete<ApiResposta<T>>(url, { params, headers: this.headers }));
   }
 }

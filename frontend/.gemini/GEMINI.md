@@ -33,6 +33,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 - ALWAYS create E2E tests using **Playwright** for any new feature or critical user flow.
 - E2E tests should be located in `frontend/e2e/specs` and follow the `nome.spec.ts` naming convention.
+- **Verification**: ALWAYS run the build command (`yarn ng build`) after any code change to ensure there are no compilation or template errors.
 
 ## TypeScript Best Practices
 

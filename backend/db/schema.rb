@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_03_232612) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_03_234323) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,9 +37,31 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_03_232612) do
     t.string "printed_name"
     t.string "printed_type_line"
     t.text "printed_text"
+    t.virtual "search_vector", type: :tsvector, as: "(((((setweight(to_tsvector('simple'::regconfig, (COALESCE(name, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, (COALESCE(printed_name, ''::character varying))::text), 'A'::\"char\")) || setweight(to_tsvector('simple'::regconfig, (COALESCE(type_line, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, (COALESCE(printed_type_line, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(oracle_text, ''::text)), 'C'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(printed_text, ''::text)), 'C'::\"char\"))", stored: true
     t.index ["lang"], name: "index_cartas_on_lang"
     t.index ["oracle_id"], name: "index_cartas_on_oracle_id"
     t.index ["scryfall_id"], name: "index_cartas_on_scryfall_id", unique: true
+    t.index ["search_vector"], name: "index_cartas_on_search_vector", using: :gin
+  end
+
+  create_table "deck_cartas", force: :cascade do |t|
+    t.bigint "deck_id", null: false
+    t.bigint "carta_id", null: false
+    t.integer "quantidade"
+    t.boolean "eh_comandante"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["carta_id"], name: "index_deck_cartas_on_carta_id"
+    t.index ["deck_id"], name: "index_deck_cartas_on_deck_id"
+  end
+
+  create_table "decks", force: :cascade do |t|
+    t.bigint "usuario_id", null: false
+    t.string "nome"
+    t.integer "formato"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["usuario_id"], name: "index_decks_on_usuario_id"
   end
 
   create_table "faces_cartas", force: :cascade do |t|
@@ -90,5 +112,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_03_232612) do
     t.index ["username"], name: "index_usuarios_on_username", unique: true
   end
 
+  add_foreign_key "deck_cartas", "cartas"
+  add_foreign_key "deck_cartas", "decks"
+  add_foreign_key "decks", "usuarios"
   add_foreign_key "faces_cartas", "cartas"
 end

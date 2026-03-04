@@ -5,7 +5,9 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
     "usuario" => "usuarios",
     "face_carta" => "faces_cartas",
     "carta" => "cartas",
-    "simbolo" => "simbolos"
+    "simbolo" => "simbolos",
+    "deck" => "decks",
+    "deck_carta" => "deck_cartas"
   }
 
   inflections.each do |singular, plural|
