@@ -10,7 +10,7 @@ class Deck < ApplicationRecord
 
   # Atalhos para categorias comuns no MTG
   def comandantes
-    cartas.joins(:deck_cartas).where(deck_cartas: { eh_comandante: true })
+    cartas.where(deck_cartas: { eh_comandante: true })
   end
 
   def terrenos

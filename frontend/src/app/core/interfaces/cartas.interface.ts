@@ -16,6 +16,7 @@ export interface Carta {
   lang: string;
   releasedAt: string;
   rarity: string;
+  legalities: Record<string, string>;
   imageUris: {
     small: string;
     normal: string;

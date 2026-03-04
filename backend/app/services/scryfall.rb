@@ -32,6 +32,21 @@ module Scryfall
       raise ApiError, "Erro ao baixar o arquivo do bulk data: #{e.message}"
     end
 
+    def buscar_carta_por_nome(nome, lang: nil)
+      params = { fuzzy: nome }
+      params[:lang] = lang if lang
+
+      response = @client.get("#{BASE_URL}/cards/named", params: params)
+
+      if response.status.success?
+        JSON.parse(response.body.to_s)
+      elsif response.status.code == 404
+        nil
+      else
+        raise ApiError, "Erro ao buscar carta '#{nome}': #{response.status.code}"
+      end
+    end
+
     private
 
     def caminho_arquivo_bulk
@@ -211,6 +226,20 @@ module Scryfall
       importar_cartas(api, force: force)
 
       nil
+    end
+
+    def importar_carta_por_nome(nome, lang: nil)
+      api = Api.new
+      carta_data = api.buscar_carta_por_nome(nome, lang: lang)
+
+      if carta_data
+        Carta.import_from_scryfall([ carta_data ])
+        true
+      else
+        msg = "Carta '#{nome}'"
+        msg += " no idioma '#{lang}'" if lang
+        raise ImportError, "#{msg} não encontrada no Scryfall"
+      end
     end
 
     def importar_simbolos(api)

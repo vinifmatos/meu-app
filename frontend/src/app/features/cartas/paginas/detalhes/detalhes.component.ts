@@ -112,6 +112,24 @@ import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
                 }
               </div>
 
+              <!-- Legalidades -->
+              @if (carta.legalities) {
+                <div class="mt-8">
+                  <h3 class="text-2xl font-bold mb-4 uppercase text-surface">Formatos</h3>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    @for (item of listarLegalities(carta.legalities); track item.formato) {
+                      <div class="flex flex-col gap-1 p-2 border border-surface rounded-lg bg-surface-50 shadow-sm">
+                        <span class="text-[9px] font-extrabold uppercase text-surface-500 leading-none">{{ item.formato }}</span>
+                        <div class="flex items-center gap-2">
+                          <div class="w-2 h-2 rounded-full" [class]="item.cor"></div>
+                          <span class="text-xs font-bold">{{ item.status }}</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
               <!-- Lista de Versões -->
               @if (versoes().length > 0) {
                 <div class="mt-8">
@@ -241,6 +259,21 @@ export class DetalhesComponent implements OnInit {
       case 'mythic': return 'danger';
       default: return 'secondary';
     }
+  }
+
+  listarLegalities(legalities: Record<string, string>) {
+    const statusMapa: Record<string, { texto: string, cor: string }> = {
+      'legal': { texto: 'Legal', cor: 'bg-green-500' },
+      'not_legal': { texto: 'Não Legal', cor: 'bg-surface-300' },
+      'restricted': { texto: 'Restrita', cor: 'bg-blue-500' },
+      'banned': { texto: 'Banida', cor: 'bg-red-500' }
+    };
+
+    return Object.entries(legalities).map(([formato, status]) => ({
+      formato: formato.replace(/_/g, ' '),
+      status: statusMapa[status]?.texto || status,
+      cor: statusMapa[status]?.cor || 'bg-surface-500'
+    }));
   }
 }
 
