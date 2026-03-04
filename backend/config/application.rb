@@ -1,4 +1,5 @@
 require_relative "boot"
+require_relative "../lib/middleware/json_key_transformer"
 
 require "rails"
 # Pick the frameworks you want:
@@ -29,7 +30,7 @@ module MeuApp
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
-    config.middleware.use "Middleware::JsonKeyTransformer"
+    config.middleware.use ::Middleware::JsonKeyTransformer
 
 
     # Configuration for the application, engines, and railties goes here.
