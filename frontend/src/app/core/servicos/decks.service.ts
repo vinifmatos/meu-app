@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from '@core/servicos/api.service';
-import { Deck } from '@core/interfaces/decks.interface';
+import { Deck, FormatoDeck } from '@core/interfaces/decks.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -36,6 +36,20 @@ export class DecksService {
 
   async deletarDeck(id: number): Promise<void> {
     await this.api.delete(`${this.endpoint}/${id}`);
+  }
+
+  async atualizarCartasDeck(deckId: number, cartas: { carta_id: number, quantidade: number, eh_comandante: boolean }[]): Promise<Deck | null> {
+    const resposta = await this.api.patch<{ deck: Deck }>(`${this.endpoint}/${deckId}`, {
+      data: { deck: { cartas_attributes: cartas } }
+    });
+    return resposta.data?.deck ?? null;
+  }
+
+  async criarDeckComCartas(nome: string, formato: FormatoDeck, cartas: { carta_id: number, quantidade: number, eh_comandante: boolean }[]): Promise<Deck | null> {
+    const resposta = await this.api.post<{ deck: Deck }>(this.endpoint, {
+      data: { deck: { nome, formato, cartas_attributes: cartas } }
+    });
+    return resposta.data?.deck ?? null;
   }
 
   async adicionarCarta(deckId: number, cartaId: number, quantidade: number = 1, ehComandante: boolean = false): Promise<Deck | null> {

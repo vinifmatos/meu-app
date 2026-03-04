@@ -75,7 +75,10 @@ RSpec.configure do |config|
     # para garantir que dados de execuções anteriores (ex: E2E) não interfiram.
     # Usamos delete_all em vez de destroy_all para ser mais rápido e evitar callbacks,
     # mas mantemos o usuário admin de seed se ele existir para não quebrar o E2E.
+    DeckCarta.delete_all
     Deck.delete_all
+    FaceCarta.delete_all
     Carta.delete_all
+    Usuario.where.not(username: 'admin').delete_all
   end
 end

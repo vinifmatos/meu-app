@@ -51,8 +51,8 @@ test.describe('Gerenciamento de Decks', () => {
     // O título no editor deve conter o nome que passamos
     await expect(page.getByRole('heading', { level: 1 })).toContainText(nomeUnico);
     
-    // Deve haver um botão "Salvar Deck" no editor para esta situação
-    const btnSalvar = page.locator('button:has-text("Salvar Deck")');
+    // Deve haver um botão "Salvar Alterações" no editor para esta situação
+    const btnSalvar = page.locator('button:has-text("Salvar Alterações")');
     await expect(btnSalvar).toBeVisible();
 
     // Agora sim, ao clicar em salvar, deve chamar a API

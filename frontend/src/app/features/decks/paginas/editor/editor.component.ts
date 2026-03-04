@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { DecksService } from '@core/servicos/decks.service';
@@ -14,6 +14,8 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { MessageModule } from 'primeng/message';
 import { FormsModule } from '@angular/forms';
+import { PreviewCartaComponent } from './preview-carta.component';
+import { AuthService } from '@core/servicos/auth.service';
 
 @Component({
   selector: 'app-editor-deck',
@@ -30,7 +32,8 @@ import { FormsModule } from '@angular/forms';
     IconFieldModule,
     InputIconModule,
     MessageModule,
-    FormsModule
+    FormsModule,
+    PreviewCartaComponent
   ],
   template: `
     <div class="container mx-auto p-4 max-w-7xl">
@@ -47,15 +50,14 @@ import { FormsModule } from '@angular/forms';
           </div>
 
           <div class="flex gap-2 pl-12 md:pl-0">
-            @if (isNovoDeck()) {
-              <p-button label="Salvar Deck" icon="pi pi-save" (click)="salvarNovoDeck()" [loading]="salvando"></p-button>
-            } @else {
-              @if (validacao().valido) {
-                <p-message severity="success" text="Deck Válido para {{ d.formato.toUpperCase() }}"></p-message>
-              } @else {
-                <p-button label="Ver Erros ({{ validacao().erros.length }})" severity="danger" icon="pi pi-exclamation-triangle" (click)="exibirErros = !exibirErros"></p-button>
-              }
-            }
+             @if (hasChanges()) {
+                <p-button label="Salvar Alterações" icon="pi pi-save" (click)="salvar()" [loading]="salvando()"></p-button>
+             }
+             @if (validacao().valido) {
+                <p-message severity="success" text="Deck Válido"></p-message>
+             } @else {
+                <p-button label="Erros ({{ validacao().erros.length }})" severity="danger" icon="pi pi-exclamation-triangle" (click)="exibirErros = !exibirErros"></p-button>
+             }
           </div>
         </div>
 
@@ -82,7 +84,9 @@ import { FormsModule } from '@angular/forms';
 
                 <div class="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
                   @for (c of resultadosBusca(); track c.id) {
-                    <div class="flex items-center justify-between p-2 hover:bg-surface-50 rounded-lg border border-transparent hover:border-surface-200 transition-all">
+                    <div class="flex items-center justify-between p-2 hover:bg-surface-50 rounded-lg border border-transparent hover:border-surface-200 transition-all"
+                         (mouseenter)="mostrarPreview(c, $event)"
+                         (mouseleave)="esconderPreview()">
                       <div class="flex items-center gap-3">
                         <div class="w-10 h-14 relative rounded overflow-hidden shadow-sm shrink-0">
                           <img [ngSrc]="obterImagemSmall(c)" [alt]="c.name" fill class="object-cover" />
@@ -94,9 +98,9 @@ import { FormsModule } from '@angular/forms';
                       </div>
                       <div class="flex gap-1">
                         @if (d.formato === 'commander') {
-                          <p-button icon="pi pi-star" size="small" [text]="true" pTooltip="Comandante" (click)="adicionarAoDeck(c, true)" [disabled]="isNovoDeck()"></p-button>
+                          <p-button icon="pi pi-star" size="small" [text]="true" pTooltip="Comandante" (click)="adicionarAoDeckLocal(c, true)"></p-button>
                         }
-                        <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeck(c)" [disabled]="isNovoDeck()"></p-button>
+                        <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeckLocal(c)"></p-button>
                       </div>
                     </div>
                   } @empty {
@@ -119,8 +123,10 @@ import { FormsModule } from '@angular/forms';
                     <p-tag [value]="cat.total.toString()" severity="secondary"></p-tag>
                   </div>
                   <div class="divide-y divide-surface-100">
-                    @for (item of cat.cartas; track item.carta.id) {
-                      <div class="flex items-center justify-between p-3 hover:bg-surface-50 group">
+                    @for (item of cat.cartas; track item.carta.id + (item.ehComandante ? '-cmd' : '')) {
+                      <div class="flex items-center justify-between p-3 hover:bg-surface-50 group"
+                           (mouseenter)="mostrarPreview(item.carta, $event)"
+                           (mouseleave)="esconderPreview()">
                         <div class="flex items-center gap-4">
                           <span class="font-mono font-bold text-primary-500 w-6 text-center">{{ item.quantidade }}</span>
                           <div class="flex flex-col">
@@ -136,9 +142,9 @@ import { FormsModule } from '@angular/forms';
                         <div class="flex items-center gap-4">
                           <div class="hidden md:block text-sm" [innerHTML]="item.carta.manaCost | simbolos"></div>
                           <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeck(item.carta)" [disabled]="isNovoDeck()"></p-button>
-                            <p-button icon="pi pi-minus" size="small" [text]="true" severity="secondary" (click)="removerDoDeck(item.carta)" [disabled]="isNovoDeck()"></p-button>
-                            <p-button icon="pi pi-trash" size="small" [text]="true" severity="danger" (click)="removerDoDeck(item.carta, true)" [disabled]="isNovoDeck()"></p-button>
+                            <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeckLocal(item.carta, item.ehComandante)"></p-button>
+                            <p-button icon="pi pi-minus" size="small" [text]="true" severity="secondary" (click)="removerDoDeckLocal(item.carta, item.ehComandante)"></p-button>
+                            <p-button icon="pi pi-trash" size="small" [text]="true" severity="danger" (click)="removerDoDeckLocal(item.carta, item.ehComandante, true)"></p-button>
                           </div>
                         </div>
                       </div>
@@ -154,6 +160,9 @@ import { FormsModule } from '@angular/forms';
           <i class="pi pi-spin pi-spinner text-4xl"></i>
         </div>
       }
+
+      <!-- Preview no Hover -->
+      <app-preview-carta class="deck-editor-preview" [carta]="cartaPreview()" [x]="mouseX()" [y]="mouseY()"></app-preview-carta>
     </div>
   `,
   styles: [`:host { display: block; }`],
@@ -164,16 +173,35 @@ export class EditorDeckComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly decksService = inject(DecksService);
   private readonly cartasService = inject(CartasService);
+  private readonly authService = inject(AuthService);
 
   deck = signal<Deck | null>(null);
+  deckOriginal = signal<string>('');
   isNovoDeck = signal(false);
-  salvando = false;
+  salvando = signal(false);
   validacao = signal<{ valido: boolean, erros: string[] }>({ valido: true, erros: [] });
   exibirErros = false;
+
+  hasChanges = computed(() => {
+    const d = this.deck();
+    if (!d) return false;
+    if (this.isNovoDeck() && d.estatisticas.totalCartas === 0) {
+       // Se for novo e estiver vazio, mas veio de uma intenção de criação (nome definido),
+       // consideramos que tem mudanças para permitir salvar o deck vazio se desejar,
+       // ou pelo menos aparecer o botão para o usuário.
+       return true;
+    }
+    return JSON.stringify(this.serializarParaLocal(d)) !== this.deckOriginal();
+  });
 
   buscaTermo = '';
   resultadosBusca = signal<Carta[]>([]);
   carregandoBusca = false;
+
+  // Preview
+  cartaPreview = signal<Carta | null>(null);
+  mouseX = signal(0);
+  mouseY = signal(0);
 
   categorias = computed(() => {
     const d = this.deck();
@@ -194,26 +222,89 @@ export class EditorDeckComponent implements OnInit {
     ];
   });
 
+  constructor() {
+    // Efeito para salvar no localStorage quando o deck muda
+    effect(() => {
+      const d = this.deck();
+      if (d && this.authService.estaAutenticado()) {
+        const chave = `deck_edicao_${d.id || 'novo'}`;
+        localStorage.setItem(chave, JSON.stringify(this.serializarParaLocal(d)));
+      }
+    });
+  }
+
   ngOnInit() {
     this.route.params.subscribe(params => {
       const id = params['id'];
       if (id === 'novo') {
-        this.inicializarNovoDeck();
+        this.isNovoDeck.set(true);
+        const queryParams = this.route.snapshot.queryParams;
+        const nome = queryParams['nome'] ?? 'Novo Deck';
+        const formato = (queryParams['formato'] as FormatoDeck) ?? 'pauper';
+        this.restaurarOuInicializar(0, nome, formato);
       } else if (id) {
+        this.isNovoDeck.set(false);
         this.carregarDeck(+id);
       }
     });
   }
 
-  private inicializarNovoDeck() {
-    this.isNovoDeck.set(true);
-    const params = this.route.snapshot.queryParams;
-    
-    // Cria um deck "fake" localmente
+  private serializarParaLocal(d: Deck) {
+    // Reduz o objeto para salvar apenas o necessário
+    return {
+      nome: d.nome,
+      formato: d.formato,
+      cartas: Object.entries(d.cartas).reduce((acc, [key, val]) => {
+        acc[key] = (val as DeckCarta[]).map(dc => ({
+           cartaId: dc.carta.id,
+           quantidade: dc.quantidade,
+           ehComandante: dc.ehComandante,
+           carta: dc.carta // Salvamos o objeto carta para evitar nova busca ao restaurar
+        }));
+        return acc;
+      }, {} as any)
+    };
+  }
+
+  private restaurarOuInicializar(id: number, nomePadrao?: string, formatoPadrao?: FormatoDeck) {
+    const chave = `deck_edicao_${id || 'novo'}`;
+    const salvo = localStorage.getItem(chave);
+
+    if (salvo) {
+      try {
+        const dados = JSON.parse(salvo);
+        const d: Deck = {
+          id: id,
+          nome: dados.nome,
+          formato: dados.formato,
+          usuarioId: 0,
+          cartas: dados.cartas,
+          estatisticas: { totalCartas: this.calcularTotal(dados.cartas), valido: false },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        this.deck.set(d);
+        // Não definimos deckOriginal aqui para que 'hasChanges' funcione se houve alteração antes do refresh
+        return;
+      } catch (e) {
+        console.error('Erro ao restaurar deck do localStorage', e);
+      }
+    }
+
+    if (id === 0) {
+      this.inicializarNovoDeck(nomePadrao!, formatoPadrao!);
+    }
+  }
+
+  private calcularTotal(cartas: any): number {
+    return Object.values(cartas).flat().reduce((acc: number, c: any) => acc + (c.quantidade || 0), 0);
+  }
+
+  private inicializarNovoDeck(nome: string, formato: FormatoDeck) {
     const novoDeck: Deck = {
       id: 0,
-      nome: params['nome'] ?? 'Novo Deck',
-      formato: (params['formato'] as FormatoDeck) ?? 'pauper',
+      nome,
+      formato,
       usuarioId: 0,
       cartas: {
         comandantes: [], criaturas: [], planeswalkers: [], instantes: [], 
@@ -223,39 +314,25 @@ export class EditorDeckComponent implements OnInit {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    
     this.deck.set(novoDeck);
+    this.deckOriginal.set(JSON.stringify(this.serializarParaLocal(novoDeck)));
   }
 
   async carregarDeck(id: number) {
-    this.isNovoDeck.set(false);
     const d = await this.decksService.obterDeck(id);
-    this.deck.set(d);
     if (d) {
-      this.atualizarValidacao(id);
-    }
-  }
-
-  async salvarNovoDeck() {
-    const d = this.deck();
-    if (!d) return;
-
-    this.salvando = true;
-    try {
-      const novoDeckReal = await this.decksService.criarDeck(d.nome, d.formato);
-      this.salvando = false;
-
-      if (novoDeckReal) {
-        this.router.navigate(['/decks', novoDeckReal.id], { replaceUrl: true });
+      this.deckOriginal.set(JSON.stringify(this.serializarParaLocal(d)));
+      
+      // Verifica se tem algo no localStorage para restaurar
+      const chave = `deck_edicao_${id}`;
+      const salvo = localStorage.getItem(chave);
+      if (salvo) {
+         this.restaurarOuInicializar(id);
+      } else {
+         this.deck.set(d);
       }
-    } catch (error) {
-      this.salvando = false;
+      this.validarLocalmente();
     }
-  }
-
-  async atualizarValidacao(id: number) {
-    const res = await this.decksService.validarDeck(id);
-    this.validacao.set(res);
   }
 
   buscarCartas() {
@@ -267,46 +344,146 @@ export class EditorDeckComponent implements OnInit {
     });
   }
 
-  async adicionarAoDeck(carta: Carta, comoComandante: boolean = false) {
-    const d = this.deck();
-    if (!d || this.isNovoDeck()) return;
+  adicionarAoDeckLocal(carta: Carta, comoComandante: boolean = false) {
+    this.deck.update(d => {
+      if (!d) return null;
+      
+      const novaEstrutura = { ...d.cartas };
+      const categoria = this.obterCategoriaCarta(carta, comoComandante);
+      const lista = [...(novaEstrutura as any)[categoria]];
+      
+      const index = lista.findIndex((dc: any) => dc.carta.id === carta.id && dc.ehComandante === comoComandante);
+      
+      if (index >= 0) {
+        lista[index] = { ...lista[index], quantidade: lista[index].quantidade + 1 };
+      } else {
+        lista.push({ carta, quantidade: 1, ehComandante: comoComandante });
+      }
+      
+      (novaEstrutura as any)[categoria] = lista;
+      
+      const novoDeck = { 
+        ...d, 
+        cartas: novaEstrutura,
+        estatisticas: { ...d.estatisticas, totalCartas: d.estatisticas.totalCartas + 1 }
+      };
+      
+      return novoDeck;
+    });
+    this.validarLocalmente();
+  }
 
-    const novoDeck = await this.decksService.adicionarCarta(d.id, carta.id, 1, comoComandante);
-    if (novoDeck) {
-      this.deck.set(novoDeck);
-      this.atualizarValidacao(d.id);
+  removerDoDeckLocal(carta: Carta, comoComandante: boolean = false, tudo: boolean = false) {
+    this.deck.update(d => {
+      if (!d) return null;
+      
+      const novaEstrutura = { ...d.cartas };
+      const categoria = this.obterCategoriaCarta(carta, comoComandante);
+      let lista = [...(novaEstrutura as any)[categoria]];
+      
+      const index = lista.findIndex((dc: any) => dc.carta.id === carta.id && dc.ehComandante === comoComandante);
+      if (index === -1) return d;
+
+      const qtdRemover = tudo ? lista[index].quantidade : 1;
+
+      if (tudo || lista[index].quantidade === 1) {
+        lista = lista.filter((_, i) => i !== index);
+      } else {
+        lista[index] = { ...lista[index], quantidade: lista[index].quantidade - 1 };
+      }
+      
+      (novaEstrutura as any)[categoria] = lista;
+      
+      return { 
+        ...d, 
+        cartas: novaEstrutura,
+        estatisticas: { ...d.estatisticas, totalCartas: d.estatisticas.totalCartas - qtdRemover }
+      };
+    });
+    this.validarLocalmente();
+  }
+
+  private obterCategoriaCarta(c: Carta, comoComandante: boolean): keyof Deck['cartas'] {
+    if (comoComandante) return 'comandantes';
+    const tl = (c.typeLine || '').toLowerCase();
+    if (tl.includes('planeswalker')) return 'planeswalkers';
+    if (tl.includes('creature')) return 'criaturas';
+    if (tl.includes('instant')) return 'instantes';
+    if (tl.includes('sorcery')) return 'feiticos';
+    if (tl.includes('artifact')) return 'artefatos';
+    if (tl.includes('enchantment')) return 'encantamentos';
+    if (tl.includes('land')) return 'terrenos';
+    return 'outros';
+  }
+
+  async salvar() {
+    const d = this.deck();
+    if (!d) return;
+
+    this.salvando.set(true);
+    try {
+      let resultado: Deck | null;
+      
+      // Preparamos a lista de cartas para o formato que o backend espera (ou simulamos um batch)
+      const listaSimples: { carta_id: number, quantidade: number, eh_comandante: boolean }[] = [];
+      Object.values(d.cartas).flat().forEach((dc: any) => {
+        listaSimples.push({
+          carta_id: dc.carta.id,
+          quantidade: dc.quantidade,
+          eh_comandante: dc.ehComandante
+        });
+      });
+
+      if (this.isNovoDeck()) {
+        resultado = await this.decksService.criarDeckComCartas(d.nome, d.formato, listaSimples);
+      } else {
+        resultado = await this.decksService.atualizarCartasDeck(d.id, listaSimples);
+      }
+
+      if (resultado) {
+        const chave = `deck_edicao_${d.id || 'novo'}`;
+        localStorage.removeItem(chave);
+        
+        if (this.isNovoDeck()) {
+          this.router.navigate(['/decks', resultado.id], { replaceUrl: true });
+        } else {
+          this.deck.set(resultado);
+          this.deckOriginal.set(JSON.stringify(this.serializarParaLocal(resultado)));
+          this.validarLocalmente();
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao salvar deck', e);
+    } finally {
+      this.salvando.set(false);
     }
   }
 
-  async removerDoDeck(carta: Carta, removerTudo: boolean = false) {
-    const d = this.deck();
-    if (!d || this.isNovoDeck()) return;
+  private async validarLocalmente() {
+    // Por enquanto apenas sinaliza que precisa salvar para validar real no backend
+    // Ou podemos implementar uma validação básica de regras aqui
+  }
 
-    const novoDeck = await this.decksService.removerCarta(d.id, carta.id, removerTudo);
-    if (novoDeck) {
-      this.deck.set(novoDeck);
-      this.atualizarValidacao(d.id);
+  mostrarPreview(c: Carta, event: MouseEvent) {
+    this.cartaPreview.set(c);
+    this.mouseX.set(event.clientX);
+    this.mouseY.set(event.clientY);
+  }
+
+  @HostListener('mousemove', ['$event'])
+  onMouseMove(event: MouseEvent) {
+    if (this.cartaPreview()) {
+      this.mouseX.set(event.clientX);
+      this.mouseY.set(event.clientY);
     }
+  }
+
+  esconderPreview() {
+    this.cartaPreview.set(null);
   }
 
   obterImagemSmall(c: Carta): string {
     return c.imageUris?.small ?? c.faces[0]?.imageUris?.small ?? '';
   }
-
-  obterRaridadeTraduzida(raridade: string): string {
-    const mapa: Record<string, string> = {
-      'common': 'Comum', 'uncommon': 'Incomum', 'rare': 'Rara', 'mythic': 'Mítica'
-    };
-    return mapa[raridade] ?? raridade;
-  }
-
-  obterRaridadeSeverity(raridade: string): "secondary" | "info" | "success" | "warn" | "danger" | "contrast" | undefined {
-    switch (raridade) {
-      case 'common': return 'secondary';
-      case 'uncommon': return 'info';
-      case 'rare': return 'warn';
-      case 'mythic': return 'danger';
-      default: return 'secondary';
-    }
-  }
 }
+

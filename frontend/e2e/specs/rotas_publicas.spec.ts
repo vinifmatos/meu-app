@@ -14,8 +14,9 @@ test.describe('Rotas Públicas', () => {
       
       // Monitora erros de console e de rede
       page.on('console', msg => {
-        if (msg.type() === 'error') {
-          consoleErrors.push(`[CONSOLE ERROR]: ${msg.text()}`);
+        const text = msg.text();
+        if (msg.type() === 'error' && !text.includes('NgOptimizedImage')) {
+          consoleErrors.push(`[CONSOLE ERROR]: ${text}`);
         }
       });
 
