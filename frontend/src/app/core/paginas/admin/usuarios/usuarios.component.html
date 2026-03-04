@@ -4,7 +4,7 @@
     <p-button label="Novo Usuário" icon="pi pi-plus" (click)="abrirDialogo()" raised></p-button>
   </div>
 
-  <p-table [value]="usuarios" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm">
+  <p-table [value]="usuarios" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm" [rowHover]="true">
     <ng-template pTemplate="header">
       <tr>
         <th>ID</th>

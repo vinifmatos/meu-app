@@ -85,7 +85,7 @@ import { TagModule } from 'primeng/tag';
             <div
               *ngFor="let carta of cartas; let i = index"
               [routerLink]="['/cartas', carta.id]"
-              class="group p-4 border border-surface bg-surface rounded-xl shadow-sm flex flex-col items-center cursor-pointer hover:border-primary-500 hover:shadow-xl transition-all duration-300"
+              class="group p-4 border border-surface bg-surface rounded-xl shadow-sm flex flex-col items-center cursor-pointer hover:bg-highlight hover:border-surface transition-all duration-300"
             >
               <div
                 class="relative w-full aspect-[2.5/3.5] mb-4 overflow-hidden rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300"
@@ -100,10 +100,10 @@ import { TagModule } from 'primeng/tag';
               </div>
 
               <div class="text-center w-full">
-                <div class="text-lg font-bold mb-1 truncate text-surface" [title]="carta.name">
+                <div class="text-lg font-bold mb-1 truncate text-surface group-hover:text-color-emphasis" [title]="carta.name">
                   {{ carta.name }}
                 </div>
-                <div class="text-sm text-surface mb-3 truncate">{{ carta.typeLine }}</div>
+                <div class="text-sm text-surface group-hover:text-color-emphasis/80 mb-3 truncate">{{ carta.typeLine }}</div>
 
                 <div class="flex justify-center gap-2 flex-wrap">
                   <p-tag

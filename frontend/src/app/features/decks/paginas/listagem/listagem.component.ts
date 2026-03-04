@@ -34,7 +34,7 @@ import { CriarDeckComponent } from './criar-deck.component';
         @for (deck of decks(); track deck.id) {
           <p-card
             [header]="deck.nome"
-            class="hover:shadow-md transition-shadow cursor-pointer"
+            styleClass="hover:bg-highlight group transition-all cursor-pointer border border-surface shadow-sm"
             [routerLink]="['/decks', deck.id]"
           >
             <div class="flex flex-col gap-3">
@@ -44,9 +44,9 @@ import { CriarDeckComponent } from './criar-deck.component';
                   [severity]="deck.formato === 'pauper' ? 'info' : 'warn'"
                 ></p-tag>
                 <div class="flex flex-col items-end">
-                   <span class="text-sm text-surface-500">{{ deck.estatisticas.totalCartas }} cartas</span>
+                   <span class="text-sm text-surface group-hover:text-color-emphasis">{{ deck.estatisticas.totalCartas }} cartas</span>
                    @if (!apenasMeus()) {
-                     <span class="text-[10px] text-surface-400 font-bold uppercase tracking-tighter">Por {{ deck.usuario?.nome }}</span>
+                     <span class="text-[10px] text-surface group-hover:text-color-emphasis/80 font-bold uppercase tracking-tighter">Por {{ deck.usuario?.nome }}</span>
                    }
                 </div>
               </div>
@@ -61,9 +61,9 @@ import { CriarDeckComponent } from './criar-deck.component';
                 }
               </div>
 
-              <div class="flex items-center gap-2 mt-2 pt-2 border-t border-surface-100">
-                <i class="pi pi-calendar text-surface-400 text-xs"></i>
-                <span class="text-[10px] text-surface-400 uppercase font-medium">
+              <div class="flex items-center gap-2 mt-2 pt-2 border-t border-surface">
+                <i class="pi pi-calendar text-surface group-hover:text-color-emphasis text-xs"></i>
+                <span class="text-[10px] text-surface group-hover:text-color-emphasis/80 uppercase font-medium">
                   Atualizado em {{ deck.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
                 </span>
               </div>
