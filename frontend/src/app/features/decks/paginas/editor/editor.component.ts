@@ -16,6 +16,7 @@ import { Carta } from '@core/interfaces/cartas.interface';
 import { Deck, DeckCarta, FormatoDeck } from '@core/interfaces/decks.interface';
 import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
 import { AuthService } from '@core/servicos/auth.service';
+import { DecksValidadorService } from '@core/servicos/decks-validador.service';
 import { DecksService } from '@core/servicos/decks.service';
 import { CartasService } from '@features/cartas/servicos/cartas.service';
 import { ButtonModule } from 'primeng/button';
@@ -82,25 +83,23 @@ import { PreviewCartaComponent } from './preview-carta.component';
                 label="Erros ({{ validacao().erros.length }})"
                 severity="danger"
                 icon="pi pi-exclamation-triangle"
-                (click)="exibirErros = !exibirErros"
+                (click)="exibirErros.set(!exibirErros())"
               ></p-button>
             }
           </div>
         </div>
 
-        @if (exibirErros && !validacao().valido) {
+        @if (exibirErros() && !validacao().valido) {
           <div class="mb-6">
-            <p-message severity="error" styleClass="w-full justify-start">
-              <ng-template #content>
-                <div class="flex flex-col gap-2">
-                  <h3 class="font-bold">Erros de Validação:</h3>
-                  <ul class="list-disc pl-5">
-                    @for (erro of validacao().erros; track $index) {
-                      <li>{{ erro }}</li>
-                    }
-                  </ul>
-                </div>
-              </ng-template>
+            <p-message severity="error">
+              <div class="flex flex-col gap-2">
+                <h3 class="font-bold">O Deck não atendes as regras do formato:</h3>
+                <ul class="list-disc pl-5">
+                  @for (erro of validacao().erros; track $index) {
+                    <li>{{ erro }}</li>
+                  }
+                </ul>
+              </div>
             </p-message>
           </div>
         }
@@ -108,7 +107,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Coluna da Esquerda: Busca -->
           <div class="lg:col-span-4 flex flex-col gap-4">
-            <p-card header="Adicionar Cartas" styleClass="h-full">
+            <p-card header="Adicionar Cartas">
               <div class="flex flex-col gap-4">
                 <p-iconField iconPosition="left">
                   <p-inputIcon
@@ -127,10 +126,12 @@ import { PreviewCartaComponent } from './preview-carta.component';
                   @for (c of resultadosBusca(); track c.id) {
                     <div
                       class="flex items-center justify-between p-2 hover:bg-highlight group rounded-lg border border-transparent hover:border-surface transition-all"
-                      (mouseenter)="mostrarPreview(c, $event)"
-                      (mouseleave)="esconderPreview()"
                     >
-                      <div class="flex items-center gap-3">
+                      <div
+                        class="flex items-center gap-3 cursor-help"
+                        (mouseenter)="mostrarPreview(c, $event)"
+                        (mouseleave)="esconderPreview()"
+                      >
                         <div class="w-10 h-14 relative rounded overflow-hidden shadow-sm shrink-0">
                           <img
                             [ngSrc]="obterImagemSmall(c)"
@@ -140,10 +141,14 @@ import { PreviewCartaComponent } from './preview-carta.component';
                           />
                         </div>
                         <div class="flex flex-col">
-                          <span class="text-sm font-bold truncate w-32 md:w-40 text-surface group-hover:text-color-emphasis">{{
-                            c.name
-                          }}</span>
-                          <span class="text-xs text-surface uppercase group-hover:text-color-emphasis/80">{{ c.set }}</span>
+                          <span
+                            class="text-sm font-bold truncate w-32 md:w-40 text-surface group-hover:text-color-emphasis"
+                            >{{ c.name }}</span
+                          >
+                          <span
+                            class="text-xs text-surface uppercase group-hover:text-color-emphasis/80"
+                            >{{ c.set }}</span
+                          >
                         </div>
                       </div>
                       <div class="flex gap-1">
@@ -162,6 +167,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
                           size="small"
                           [text]="true"
                           (click)="adicionarAoDeckLocal(c)"
+                          [disabled]="!podeAdicionar(c)"
                           styleClass="group-hover:text-color-emphasis"
                         ></p-button>
                       </div>
@@ -196,17 +202,18 @@ import { PreviewCartaComponent } from './preview-carta.component';
                     ) {
                       <div
                         class="flex items-center justify-between p-3 hover:bg-highlight group transition-colors border-surface"
-                        (mouseenter)="mostrarPreview(item.carta, $event)"
-                        (mouseleave)="esconderPreview()"
                       >
                         <div class="flex items-center gap-4">
-                          <span class="font-mono font-bold text-primary w-6 text-center group-hover:text-color-emphasis">{{
-                            item.quantidade
-                          }}</span>
+                          <span
+                            class="font-mono font-bold text-primary w-6 text-center group-hover:text-color-emphasis"
+                            >{{ item.quantidade }}</span
+                          >
                           <div class="flex flex-col">
                             <span
                               class="font-bold hover:text-primary cursor-pointer text-surface group-hover:text-color-emphasis"
                               [routerLink]="['/cartas', item.carta.id]"
+                              (mouseenter)="mostrarPreview(item.carta, $event)"
+                              (mouseleave)="esconderPreview()"
                               >{{ item.carta.name }}</span
                             >
                             <div class="flex items-center gap-2">
@@ -236,6 +243,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
                               size="small"
                               [text]="true"
                               (click)="adicionarAoDeckLocal(item.carta, item.ehComandante)"
+                              [disabled]="!podeAdicionar(item.carta, item.ehComandante)"
                               styleClass="group-hover:text-color-emphasis"
                             ></p-button>
                             <p-button
@@ -294,14 +302,15 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
   private readonly decksService = inject(DecksService);
   private readonly cartasService = inject(CartasService);
   private readonly authService = inject(AuthService);
+  private readonly validadorService = inject(DecksValidadorService);
   private readonly destroy$ = new Subject<void>();
 
   deck = signal<Deck | null>(null);
   deckOriginal = signal<string>('');
   isNovoDeck = signal(false);
   salvando = signal(false);
-  validacao = signal<{ valido: boolean; erros: string[] }>({ valido: true, erros: [] });
-  exibirErros = false;
+  validacao = computed(() => this.validadorService.validar(this.deck()));
+  exibirErros = signal(false);
 
   hasChanges = computed(() => {
     const d = this.deck();
@@ -500,6 +509,19 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
       this.resultadosBusca.set(res.data?.cartas ?? []);
       this.carregandoBusca.set(false);
     });
+  }
+
+  podeAdicionar(carta: Carta, comoComandante: boolean = false): boolean {
+    const d = this.deck();
+    if (!d) return false;
+
+    const limite = this.validadorService.obterLimiteCopias(d.formato, carta);
+    const todasAsCartas: DeckCarta[] = Object.values(d.cartas).flat();
+    
+    const itemExistente = todasAsCartas.find(dc => dc.carta.oracleId === carta.oracleId && dc.ehComandante === comoComandante);
+    const quantidadeAtual = itemExistente?.quantidade ?? 0;
+
+    return quantidadeAtual < limite;
   }
 
   adicionarAoDeckLocal(carta: Carta, comoComandante: boolean = false) {

@@ -13,6 +13,16 @@ FactoryBot.define do
     set { "m21" }
     collector_number { "1" }
     lang { "en" }
+    legalities do
+      {
+        pauper: "legal",
+        commander: "legal",
+        standard: "legal",
+        modern: "legal",
+        legacy: "legal",
+        vintage: "legal"
+      }
+    end
     image_uris do
       {
         small: "http://example.com/small.jpg",

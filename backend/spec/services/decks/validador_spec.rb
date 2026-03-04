@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Decks::Validador, type: :service do
-  let(:usuario) { create(:usuario) }
+  let(:usuario) { Usuario.find_by(username: 'admin') || create(:usuario) }
   
   describe '#validar!' do
     it 'valida que o deck não pode estar vazio' do
@@ -22,31 +22,31 @@ RSpec.describe Decks::Validador, type: :service do
       end
 
       it 'valida que o deck não pode ter mais que 4 cópias da mesma carta' do
-        carta = create(:carta, rarity: 'common')
+        carta = create(:carta)
         create(:deck_carta, deck: deck, carta: carta, quantidade: 5)
         erros = validador.validar!
         expect(erros).to include(match(/Limite excedido para '.*': máximo de 4 cópia\(s\)/))
       end
 
       it 'permite qualquer quantidade de terrenos básicos' do
-        terreno = create(:carta, name: 'Island', type_line: 'Basic Island', rarity: 'common')
+        terreno = create(:carta, name: 'Island', type_line: 'Basic Land — Island')
         create(:deck_carta, deck: deck, carta: terreno, quantidade: 60)
         erros = validador.validar!
         expect(erros).not_to include(match(/Limite excedido para 'Island'/))
       end
 
-      it 'valida que todas as cartas devem ter sido impressas como comuns' do
-        carta_rara = create(:carta, name: 'Carta Rara', rarity: 'rare')
-        create(:deck_carta, deck: deck, carta: carta_rara, quantidade: 1)
+      it 'valida que todas as cartas devem ser permitidas no formato' do
+        carta_ilegal = create(:carta, name: 'Carta Ilegal', legalities: { pauper: 'not_legal', commander: 'legal' })
+        create(:deck_carta, deck: deck, carta: carta_ilegal, quantidade: 1)
         erros = validador.validar!
-        expect(erros).to include(match(/não é legal no Pauper/))
+        expect(erros).to include(match(/não é permitida no formato Pauper/))
       end
 
       it 'valida que cartas banidas no Pauper não são permitidas' do
-        carta_banida = create(:carta, name: 'Atog', rarity: 'common')
+        carta_banida = create(:carta, name: 'Atog', legalities: { pauper: 'banned', commander: 'legal' })
         create(:deck_carta, deck: deck, carta: carta_banida, quantidade: 1)
         erros = validador.validar!
-        expect(erros).to include(match(/banida no formato Pauper/))
+        expect(erros).to include(match(/não é permitida no formato Pauper/))
       end
     end
 
@@ -92,10 +92,10 @@ RSpec.describe Decks::Validador, type: :service do
       end
 
       it 'valida que cartas banidas no Commander não são permitidas' do
-        carta_banida = create(:carta, name: 'Black Lotus')
+        carta_banida = create(:carta, name: 'Black Lotus', legalities: { commander: 'banned', pauper: 'not_legal' })
         create(:deck_carta, deck: deck, carta: carta_banida, quantidade: 1)
         erros = validador.validar!
-        expect(erros).to include(match(/banida no formato Commander/))
+        expect(erros).to include(match(/não é permitida no formato Commander/))
       end
     end
   end

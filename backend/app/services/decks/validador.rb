@@ -1,16 +1,5 @@
 module Decks
   class Validador
-    # Listas parciais de banidas para validação
-    BANLIST_PAUPER = [
-      'Atog', 'Arcum\'s Astrolabe', 'Bonder\'s Ornament', 'Cloudpost', 'Cranial Ram', 
-      'Daze', 'Disciple of the Vault', 'Empty the Warrens', 'Frantic Search', 'Gush'
-    ].freeze
-
-    BANLIST_COMMANDER = [
-      'Black Lotus', 'Ancestral Recall', 'Time Walk', 'Mox Pearl', 'Mox Sapphire', 
-      'Mox Jet', 'Mox Ruby', 'Mox Emerald', 'Time Vault', 'Library of Alexandria'
-    ].freeze
-
     def initialize(deck)
       @deck = deck
       @erros = []
@@ -31,7 +20,7 @@ module Decks
         validar_commander
       end
 
-      validar_banlist
+      validar_legalidade_formato
 
       @erros
     end
@@ -43,7 +32,6 @@ module Decks
       @erros << "Mínimo de 60 cartas para o formato Pauper (atual: #{total})" if total < 60
 
       validar_limite_copias(4)
-      validar_raridade_comum
     end
 
     def validar_commander
@@ -58,19 +46,11 @@ module Decks
     end
 
     def validar_limite_copias(limite)
-      @deck.deck_cartas.joins(:carta).group('cartas.oracle_id', 'cartas.name').sum(:quantidade).each do |(oracle_id, name), qtd|
-        next if terreno_basico?(name)
-        # TODO: Adicionar suporte para cartas que ignoram limite (ex: Shadowborn Apostle)
-        @erros << "Limite excedido para '#{name}': máximo de #{limite} cópia(s)" if qtd > limite
-      end
-    end
-
-    def validar_raridade_comum
-      # Usamos distinct oracle_id para evitar checar a mesma carta múltiplas vezes
-      @deck.cartas.select(:oracle_id, :name).distinct.each do |carta|
-        # Verifica se existe ALGUMA impressão dessa carta como comum em todo o banco
-        foi_comum = Carta.where(oracle_id: carta.oracle_id, rarity: 'common').exists?
-        @erros << "A carta '#{carta.name}' não é legal no Pauper (nunca foi impressa como comum)" unless foi_comum
+      # Agrupamos por oracle_id para contar cópias da mesma carta independente da versão/set
+      @deck.deck_cartas.joins(:carta).group('cartas.oracle_id', 'cartas.name', 'cartas.printed_name', 'cartas.type_line').sum(:quantidade).each do |(oracle_id, name, printed_name, type_line), qtd|
+        next if terreno_basico?(type_line)
+        nome_exibicao = printed_name || name
+        @erros << "Limite excedido para '#{nome_exibicao}': máximo de #{limite} cópia(s)" if qtd > limite
       end
     end
 
@@ -80,24 +60,22 @@ module Decks
       @deck.cartas.each do |carta|
         next if carta.color_identity.nil?
         fora_da_identidade = (carta.color_identity - identidade_deck).any?
-        @erros << "A carta '#{carta.name}' possui cores fora da identidade do comandante" if fora_da_identidade
+        @erros << "A carta '#{carta.nome_exibicao}' possui cores fora da identidade do comandante" if fora_da_identidade
       end
     end
 
-    def validar_banlist
-      banlist = @deck.pauper? ? BANLIST_PAUPER : BANLIST_COMMANDER
-      formato_nome = @deck.formato.capitalize
-
-      @deck.cartas.each do |carta|
-        if banlist.include?(carta.name)
-          @erros << "A carta '#{carta.name}' está banida no formato #{formato_nome}"
+    def validar_legalidade_formato
+      formato = @deck.formato
+      @deck.cartas.distinct.each do |carta|
+        status = carta.legalities&.[](formato)
+        if status != 'legal' && status != 'restricted'
+          @erros << "A carta '#{carta.nome_exibicao}' não é permitida no formato #{formato.capitalize} (Status: #{status&.humanize || 'Desconhecido'})"
         end
       end
     end
 
-    def terreno_basico?(nome)
-      ['Plains', 'Island', 'Swamp', 'Mountain', 'Forest', 'Wastes',
-       'Planície', 'Ilha', 'Pântano', 'Montanha', 'Floresta'].include?(nome)
+    def terreno_basico?(type_line)
+      type_line&.include?('Basic') && type_line&.include?('Land')
     end
   end
 end

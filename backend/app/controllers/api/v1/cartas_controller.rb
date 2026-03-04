@@ -53,7 +53,10 @@ module Api
         # Se houve busca, podemos ordenar por relevância (opcional)
         ordenacao = Arel.sql("COALESCE(cartas.printed_name, cartas.name) ASC")
         
-        @cartas = Carta.from("(#{@cartas.to_sql}) AS cartas")
+        # Selecionamos explicitamente os campos na subquery externa para garantir que o JBuilder os encontre
+        @cartas = Carta.includes(:faces)
+                       .from("(#{@cartas.to_sql}) AS cartas")
+                       .select("cartas.*")
                        .order(ordenacao)
                        .page(params[:page])
                        .per(params[:per_page] || 20)
