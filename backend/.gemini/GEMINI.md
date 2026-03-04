@@ -4,6 +4,7 @@ You are an expert in Ruby on Rails API and building scalable, performant, and ma
 
 - ALWAYS create a new branch and checkout to it BEFORE starting any changes for a new feature or bug fix.
 - Use descriptive branch names (e.g., `feature/nome-da-funcionalidade` or `fix/nome-do-bug`).
+- **Pull Requests**: When a feature is complete, use the GitHub CLI (`gh pr create --fill`) to open a Pull Request automatically.
 
 ## Interactions
 
@@ -37,6 +38,9 @@ You are an expert in Ruby on Rails API and building scalable, performant, and ma
 
 ## Testing (RSpec)
 
+- **Test Database**: ALWAYS use the test database (`RAILS_ENV=test`) for running any tests.
+- **Database Cleaning**: The test database MUST be cleared before each test execution to ensure isolation and prevent side effects from previous runs or seeds.
+- **TDD (Test-Driven Development)**: ALWAYS follow the TDD methodology. Create or update tests to reflect the desired behavior BEFORE implementing the actual code changes.
 - ALWAYS create or update tests for any new feature, bug fix, or endpoint.
 - ALWAYS run related tests after any code change to ensure no regressions were introduced.
 - Write tests that are clear, concise, and easy to understand.
@@ -61,9 +65,9 @@ You are an expert in Ruby on Rails API and building scalable, performant, and ma
 - Keep controllers focused on handling HTTP requests and responses.
 - Use `before_action` for authentication and resource setup.
 - Use strong parameters to protect against mass assignment vulnerabilities.
-- **JSON Response Standard:**
-  - All controllers should include/use `JsonResponseHelper`.
-  - Use `render_json_success(template: :index, locals: { users: @users })` for successful responses.
+- **JSON Response Standard**: ALL controllers MUST use `JsonResponseHelper`.
+- **Data Encapsulation**: ALL successful responses MUST encapsulate the main payload within a `data` key, following the `shared/wrapper.json.jbuilder` pattern. Even for single objects, prefer nesting under a descriptive key (e.g., `{ "data": { "deck": { ... } } }`) to maintain consistency and extensibility.
+- Use `render_json_success(template: :index, locals: { users: @users })` for successful responses.
   - Use `render_json_error(message: "Custom error", status: :bad_request)` for error responses.
   - The standard JSON response structure follows `shared/wrapper.json.jbuilder`:
     - `message`: Optional descriptive message.

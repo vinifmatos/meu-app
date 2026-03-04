@@ -9,10 +9,11 @@ export default defineConfig({
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,
   workers: process.env['CI'] ? 1 : undefined,
-  reporter: 'html',
+  reporter: 'list',
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://localhost:4242',
     trace: 'on-first-retry',
+    headless: true,
   },
 
   projects: [
@@ -26,7 +27,7 @@ export default defineConfig({
   webServer: [
     {
       command: process.env['CI']
-        ? 'cd ../backend && RAILS_ENV=test bundle exec rails server -p 3333'
+        ? 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333'
         : 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333',
       url: 'http://localhost:3333/api/v1/config',
       reuseExistingServer: !process.env['CI'],
@@ -34,9 +35,9 @@ export default defineConfig({
     },
     {
       command: process.env['CI'] 
-        ? 'npx live-server dist/meu-app/browser --port=4200 --entry-file=index.html --proxy=/api:http://localhost:3333/api --no-browser'
-        : 'yarn start --port 4200 --proxy-config proxy.e2e.conf.json',
-      url: 'http://localhost:4200',
+        ? 'npx live-server dist/meu-app/browser --port=4242 --entry-file=index.html --proxy=/api:http://localhost:3333/api --no-browser'
+        : 'yarn start --port 4242 --proxy-config proxy.e2e.conf.json',
+      url: 'http://localhost:4242',
       reuseExistingServer: !process.env['CI'],
       timeout: 120000,
     }

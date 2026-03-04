@@ -4,6 +4,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 - ALWAYS create a new branch and checkout to it BEFORE starting any changes for a new feature or bug fix.
 - Use descriptive branch names (e.g., `feature/nome-da-funcionalidade` or `fix/nome-do-bug`).
+- **Pull Requests**: When a feature is complete, use the GitHub CLI (`gh pr create --fill`) to open a Pull Request automatically.
 
 ## Interactions
 
@@ -36,6 +37,13 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 
 ## Testing
 
+- **Test Environment**: E2E tests MUST always target a backend instance running in the test environment (`RAILS_ENV=test`).
+- **Database Isolation**: The test database MUST be cleared and optionally seeded before running E2E tests to ensure a consistent and predictable starting state.
+- **TDD (Test-Driven Development)**: ALWAYS follow the TDD methodology. Create or update E2E tests (Playwright) to reflect the desired behavior BEFORE implementing the actual code changes.
+- **Headless Mode**: E2E tests MUST always be executed in headless mode.
+- **Test Output**: E2E test results MUST always be displayed in the console as a list.
+- **E2E Port**: E2E tests MUST always use port **4242** for the frontend server to avoid conflicts with development environments.
+- **Pre-test Verification**: ALWAYS verify the build output (`yarn ng build`) before running E2E tests to ensure the application is in a stable state.
 - ALWAYS create E2E tests using **Playwright** for any new feature or critical user flow.
 - E2E tests should be located in `frontend/e2e/specs` and follow the `nome.spec.ts` naming convention.
 - **Verification**: ALWAYS run the build command (`yarn ng build`) after any code change to ensure there are no compilation or template errors.
