@@ -11,26 +11,26 @@ export class DecksService {
 
   async listarDecks(): Promise<Deck[]> {
     const resposta = await this.api.get<{ decks: Deck[] }>(this.endpoint);
-    return resposta.data?.decks || [];
+    return resposta.data?.decks ?? [];
   }
 
   async obterDeck(id: number): Promise<Deck | null> {
     const resposta = await this.api.get<{ deck: Deck }>(`${this.endpoint}/${id}`);
-    return resposta.data?.deck || null;
+    return resposta.data?.deck ?? null;
   }
 
   async criarDeck(nome: string, formato: string): Promise<Deck | null> {
     const resposta = await this.api.post<{ deck: Deck }>(this.endpoint, {
       data: { deck: { nome, formato } }
     });
-    return resposta.data?.deck || null;
+    return resposta.data?.deck ?? null;
   }
 
   async atualizarDeck(id: number, nome: string): Promise<Deck | null> {
     const resposta = await this.api.put<{ deck: Deck }>(`${this.endpoint}/${id}`, {
       data: { deck: { nome } }
     });
-    return resposta.data?.deck || null;
+    return resposta.data?.deck ?? null;
   }
 
   async deletarDeck(id: number): Promise<void> {
@@ -41,17 +41,17 @@ export class DecksService {
     const resposta = await this.api.post<{ deck: Deck }>(`${this.endpoint}/${deckId}/cartas`, {
       data: { deck_carta: { carta_id: cartaId, quantidade, eh_comandante: ehComandante } }
     });
-    return resposta.data?.deck || null;
+    return resposta.data?.deck ?? null;
   }
 
   async removerCarta(deckId: number, cartaId: number, removerTudo: boolean = false): Promise<Deck | null> {
     const query = removerTudo ? { tudo: 'true' } : {};
     const resposta = await this.api.delete<{ deck: Deck }>(`${this.endpoint}/${deckId}/cartas/${cartaId}`, { query });
-    return resposta.data?.deck || null;
+    return resposta.data?.deck ?? null;
   }
 
   async validarDeck(id: number): Promise<{ valido: boolean, erros: string[] }> {
     const resposta = await this.api.get<{ valido: boolean, erros: string[] }>(`${this.endpoint}/${id}/validar`);
-    return resposta.data || { valido: false, erros: [] };
+    return resposta.data ?? { valido: false, erros: [] };
   }
 }

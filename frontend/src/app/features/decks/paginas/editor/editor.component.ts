@@ -212,8 +212,8 @@ export class EditorDeckComponent implements OnInit {
     // Cria um deck "fake" localmente
     const novoDeck: Deck = {
       id: 0,
-      nome: params['nome'] || 'Novo Deck',
-      formato: (params['formato'] as FormatoDeck) || 'pauper',
+      nome: params['nome'] ?? 'Novo Deck',
+      formato: (params['formato'] as FormatoDeck) ?? 'pauper',
       usuarioId: 0,
       cartas: {
         comandantes: [], criaturas: [], planeswalkers: [], instantes: [], 
@@ -262,7 +262,7 @@ export class EditorDeckComponent implements OnInit {
     if (!this.buscaTermo) return;
     this.carregandoBusca = true;
     this.cartasService.obterCartas(1, 15, { nome: this.buscaTermo }).subscribe(res => {
-      this.resultadosBusca.set(res.data?.cartas || []);
+      this.resultadosBusca.set(res.data?.cartas ?? []);
       this.carregandoBusca = false;
     });
   }
@@ -290,14 +290,14 @@ export class EditorDeckComponent implements OnInit {
   }
 
   obterImagemSmall(c: Carta): string {
-    return c.imageUris?.small || c.faces[0]?.imageUris?.small || '';
+    return c.imageUris?.small ?? c.faces[0]?.imageUris?.small ?? '';
   }
 
   obterRaridadeTraduzida(raridade: string): string {
     const mapa: Record<string, string> = {
       'common': 'Comum', 'uncommon': 'Incomum', 'rare': 'Rara', 'mythic': 'Mítica'
     };
-    return mapa[raridade] || raridade;
+    return mapa[raridade] ?? raridade;
   }
 
   obterRaridadeSeverity(raridade: string): "secondary" | "info" | "success" | "warn" | "danger" | "contrast" | undefined {

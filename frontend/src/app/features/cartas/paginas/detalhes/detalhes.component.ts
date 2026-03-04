@@ -92,7 +92,7 @@ import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
 
               <p-card>
                 <div class="italic whitespace-pre-wrap text-lg"
-                     [innerHTML]="(carta.oracleText || 'Sem texto de regras.') | simbolos">
+                     [innerHTML]="(carta.oracleText ?? 'Sem texto de regras.') | simbolos">
                 </div>
               </p-card>
 
@@ -248,7 +248,7 @@ export class DetalhesComponent implements OnInit {
     const mapa: Record<string, string> = {
       'common': 'Comum', 'uncommon': 'Incomum', 'rare': 'Rara', 'mythic': 'Mítica'
     };
-    return mapa[raridade] || raridade;
+    return mapa[raridade] ?? raridade;
   }
 
   obterRaridadeSeverity(raridade: string): "secondary" | "info" | "success" | "warn" | "danger" | "contrast" | undefined {
@@ -271,8 +271,8 @@ export class DetalhesComponent implements OnInit {
 
     return Object.entries(legalities).map(([formato, status]) => ({
       formato: formato.replace(/_/g, ' '),
-      status: statusMapa[status]?.texto || status,
-      cor: statusMapa[status]?.cor || 'bg-surface-500'
+      status: statusMapa[status]?.texto ?? status,
+      cor: statusMapa[status]?.cor ?? 'bg-surface-500'
     }));
   }
 }

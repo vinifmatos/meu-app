@@ -34,7 +34,7 @@ export const erroInterceptor: HttpInterceptorFn = (
 
         switch (error.status) {
           case 400:
-            mensagemErro = `Requisição inválida: ${mensagem || 'O servidor não entendeu a requisição.'}`;
+            mensagemErro = `Requisição inválida: ${mensagem ?? 'O servidor não entendeu a requisição.'}`;
             break;
           case 401:
             mensagemErro = 'Acesso não autorizado. Por favor, faça login novamente.';
@@ -52,7 +52,7 @@ export const erroInterceptor: HttpInterceptorFn = (
             if (mensagem) {
               mensagemErro = `Erro ${error.status}: ${mensagem}`;
             } else {
-              mensagemErro = `Erro ${error.status}: ${error.statusText || 'Ocorreu uma falha na comunicação com o servidor.'}`;
+              mensagemErro = `Erro ${error.status}: ${error.statusText ?? 'Ocorreu uma falha na comunicação com o servidor.'}`;
             }
             break;
         }

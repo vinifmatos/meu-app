@@ -92,7 +92,7 @@ export class LoginComponent {
     const sucesso = await this.authService.login(username!, password!);
 
     if (sucesso) {
-      const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+      const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/';
       this.router.navigateByUrl(returnUrl);
     } else {
       this.erro.set('Credenciais inválidas ou erro de conexão.');
