@@ -1,4 +1,4 @@
-<p-menu [model]="itens" class="flex justify-center" styleClass="w-full md:w-60">
+<p-menu [model]="itens()" class="flex justify-center" styleClass="w-full md:w-60">
   <ng-template #start>
     <span class="inline-flex items-center gap-1 px-2 py-2">
       <span class="text-xl font-semibold">
@@ -15,15 +15,23 @@
         <span class="font-medium">{{ isDarkMode() ? 'Modo Claro' : 'Modo Escuro' }}</span>
       </button>
 
-      <button pRipple
-        class="relative overflow-hidden w-full border-0 bg-transparent flex items-start p-2 pl-4 hover:bg-surface-emphasis rounded-lg cursor-pointer transition-colors duration-200">
-        <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" class="mr-2"
-          shape="circle" />
-        <span class="inline-flex flex-col">
-          <span class="font-bold">Amy Elsner</span>
-          <span class="text-sm">Admin</span>
-        </span>
-      </button>
+      @if (estaAutenticado()) {
+        <button pRipple (click)="logout()"
+          class="relative overflow-hidden w-full border-0 bg-transparent flex items-start p-2 pl-4 hover:bg-surface-emphasis rounded-lg cursor-pointer transition-colors duration-200">
+          <p-avatar label="{{ (usuario()?.nome || '?')[0].toUpperCase() }}" class="mr-2" shape="circle" />
+          <span class="inline-flex flex-col">
+            <span class="font-bold truncate w-32">{{ usuario()?.nome }}</span>
+            <span class="text-[10px] uppercase font-bold text-surface-500">{{ usuario()?.role }}</span>
+          </span>
+          <i class="pi pi-sign-out ml-auto text-red-500"></i>
+        </button>
+      } @else {
+        <button pRipple routerLink="/login"
+          class="relative overflow-hidden w-full border-0 bg-transparent flex items-center p-2 pl-4 hover:bg-surface-emphasis rounded-lg cursor-pointer transition-colors duration-200">
+          <i class="pi pi-sign-in mr-2"></i>
+          <span class="font-medium">Entrar</span>
+        </button>
+      }
     </div>
   </ng-template>
 </p-menu>
