@@ -25,7 +25,9 @@ export default defineConfig({
   // Configuramos múltiplos webServers: um para o backend e outro para o frontend
   webServer: [
     {
-      command: 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333',
+      command: process.env['CI']
+        ? 'cd ../backend && RAILS_ENV=test bundle exec rails server -p 3333'
+        : 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333',
       url: 'http://localhost:3333/api/v1/config',
       reuseExistingServer: !process.env['CI'],
       timeout: 120000,

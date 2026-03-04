@@ -98,6 +98,13 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
+      - name: Preparar Banco de Dados (Backend)
+        working-directory: backend
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:password@localhost:5432/meu_app_test
+        run: bundle exec rails db:prepare
+
       - name: Rodar Testes E2E
         working-directory: frontend
         env:
