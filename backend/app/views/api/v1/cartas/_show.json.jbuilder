@@ -17,6 +17,7 @@ json.call(
   :lang,
   :released_at,
   :rarity,
+  :legalities,
   :image_uris
 )
 

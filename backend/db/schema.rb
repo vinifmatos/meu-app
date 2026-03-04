@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_03_234323) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_04_024147) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -38,6 +38,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_03_234323) do
     t.string "printed_type_line"
     t.text "printed_text"
     t.virtual "search_vector", type: :tsvector, as: "(((((setweight(to_tsvector('simple'::regconfig, (COALESCE(name, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, (COALESCE(printed_name, ''::character varying))::text), 'A'::\"char\")) || setweight(to_tsvector('simple'::regconfig, (COALESCE(type_line, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, (COALESCE(printed_type_line, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(oracle_text, ''::text)), 'C'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(printed_text, ''::text)), 'C'::\"char\"))", stored: true
+    t.jsonb "legalities"
     t.index ["lang"], name: "index_cartas_on_lang"
     t.index ["oracle_id"], name: "index_cartas_on_oracle_id"
     t.index ["scryfall_id"], name: "index_cartas_on_scryfall_id", unique: true

@@ -73,3 +73,39 @@ RSpec.describe Scryfall::ParserCartasJson do
     end
   end
 end
+
+RSpec.describe Scryfall::Importador do
+  let(:importador) { Scryfall::Importador.new }
+  let(:api_mock) { instance_double(Scryfall::Api) }
+
+  before do
+    allow(Scryfall::Api).to receive(:new).and_return(api_mock)
+  end
+
+  describe "#importar_carta_por_nome" do
+    it "busca a carta na API e chama o método de importação do modelo" do
+      carta_data = { "id" => "123", "name" => "Black Lotus", "legalities" => {} }
+      expect(api_mock).to receive(:buscar_carta_por_nome).with("Black Lotus", lang: nil).and_return(carta_data)
+      expect(Carta).to receive(:import_from_scryfall).with([carta_data])
+
+      importador.importar_carta_por_nome("Black Lotus")
+    end
+
+    it "suporta importar em um idioma específico" do
+      carta_data = { "id" => "123", "name" => "Lótus Negra", "lang" => "pt", "legalities" => {} }
+      expect(api_mock).to receive(:buscar_carta_por_nome).with("Black Lotus", lang: "pt").and_return(carta_data)
+      expect(Carta).to receive(:import_from_scryfall).with([carta_data])
+
+      importador.importar_carta_por_nome("Black Lotus", lang: "pt")
+    end
+
+    it "lança erro se a carta não for encontrada" do
+      expect(api_mock).to receive(:buscar_carta_por_nome).with("Carta Inexistente", lang: nil).and_return(nil)
+      expect(Carta).not_to receive(:import_from_scryfall)
+
+      expect {
+        importador.importar_carta_por_nome("Carta Inexistente")
+      }.to raise_error(Scryfall::ImportError, /não encontrada/)
+    end
+  end
+end

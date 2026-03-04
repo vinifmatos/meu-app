@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { DecksService } from '@core/servicos/decks.service';
 import { CartasService } from '@features/cartas/servicos/cartas.service';
-import { Deck, DeckCarta } from '@core/interfaces/decks.interface';
+import { Deck, DeckCarta, FormatoDeck } from '@core/interfaces/decks.interface';
 import { Carta } from '@core/interfaces/cartas.interface';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -47,10 +47,14 @@ import { FormsModule } from '@angular/forms';
           </div>
 
           <div class="flex gap-2 pl-12 md:pl-0">
-            @if (validacao().valido) {
-              <p-message severity="success" text="Deck Válido para {{ d.formato.toUpperCase() }}"></p-message>
+            @if (isNovoDeck()) {
+              <p-button label="Salvar Deck" icon="pi pi-save" (click)="salvarNovoDeck()" [loading]="salvando"></p-button>
             } @else {
-              <p-button label="Ver Erros ({{ validacao().erros.length }})" severity="danger" icon="pi pi-exclamation-triangle" (click)="exibirErros = !exibirErros"></p-button>
+              @if (validacao().valido) {
+                <p-message severity="success" text="Deck Válido para {{ d.formato.toUpperCase() }}"></p-message>
+              } @else {
+                <p-button label="Ver Erros ({{ validacao().erros.length }})" severity="danger" icon="pi pi-exclamation-triangle" (click)="exibirErros = !exibirErros"></p-button>
+              }
             }
           </div>
         </div>
@@ -90,9 +94,9 @@ import { FormsModule } from '@angular/forms';
                       </div>
                       <div class="flex gap-1">
                         @if (d.formato === 'commander') {
-                          <p-button icon="pi pi-star" size="small" [text]="true" pTooltip="Comandante" (click)="adicionarAoDeck(c, true)"></p-button>
+                          <p-button icon="pi pi-star" size="small" [text]="true" pTooltip="Comandante" (click)="adicionarAoDeck(c, true)" [disabled]="isNovoDeck()"></p-button>
                         }
-                        <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeck(c)"></p-button>
+                        <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeck(c)" [disabled]="isNovoDeck()"></p-button>
                       </div>
                     </div>
                   } @empty {
@@ -132,9 +136,9 @@ import { FormsModule } from '@angular/forms';
                         <div class="flex items-center gap-4">
                           <div class="hidden md:block text-sm" [innerHTML]="item.carta.manaCost | simbolos"></div>
                           <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeck(item.carta)"></p-button>
-                            <p-button icon="pi pi-minus" size="small" [text]="true" severity="secondary" (click)="removerDoDeck(item.carta)"></p-button>
-                            <p-button icon="pi pi-trash" size="small" [text]="true" severity="danger" (click)="removerDoDeck(item.carta, true)"></p-button>
+                            <p-button icon="pi pi-plus" size="small" [text]="true" (click)="adicionarAoDeck(item.carta)" [disabled]="isNovoDeck()"></p-button>
+                            <p-button icon="pi pi-minus" size="small" [text]="true" severity="secondary" (click)="removerDoDeck(item.carta)" [disabled]="isNovoDeck()"></p-button>
+                            <p-button icon="pi pi-trash" size="small" [text]="true" severity="danger" (click)="removerDoDeck(item.carta, true)" [disabled]="isNovoDeck()"></p-button>
                           </div>
                         </div>
                       </div>
@@ -157,10 +161,13 @@ import { FormsModule } from '@angular/forms';
 })
 export class EditorDeckComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly decksService = inject(DecksService);
   private readonly cartasService = inject(CartasService);
 
   deck = signal<Deck | null>(null);
+  isNovoDeck = signal(false);
+  salvando = false;
   validacao = signal<{ valido: boolean, erros: string[] }>({ valido: true, erros: [] });
   exibirErros = false;
 
@@ -189,17 +196,60 @@ export class EditorDeckComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe(params => {
-      if (params['id']) {
-        this.carregarDeck(+params['id']);
+      const id = params['id'];
+      if (id === 'novo') {
+        this.inicializarNovoDeck();
+      } else if (id) {
+        this.carregarDeck(+id);
       }
     });
   }
 
+  private inicializarNovoDeck() {
+    this.isNovoDeck.set(true);
+    const params = this.route.snapshot.queryParams;
+    
+    // Cria um deck "fake" localmente
+    const novoDeck: Deck = {
+      id: 0,
+      nome: params['nome'] || 'Novo Deck',
+      formato: (params['formato'] as FormatoDeck) || 'pauper',
+      usuarioId: 0,
+      cartas: {
+        comandantes: [], criaturas: [], planeswalkers: [], instantes: [], 
+        feiticos: [], artefatos: [], encantamentos: [], terrenos: [], outros: []
+      },
+      estatisticas: { totalCartas: 0, valido: false },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    this.deck.set(novoDeck);
+  }
+
   async carregarDeck(id: number) {
+    this.isNovoDeck.set(false);
     const d = await this.decksService.obterDeck(id);
     this.deck.set(d);
     if (d) {
       this.atualizarValidacao(id);
+    }
+  }
+
+  async salvarNovoDeck() {
+    const d = this.deck();
+    if (!d) return;
+
+    this.salvando = true;
+    try {
+      const novoDeckReal = await this.decksService.criarDeck(d.nome, d.formato);
+      this.salvando = false;
+
+      if (novoDeckReal) {
+        this.router.navigate(['/decks', novoDeckReal.id], { replaceUrl: true });
+      }
+    } catch (error) {
+      this.salvando = false;
     }
   }
 
@@ -219,7 +269,7 @@ export class EditorDeckComponent implements OnInit {
 
   async adicionarAoDeck(carta: Carta, comoComandante: boolean = false) {
     const d = this.deck();
-    if (!d) return;
+    if (!d || this.isNovoDeck()) return;
 
     const novoDeck = await this.decksService.adicionarCarta(d.id, carta.id, 1, comoComandante);
     if (novoDeck) {
@@ -230,7 +280,7 @@ export class EditorDeckComponent implements OnInit {
 
   async removerDoDeck(carta: Carta, removerTudo: boolean = false) {
     const d = this.deck();
-    if (!d) return;
+    if (!d || this.isNovoDeck()) return;
 
     const novoDeck = await this.decksService.removerCarta(d.id, carta.id, removerTudo);
     if (novoDeck) {

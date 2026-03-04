@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { DecksService } from '@core/servicos/decks.service';
 import { Deck } from '@core/interfaces/decks.interface';
 import { ButtonModule } from 'primeng/button';
@@ -40,6 +40,13 @@ import { SelectModule } from 'primeng/select';
                   <span class="text-xs text-red-500 font-bold">INVÁLIDO</span>
                 }
               </div>
+
+              <div class="flex items-center gap-2 mt-2 pt-2 border-t border-surface-100">
+                <i class="pi pi-calendar text-surface-400 text-xs"></i>
+                <span class="text-[10px] text-surface-400 uppercase font-medium">
+                  Criado em {{ deck.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
             </div>
           </p-card>
         } @empty {
@@ -78,6 +85,7 @@ import { SelectModule } from 'primeng/select';
 })
 export class ListagemDecksComponent implements OnInit {
   private readonly decksService = inject(DecksService);
+  private readonly router = inject(Router);
   
   decks = signal<Deck[]>([]);
   exibirCriacao = false;
@@ -99,11 +107,13 @@ export class ListagemDecksComponent implements OnInit {
   }
 
   async criarDeck() {
-    const deck = await this.decksService.criarDeck(this.novoDeckNome, this.novoDeckFormato);
-    if (deck) {
-      this.exibirCriacao = false;
-      this.novoDeckNome = '';
-      this.carregarDecks();
-    }
+    this.exibirCriacao = false;
+    this.router.navigate(['/decks/novo'], { 
+      queryParams: { 
+        nome: this.novoDeckNome, 
+        formato: this.novoDeckFormato 
+      } 
+    });
+    this.novoDeckNome = '';
   }
 }

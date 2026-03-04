@@ -1,4 +1,6 @@
 class Carta < ApplicationRecord
+  has_many :deck_cartas, dependent: :destroy
+  has_many :decks, through: :deck_cartas
   has_many :faces, class_name: :FaceCarta, dependent: :destroy, inverse_of: :carta
 
   def self.import_from_scryfall(data)
@@ -23,6 +25,7 @@ class Carta < ApplicationRecord
         image_uris: card_data["image_uris"],
         released_at: card_data["released_at"],
         rarity: card_data["rarity"],
+        legalities: card_data["legalities"],
         printed_name: card_data["printed_name"],
         printed_type_line: card_data["printed_type_line"],
         printed_text: card_data["printed_text"]

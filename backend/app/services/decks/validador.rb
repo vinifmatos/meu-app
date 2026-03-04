@@ -1,5 +1,16 @@
 module Decks
   class Validador
+    # Listas parciais de banidas para validação
+    BANLIST_PAUPER = [
+      'Atog', 'Arcum\'s Astrolabe', 'Bonder\'s Ornament', 'Cloudpost', 'Cranial Ram', 
+      'Daze', 'Disciple of the Vault', 'Empty the Warrens', 'Frantic Search', 'Gush'
+    ].freeze
+
+    BANLIST_COMMANDER = [
+      'Black Lotus', 'Ancestral Recall', 'Time Walk', 'Mox Pearl', 'Mox Sapphire', 
+      'Mox Jet', 'Mox Ruby', 'Mox Emerald', 'Time Vault', 'Library of Alexandria'
+    ].freeze
+
     def initialize(deck)
       @deck = deck
       @erros = []
@@ -8,7 +19,10 @@ module Decks
     def validar!
       @erros = []
       
-      return @erros unless @deck.deck_cartas.any?
+      if @deck.deck_cartas.empty?
+        @erros << "O deck não pode estar vazio"
+        return @erros
+      end
 
       case @deck.formato
       when 'pauper'
@@ -16,6 +30,8 @@ module Decks
       when 'commander'
         validar_commander
       end
+
+      validar_banlist
 
       @erros
     end
@@ -44,24 +60,38 @@ module Decks
     def validar_limite_copias(limite)
       @deck.deck_cartas.joins(:carta).group('cartas.oracle_id', 'cartas.name').sum(:quantidade).each do |(oracle_id, name), qtd|
         next if terreno_basico?(name)
+        # TODO: Adicionar suporte para cartas que ignoram limite (ex: Shadowborn Apostle)
         @erros << "Limite excedido para '#{name}': máximo de #{limite} cópia(s)" if qtd > limite
       end
     end
 
     def validar_raridade_comum
-      @deck.cartas.distinct(:oracle_id).each do |carta|
-        # Verifica se existe ALGUMA impressão dessa carta como comum
+      # Usamos distinct oracle_id para evitar checar a mesma carta múltiplas vezes
+      @deck.cartas.select(:oracle_id, :name).distinct.each do |carta|
+        # Verifica se existe ALGUMA impressão dessa carta como comum em todo o banco
         foi_comum = Carta.where(oracle_id: carta.oracle_id, rarity: 'common').exists?
         @erros << "A carta '#{carta.name}' não é legal no Pauper (nunca foi impressa como comum)" unless foi_comum
       end
     end
 
     def validar_identidade_cor(comandantes)
-      identidade_deck = comandantes.map(&:color_identity).flatten.uniq
+      identidade_deck = comandantes.map(&:color_identity).flatten.uniq.compact
       
       @deck.cartas.each do |carta|
+        next if carta.color_identity.nil?
         fora_da_identidade = (carta.color_identity - identidade_deck).any?
         @erros << "A carta '#{carta.name}' possui cores fora da identidade do comandante" if fora_da_identidade
+      end
+    end
+
+    def validar_banlist
+      banlist = @deck.pauper? ? BANLIST_PAUPER : BANLIST_COMMANDER
+      formato_nome = @deck.formato.capitalize
+
+      @deck.cartas.each do |carta|
+        if banlist.include?(carta.name)
+          @erros << "A carta '#{carta.name}' está banida no formato #{formato_nome}"
+        end
       end
     end
 
