@@ -1,75 +1,113 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Travas do Editor de Deck', () => {
   test.beforeEach(async ({ page }) => {
-    // Login inicial
+    // Garante um estado limpo antes do login
     await page.goto('/login');
+    await page.evaluate(() => localStorage.clear());
+
+    // Login inicial
     await page.fill('input#username', 'admin');
     await page.fill('#password input', 'password123');
     await page.click('button[type="submit"]');
-    await expect(page).not.toHaveURL(/\/login/);
+
+    // Aguarda o login e estabilização
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 15000 });
+    await page.waitForLoadState('networkidle');
   });
 
   test('deve limitar a 4 cópias no formato Pauper', async ({ page }) => {
-    await page.goto('/decks/novo?nome=TestePauper&formato=pauper');
+    const nomeUnico = `TravaPauper_${Date.now()}`;
+    await page.goto(`/decks/novo?nome=${nomeUnico}&formato=pauper`);
+    await page.waitForLoadState('networkidle');
 
-    // Busca uma carta conhecida (Lightning Bolt)
+    // Busca por uma carta comum (Pauper legal)
     const buscaInput = page.locator('input[placeholder="Nome da carta..."]');
+    const responsePromise = page.waitForResponse((r) => r.url().includes('Lightning%20Bolt'));
     await buscaInput.fill('Lightning Bolt');
-    await page.waitForTimeout(1000); // Aguarda debounce
+    await responsePromise;
 
-    const btnAdd = page.locator('button .pi-plus').first().locator('..');
-    
-    // Clica 4 vezes (deve permitir)
+    // Localiza o botão de adicionar
+    const btnAdd = page
+      .locator('.flex.items-center.justify-between.p-2')
+      .filter({ hasText: 'Lightning Bolt' })
+      .getByTestId('btn-adicionar-carta')
+      .getByRole('button');
+
+    await expect(btnAdd).toBeVisible({ timeout: 15000 });
+
+    // Clica 4 vezes para adicionar
     for (let i = 0; i < 4; i++) {
-      await expect(btnAdd).not.toBeDisabled();
       await btnAdd.click();
     }
 
-    // No 5º clique, o botão deve estar desabilitado
+    // O 5º clique deve estar desabilitado
     await expect(btnAdd).toBeDisabled();
-    
-    // Verifica na lista do deck se o botão também desabilitou lá
-    const btnAddLista = page.locator('.lg\\:col-span-8').locator('button .pi-plus').locator('..');
-    await expect(btnAddLista).toBeDisabled();
+
+    // Verifica na lista do deck se tem quantidade 4
+    const qtdNoDeck = page
+      .locator('.lg\\:col-span-8')
+      .locator('span.font-mono.font-bold')
+      .filter({ hasText: '4' });
+    await expect(qtdNoDeck).toBeVisible();
   });
 
   test('deve permitir mais de 4 cópias para terrenos básicos', async ({ page }) => {
-    await page.goto('/decks/novo?nome=TesteBasicos&formato=pauper');
+    const nomeUnico = `TravaTerrenos_${Date.now()}`;
+    await page.goto(`/decks/novo?nome=${nomeUnico}&formato=pauper`);
+    await page.waitForLoadState('networkidle');
 
-    // Busca um terreno básico garantido (Plains)
+    // Busca por um terreno básico
     const buscaInput = page.locator('input[placeholder="Nome da carta..."]');
-    await buscaInput.fill('Plains');
-    await page.waitForTimeout(1000); // Aguarda debounce
+    const responsePromise = page.waitForResponse((r) => r.url().includes('Mountain'));
+    await buscaInput.fill('Mountain');
+    await responsePromise;
 
-    // Filtra para garantir que pegamos o Plains correto
-    const itemBusca = page.locator('.flex.items-center.justify-between.p-2').filter({ hasText: /Plains/i }).first();
-    const btnAdd = itemBusca.locator('button .pi-plus').locator('..');
-    
-    // Clica 5 vezes (deve continuar habilitado para terrenos básicos)
+    const btnAdd = page
+      .locator('.flex.items-center.justify-between.p-2')
+      .filter({ hasText: 'Mountain' })
+      .getByTestId('btn-adicionar-carta')
+      .getByRole('button');
+
+    await expect(btnAdd).toBeVisible({ timeout: 15000 });
+
+    // Clica 5 vezes (deve continuar habilitado)
     for (let i = 0; i < 5; i++) {
-      await expect(btnAdd, `Falhou no clique ${i+1}`).not.toBeDisabled();
       await btnAdd.click();
+      await expect(btnAdd).toBeEnabled();
     }
-    
-    await expect(btnAdd).not.toBeDisabled();
+
+    // Verifica na lista do deck se tem quantidade 5
+    const qtdNoDeck = page
+      .locator('.lg\\:col-span-8')
+      .locator('span.font-mono.font-bold')
+      .filter({ hasText: '5' });
+    await expect(qtdNoDeck).toBeVisible();
   });
 
   test('deve limitar a 1 cópia no formato Commander', async ({ page }) => {
-    await page.goto('/decks/novo?nome=TesteCommander&formato=commander');
+    const nomeUnico = `TravaCmd_${Date.now()}`;
+    await page.goto(`/decks/novo?nome=${nomeUnico}&formato=commander`);
+    await page.waitForLoadState('networkidle');
 
-    // Busca uma carta
+    // Busca por uma carta qualquer
     const buscaInput = page.locator('input[placeholder="Nome da carta..."]');
+    const responsePromise = page.waitForResponse((r) => r.url().includes('Lightning%20Bolt'));
     await buscaInput.fill('Lightning Bolt');
-    await page.waitForTimeout(1000); // Aguarda debounce
+    await responsePromise;
 
-    const btnAdd = page.locator('button .pi-plus').first().locator('..');
-    
-    // Primeiro clique (deve permitir)
-    await expect(btnAdd).not.toBeDisabled();
+    const btnAdd = page
+      .locator('.flex.items-center.justify-between.p-2')
+      .filter({ hasText: 'Lightning Bolt' })
+      .getByTestId('btn-adicionar-carta')
+      .getByRole('button');
+
+    await expect(btnAdd).toBeVisible({ timeout: 15000 });
+
+    // Clica 1 vez para adicionar
     await btnAdd.click();
 
-    // Imediatamente deve desabilitar
+    // O 2º clique deve estar desabilitado
     await expect(btnAdd).toBeDisabled();
   });
 });

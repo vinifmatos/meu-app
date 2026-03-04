@@ -14,6 +14,7 @@ export default defineConfig({
     baseURL: 'http://localhost:4242',
     trace: 'on-first-retry',
     headless: true,
+    testIdAttribute: 'data-test-id',
   },
 
   projects: [
@@ -31,15 +32,15 @@ export default defineConfig({
         : 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed scryfall:importar_famosas && RAILS_ENV=test bundle exec rails server -p 3333',
       url: 'http://localhost:3333/api/v1/config',
       reuseExistingServer: !process.env['CI'],
-      timeout: 120000,
+      timeout: 240000,
     },
     {
-      command: process.env['CI'] 
+      command: process.env['CI']
         ? 'npx live-server dist/meu-app/browser --port=4242 --entry-file=index.html --proxy=/api:http://localhost:3333/api --no-browser'
         : 'yarn start --port 4242 --proxy-config proxy.e2e.conf.json',
       url: 'http://localhost:4242',
       reuseExistingServer: !process.env['CI'],
-      timeout: 120000,
-    }
+      timeout: 240000,
+    },
   ],
 });

@@ -55,3 +55,5 @@ Thumbs.db
 
 /frontend/.yarn
 /frontend/node_modules
+/frontend/playwright-report/
+/frontend/test-results/

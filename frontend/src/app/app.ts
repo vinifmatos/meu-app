@@ -1,14 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
-import { ConfirmPopup } from 'primeng/confirmpopup';
+import { ConfiguracaoService } from '@core/servicos/configuracao.service';
 import { Toast } from 'primeng/toast';
 import { MenuComponent } from './core/layout/menu/menu.component';
-import { ConfiguracaoService } from '@core/servicos/configuracao.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MenuComponent, Toast, ConfirmPopup],
+  imports: [RouterOutlet, MenuComponent, Toast],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
