@@ -29,10 +29,7 @@ RSpec.describe Decks::Validador, type: :service do
       end
 
       it 'permite qualquer quantidade de terrenos básicos' do
-<<<<<<< feature/melhorias-editor
-=======
         # type_line deve conter Basic e Land em inglês conforme a implementação
->>>>>>> main
         terreno = create(:carta, name: 'Island', type_line: 'Basic Land — Island')
         create(:deck_carta, deck: deck, carta: terreno, quantidade: 60)
         erros = validador.validar!
@@ -40,10 +37,7 @@ RSpec.describe Decks::Validador, type: :service do
       end
 
       it 'valida que todas as cartas devem ser permitidas no formato' do
-<<<<<<< feature/melhorias-editor
-=======
         # Criamos uma carta com legalidade explicitamente não permitida
->>>>>>> main
         carta_ilegal = create(:carta, name: 'Carta Ilegal', legalities: { pauper: 'not_legal', commander: 'legal' })
         create(:deck_carta, deck: deck, carta: carta_ilegal, quantidade: 1)
         erros = validador.validar!

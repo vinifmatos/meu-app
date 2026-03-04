@@ -36,8 +36,6 @@ RSpec.describe "Api::V1::Cartas", type: :request do
       json_response = JSON.parse(response.body)
       cartas_retornadas = json_response["data"]["cartas"]
 
-      p cartas_retornadas.find { |c| !c["typeLine"]&.include?("Creature") }
-
       expect(cartas_retornadas.any?).to be_truthy
       expect(cartas_retornadas.all? { |c| c["typeLine"]&.include?("Creature") }).to be_truthy
     end
@@ -79,7 +77,6 @@ RSpec.describe "Api::V1::Cartas", type: :request do
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      p json_response["data"]["cartas"].first["name"]
       expect(json_response["data"]["cartas"].first["name"]).to eq("Abacaxi")
     end
   end
