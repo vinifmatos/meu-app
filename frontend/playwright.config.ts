@@ -31,7 +31,9 @@ export default defineConfig({
       timeout: 120000,
     },
     {
-      command: 'yarn start --port 4200 --proxy-config proxy.e2e.conf.json',
+      command: process.env['CI'] 
+        ? 'npx http-server dist/meu-app/browser -p 4200 -g --proxy http://localhost:4200/api=http://localhost:3333/api'
+        : 'yarn start --port 4200 --proxy-config proxy.e2e.conf.json',
       url: 'http://localhost:4200',
       reuseExistingServer: !process.env['CI'],
       timeout: 120000,
