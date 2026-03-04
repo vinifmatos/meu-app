@@ -67,7 +67,7 @@ module Decks
     def validar_legalidade_formato
       formato = @deck.formato
       @deck.cartas.distinct.each do |carta|
-        status = carta.legalities[formato]
+        status = carta.legalities&.[](formato)
         if status != 'legal' && status != 'restricted'
           @erros << "A carta '#{carta.nome_exibicao}' não é permitida no formato #{formato.capitalize} (Status: #{status&.humanize || 'Desconhecido'})"
         end

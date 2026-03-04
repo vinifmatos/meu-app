@@ -57,7 +57,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
         >
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-3">
-              <p-button icon="pi pi-arrow-left" [text]="true" routerLink="/decks"></p-button>
+              <p-button icon="pi pi-arrow-left" [text]="true" routerLink="/meus-decks"></p-button>
               <h1 class="text-3xl font-bold">{{ d.nome }}</h1>
               <p-tag
                 [value]="d.formato.toUpperCase()"
