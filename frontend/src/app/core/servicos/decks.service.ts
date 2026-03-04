@@ -9,8 +9,9 @@ export class DecksService {
   private api = inject(ApiService);
   private readonly endpoint = 'decks';
 
-  async listarDecks(): Promise<Deck[]> {
-    const resposta = await this.api.get<{ decks: Deck[] }>(this.endpoint);
+  async listarDecks(apenasMeus: boolean = false): Promise<Deck[]> {
+    const query = apenasMeus ? { meus: 'true' } : {};
+    const resposta = await this.api.get<{ decks: Deck[] }>(this.endpoint, { query });
     return resposta.data?.decks ?? [];
   }
 

@@ -7,12 +7,28 @@ RSpec.describe "Api::V1::Decks", type: :request do
   let(:headers) { auth_headers(usuario).merge("Accept" => "application/json") }
 
   describe "GET /api/v1/decks" do
-    it "retorna uma lista de decks" do
-      get api_v1_decks_path, headers: headers
+    let!(:outro_usuario) { create(:usuario) }
+    let!(:outros_decks) { create_list(:deck, 2, usuario: outro_usuario) }
+
+    it "retorna todos os decks da comunidade por padrão" do
+      get api_v1_decks_path, headers: { "Accept" => "application/json" }
+
+      expect(response).to have_http_status(:success)
+      json_response = JSON.parse(response.body)
+      # 3 do usuario + 2 do outro_usuario
+      expect(json_response["data"]["decks"].size).to eq(5)
+    end
+
+    it "retorna apenas os decks do usuário autenticado quando filtrado" do
+      get api_v1_decks_path, params: { meus: 'true' }, headers: headers
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
       expect(json_response["data"]["decks"].size).to eq(3)
+      
+      # Valida que todos os decks retornados pertencem de fato ao usuário
+      ids_retornados = json_response["data"]["decks"].map { |d| d["id"] }
+      expect(ids_retornados).to match_array(decks.map(&:id))
     end
   end
 
@@ -22,24 +38,20 @@ RSpec.describe "Api::V1::Decks", type: :request do
         data: {
           deck: {
             nome: "Novo Deck Pauper",
-            formato: "pauper",
-            usuario_id: usuario.id
+            formato: "pauper"
           }
         }
       }
     end
 
-    it "cria um novo deck" do
+    it "cria um novo deck vinculado ao usuário autenticado" do
       expect {
         post api_v1_decks_path, params: valid_params, headers: headers
-      }.to change(Deck, :count).by(1)
+      }.to change(usuario.decks, :count).by(1)
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      # O deck vem direto em data ou dentro de uma chave dependendo do template.
-      # No nosso caso, o debug mostrou que está direto em data (ou dentro da chave deck se o template for show)
-      deck_data = json_response["data"]["deck"] || json_response["data"]
-      expect(deck_data["nome"]).to eq("Novo Deck Pauper")
+      expect(json_response["data"]["deck"]["nome"]).to eq("Novo Deck Pauper")
     end
   end
 

@@ -1,5 +1,11 @@
 json.call(deck, :id, :nome, :formato, :usuario_id, :created_at, :updated_at)
 
+json.usuario do
+  json.id deck.usuario.id
+  json.nome deck.usuario.nome
+  json.username deck.usuario.username
+end
+
 # Categorização das cartas
 cartas_no_deck = deck.deck_cartas.includes(:carta)
 

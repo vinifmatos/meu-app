@@ -119,6 +119,27 @@ Retorna os detalhes completos de uma carta específica, incluindo suas faces.
 
 ---
 
+## 4. Símbolos (`/api/v1/simbolos`)
+Recupera a lista de símbolos de mana e outros ícones do jogo (Scryfall).
+
+- **Método:** `GET`
+- **Autenticação:** Não requer.
+- **Resposta `data`:**
+  ```json
+  {
+    "simbolos": [
+      {
+        "symbol": "{W}",
+        "svgUri": "https://...",
+        "english": "white mana",
+        ...
+      }
+    ]
+  }
+  ```
+
+---
+
 ## Erros Comuns
 
 - **404 Not Found:** Retornado quando um recurso não existe.

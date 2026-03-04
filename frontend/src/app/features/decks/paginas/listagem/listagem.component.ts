@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, input } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { Deck } from '@core/interfaces/decks.interface';
 import { AuthService } from '@core/servicos/auth.service';
@@ -24,8 +24,8 @@ import { CriarDeckComponent } from './criar-deck.component';
   template: `
     <div class="container mx-auto p-6 max-w-6xl">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-extrabold text-surface">Meus Decks</h1>
-        @if (estaAutenticado()) {
+        <h1 class="text-3xl font-extrabold text-surface">{{ titulo() }}</h1>
+        @if (apenasMeus() && estaAutenticado()) {
           <p-button label="Novo Deck" icon="pi pi-plus" (click)="abrirCriacao()"></p-button>
         }
       </div>
@@ -43,9 +43,12 @@ import { CriarDeckComponent } from './criar-deck.component';
                   [value]="deck.formato.toUpperCase()"
                   [severity]="deck.formato === 'pauper' ? 'info' : 'warn'"
                 ></p-tag>
-                <span class="text-sm text-surface-500"
-                  >{{ deck.estatisticas.totalCartas }} cartas</span
-                >
+                <div class="flex flex-col items-end">
+                   <span class="text-sm text-surface-500">{{ deck.estatisticas.totalCartas }} cartas</span>
+                   @if (!apenasMeus()) {
+                     <span class="text-[10px] text-surface-400 font-bold uppercase tracking-tighter">Por {{ deck.usuario?.nome }}</span>
+                   }
+                </div>
               </div>
 
               <div class="flex items-center gap-2">
@@ -61,14 +64,14 @@ import { CriarDeckComponent } from './criar-deck.component';
               <div class="flex items-center gap-2 mt-2 pt-2 border-t border-surface-100">
                 <i class="pi pi-calendar text-surface-400 text-xs"></i>
                 <span class="text-[10px] text-surface-400 uppercase font-medium">
-                  Criado em {{ deck.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                  Atualizado em {{ deck.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
                 </span>
               </div>
             </div>
           </p-card>
         } @empty {
           <div class="col-span-full p-12 text-center  border border-surface rounded-xl">
-            <p class="text-xl text-surface-500">Você ainda não criou nenhum deck.</p>
+            <p class="text-xl text-surface-500">Nenhum deck encontrado.</p>
           </div>
         }
       </div>
@@ -84,15 +87,21 @@ export class ListagemDecksComponent implements OnInit {
   
   private ref: DynamicDialogRef | null = null;
 
+  apenasMeus = input<boolean>(false);
+  
+  titulo = signal('Decks da Comunidade');
   decks = signal<Deck[]>([]);
   estaAutenticado = this.authService.estaAutenticado;
 
   ngOnInit() {
+    if (this.apenasMeus()) {
+      this.titulo.set('Meus Decks');
+    }
     this.carregarDecks();
   }
 
   async carregarDecks() {
-    const lista = await this.decksService.listarDecks();
+    const lista = await this.decksService.listarDecks(this.apenasMeus());
     this.decks.set(lista);
   }
 

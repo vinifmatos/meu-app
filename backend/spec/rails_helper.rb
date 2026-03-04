@@ -73,8 +73,9 @@ RSpec.configure do |config|
   config.before(:suite) do
     # Limpa o banco de dados antes de iniciar a suíte de testes
     # para garantir que dados de execuções anteriores (ex: E2E) não interfiram.
-    # Usamos destroy_all para respeitar as associações dependent: :destroy
-    Usuario.destroy_all
-    Carta.destroy_all # Isso também limpa faces_cartas se configurado
+    # Usamos delete_all em vez de destroy_all para ser mais rápido e evitar callbacks,
+    # mas mantemos o usuário admin de seed se ele existir para não quebrar o E2E.
+    Deck.delete_all
+    Carta.delete_all
   end
 end

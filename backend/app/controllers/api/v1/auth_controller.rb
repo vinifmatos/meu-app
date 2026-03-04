@@ -1,6 +1,7 @@
 module Api
   module V1
     class AuthController < ApplicationController
+      skip_before_action :carregar_usuario_atual, only: :login
       skip_before_action :autenticar_usuario!, only: :login
 
       def login

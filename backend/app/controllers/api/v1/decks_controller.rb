@@ -5,7 +5,11 @@ module Api
       before_action :set_deck, only: %i[show update destroy validar]
 
       def index
-        @decks = Deck.all.order(updated_at: :desc)
+        if params[:meus] == 'true' && current_user
+          @decks = current_user.decks.order(updated_at: :desc)
+        else
+          @decks = Deck.all.order(updated_at: :desc)
+        end
         render_json_success(template: "api/v1/decks/index", locals: { decks: @decks })
       end
 
@@ -14,9 +18,7 @@ module Api
       end
 
       def create
-        # Temporário: associar ao primeiro usuário se não fornecido
-        usuario = Usuario.find_by(id: params.dig(:data, :deck, :usuario_id)) || Usuario.first
-        @deck = Deck.create!(deck_params.merge(usuario: usuario))
+        @deck = current_user.decks.create!(deck_params)
         render_json_success(template: "api/v1/decks/show", locals: { deck: @deck }, message: "Deck criado com sucesso")
       end
 

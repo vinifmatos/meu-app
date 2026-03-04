@@ -60,6 +60,15 @@ export class MenuComponent {
       },
     ];
 
+    if (auth) {
+      menu.push({
+        label: 'Meu Espaço',
+        items: [
+          { label: 'Meus Decks', icon: 'pi pi-clone', routerLink: '/meus-decks' },
+        ],
+      });
+    }
+
     if (admin) {
       menu.push({
         label: 'Administração',
