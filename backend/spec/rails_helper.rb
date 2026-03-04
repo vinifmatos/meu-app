@@ -68,5 +68,13 @@ RSpec.configure do |config|
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
-  # config.filter_gems_from_backtrace("gem name")
+  # config.filter_gems_backtrace("gem name")
+
+  config.before(:suite) do
+    # Limpa o banco de dados antes de iniciar a suíte de testes
+    # para garantir que dados de execuções anteriores (ex: E2E) não interfiram.
+    # Usamos destroy_all para respeitar as associações dependent: :destroy
+    Usuario.destroy_all
+    Carta.destroy_all # Isso também limpa faces_cartas se configurado
+  end
 end

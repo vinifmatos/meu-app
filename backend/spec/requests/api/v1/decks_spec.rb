@@ -4,7 +4,7 @@ RSpec.describe "Api::V1::Decks", type: :request do
   let!(:usuario) { create(:usuario) }
   let!(:decks) { create_list(:deck, 3, usuario: usuario) }
   let(:deck) { decks.first }
-  let(:headers) { { "Accept" => "application/json" } }
+  let(:headers) { auth_headers(usuario).merge("Accept" => "application/json") }
 
   describe "GET /api/v1/decks" do
     it "retorna uma lista de decks" do

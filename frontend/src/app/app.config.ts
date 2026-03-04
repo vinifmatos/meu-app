@@ -20,6 +20,7 @@ import { providePrimeNG } from 'primeng/config';
 import { DialogService } from 'primeng/dynamicdialog';
 import { routes } from './app.routes';
 import { erroInterceptor } from '@core/interceptores/erro.interceptor';
+import { authInterceptor } from '@core/interceptors/auth.interceptor';
 import { ConfiguracaoService } from '@core/servicos/configuracao.service';
 import { SimbolosService } from '@core/servicos/simbolos.service';
 
@@ -47,7 +48,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([erroInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, erroInterceptor])),
     provideBrowserGlobalErrorListeners(),
     { provide: LOCALE_ID, useValue: 'pt-BR' },
     ConfiguracaoService,

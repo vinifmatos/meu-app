@@ -1,6 +1,8 @@
 module Api
   module V1
     class CartasController < ApplicationController
+      skip_before_action :autenticar_usuario!, only: %i[index show]
+
       def index
         idioma = params.dig(:filters, :lang) || "en"
 

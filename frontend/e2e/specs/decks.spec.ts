@@ -2,6 +2,15 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Gerenciamento de Decks', () => {
   test.beforeEach(async ({ page }) => {
+    // Realiza login antes de cada teste de deck
+    await page.goto('/login');
+    await page.fill('input#username', 'admin');
+    await page.fill('#password input', 'password123');
+    await page.click('button[type="submit"]');
+    
+    // Aguarda o redirecionamento ou a navegação para a home/decks
+    await expect(page).not.toHaveURL(/\/login/);
+    
     await page.goto('/decks');
   });
 

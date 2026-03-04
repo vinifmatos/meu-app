@@ -168,7 +168,7 @@ export class ListagemComponent implements OnInit {
     { label: 'Chinês (ZH)', value: 'zhs' },
   ];
 
-  totalItems = computed(() => this.paginacao()?.totalCount || 0);
+  totalItems = computed(() => this.paginacao()?.totalCount ?? 0);
 
   ngOnInit(): void {
     this.carregarFiltrosSalvos();
@@ -209,9 +209,9 @@ export class ListagemComponent implements OnInit {
     if (salvos) {
       try {
         const filtros = JSON.parse(salvos);
-        this.filtroNome = filtros.nome || '';
-        this.idiomaSelecionado = filtros.idioma || 'en';
-        this.paginaAtual = filtros.pagina || 1;
+        this.filtroNome = filtros.nome ?? '';
+        this.idiomaSelecionado = filtros.idioma ?? 'en';
+        this.paginaAtual = filtros.pagina ?? 1;
         this.first = (this.paginaAtual - 1) * 20;
       } catch (e) {
         console.error('Erro ao carregar filtros salvos', e);
@@ -242,7 +242,7 @@ export class ListagemComponent implements OnInit {
       rare: 'Rara',
       mythic: 'Mítica',
     };
-    return mapa[raridade] || raridade;
+    return mapa[raridade] ?? raridade;
   }
 
   obterRaridadeSeverity(

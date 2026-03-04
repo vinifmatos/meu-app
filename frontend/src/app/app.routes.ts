@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from '@core/guards/auth.guard';
+import { adminGuard } from '@core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -6,7 +8,12 @@ export const routes: Routes = [
     loadComponent: () => import('./core/paginas/inicio/inicio.component').then((m) => m.InicioComponent),
   },
   {
+    path: 'login',
+    loadComponent: () => import('./core/paginas/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
     path: 'admin',
+    canActivate: [adminGuard],
     loadChildren: () => import('./core/core.routes').then((m) => m.coreRoutes),
   },
   {
@@ -23,6 +30,7 @@ export const routes: Routes = [
   },
   {
     path: 'decks/:id',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/decks/paginas/editor/editor.component').then(m => m.EditorDeckComponent)
   }
 ];

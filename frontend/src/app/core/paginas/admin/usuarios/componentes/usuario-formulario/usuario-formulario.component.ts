@@ -98,7 +98,7 @@ export class UsuarioFormularioComponent implements OnInit, OnDestroy {
 
       if (erro.status === 422) {
         const err = erro.error as ApiResposta<unknown>;
-        this.erros = err.validationErrors || {};
+        this.erros = err.validationErrors ?? {};
 
         this.servicoMensagem.add({
           severity: 'warn',

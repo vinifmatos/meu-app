@@ -1,6 +1,7 @@
 module Api
   module V1
     class DecksController < ApplicationController
+      skip_before_action :autenticar_usuario!, only: %i[index show]
       before_action :set_deck, only: %i[show update destroy validar]
 
       def index

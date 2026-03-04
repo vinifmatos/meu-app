@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { DecksService } from '@core/servicos/decks.service';
+import { AuthService } from '@core/servicos/auth.service';
 import { Deck } from '@core/interfaces/decks.interface';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -19,7 +19,9 @@ import { SelectModule } from 'primeng/select';
     <div class="container mx-auto p-6 max-w-6xl">
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-extrabold text-surface">Meus Decks</h1>
-        <p-button label="Novo Deck" icon="pi pi-plus" (click)="exibirCriacao = true"></p-button>
+        @if (estaAutenticado()) {
+          <p-button label="Novo Deck" icon="pi pi-plus" (click)="exibirCriacao = true"></p-button>
+        }
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -85,9 +87,11 @@ import { SelectModule } from 'primeng/select';
 })
 export class ListagemDecksComponent implements OnInit {
   private readonly decksService = inject(DecksService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   
   decks = signal<Deck[]>([]);
+  estaAutenticado = this.authService.estaAutenticado;
   exibirCriacao = false;
   novoDeckNome = '';
   novoDeckFormato = 'pauper';
