@@ -215,15 +215,25 @@ module Scryfall
       Importador.new.importar!
     end
 
+    def self.importar_simbolos
+      Importador.new.importar_simbolos
+    end
+
+    def self.importar_dados(force: false)
+      Importador.new.importar_dados(force: force)
+    end
+
+    def self.importar_carta_por_nome(nome, lang: nil)
+      Importador.new.importar_carta_por_nome(nome, lang: lang)
+    end
+
     def importar!
       importar_dados(force: true)
     end
 
     def importar_dados(force: false)
-      api = Api.new
-
-      importar_simbolos(api)
-      importar_cartas(api, force: force)
+      importar_simbolos
+      importar_cartas(force: force)
 
       nil
     end
@@ -242,7 +252,8 @@ module Scryfall
       end
     end
 
-    def importar_simbolos(api)
+    def importar_simbolos
+      api = Api.new
       symbols_data = api.baixar_simbolos
       Simbolo.import_from_scryfall(symbols_data)
     rescue StandardError => e
@@ -251,7 +262,8 @@ module Scryfall
       raise ImportError, "Erro ao importar os simbolos: #{e.message}"
     end
 
-    def importar_cartas(api, force: false)
+    def importar_cartas(force: false)
+      api = Api.new
       file_path = api.baixar_todas_cartas(force: force)
       parser = ParserCartasJson.new
 

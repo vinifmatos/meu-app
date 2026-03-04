@@ -16,6 +16,7 @@ import { Carta } from '@core/interfaces/cartas.interface';
 import { Deck, DeckCarta, FormatoDeck } from '@core/interfaces/decks.interface';
 import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
 import { AuthService } from '@core/servicos/auth.service';
+import { DecksValidadorService } from '@core/servicos/decks-validador.service';
 import { DecksService } from '@core/servicos/decks.service';
 import { CartasService } from '@features/cartas/servicos/cartas.service';
 import { ButtonModule } from 'primeng/button';
@@ -82,25 +83,23 @@ import { PreviewCartaComponent } from './preview-carta.component';
                 label="Erros ({{ validacao().erros.length }})"
                 severity="danger"
                 icon="pi pi-exclamation-triangle"
-                (click)="exibirErros = !exibirErros"
+                (click)="exibirErros.set(!exibirErros())"
               ></p-button>
             }
           </div>
         </div>
 
-        @if (exibirErros && !validacao().valido) {
+        @if (exibirErros() && !validacao().valido) {
           <div class="mb-6">
-            <p-message severity="error" styleClass="w-full justify-start">
-              <ng-template #content>
-                <div class="flex flex-col gap-2">
-                  <h3 class="font-bold">Erros de Validação:</h3>
-                  <ul class="list-disc pl-5">
-                    @for (erro of validacao().erros; track $index) {
-                      <li>{{ erro }}</li>
-                    }
-                  </ul>
-                </div>
-              </ng-template>
+            <p-message severity="error">
+              <div class="flex flex-col gap-2">
+                <h3 class="font-bold">O Deck não atendes as regras do formato:</h3>
+                <ul class="list-disc pl-5">
+                  @for (erro of validacao().erros; track $index) {
+                    <li>{{ erro }}</li>
+                  }
+                </ul>
+              </div>
             </p-message>
           </div>
         }
@@ -140,10 +139,14 @@ import { PreviewCartaComponent } from './preview-carta.component';
                           />
                         </div>
                         <div class="flex flex-col">
-                          <span class="text-sm font-bold truncate w-32 md:w-40 text-surface group-hover:text-color-emphasis">{{
-                            c.name
-                          }}</span>
-                          <span class="text-xs text-surface uppercase group-hover:text-color-emphasis/80">{{ c.set }}</span>
+                          <span
+                            class="text-sm font-bold truncate w-32 md:w-40 text-surface group-hover:text-color-emphasis"
+                            >{{ c.name }}</span
+                          >
+                          <span
+                            class="text-xs text-surface uppercase group-hover:text-color-emphasis/80"
+                            >{{ c.set }}</span
+                          >
                         </div>
                       </div>
                       <div class="flex gap-1">
@@ -200,9 +203,10 @@ import { PreviewCartaComponent } from './preview-carta.component';
                         (mouseleave)="esconderPreview()"
                       >
                         <div class="flex items-center gap-4">
-                          <span class="font-mono font-bold text-primary w-6 text-center group-hover:text-color-emphasis">{{
-                            item.quantidade
-                          }}</span>
+                          <span
+                            class="font-mono font-bold text-primary w-6 text-center group-hover:text-color-emphasis"
+                            >{{ item.quantidade }}</span
+                          >
                           <div class="flex flex-col">
                             <span
                               class="font-bold hover:text-primary cursor-pointer text-surface group-hover:text-color-emphasis"
@@ -210,9 +214,10 @@ import { PreviewCartaComponent } from './preview-carta.component';
                               >{{ item.carta.name }}</span
                             >
                             <div class="flex items-center gap-2">
-                              <span class="text-xs text-surface uppercase group-hover:text-color-emphasis/80">{{
-                                item.carta.set
-                              }}</span>
+                              <span
+                                class="text-xs text-surface uppercase group-hover:text-color-emphasis/80"
+                                >{{ item.carta.set }}</span
+                              >
                               @if (item.ehComandante) {
                                 <p-tag
                                   value="COMANDANTE"
@@ -294,14 +299,15 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
   private readonly decksService = inject(DecksService);
   private readonly cartasService = inject(CartasService);
   private readonly authService = inject(AuthService);
+  private readonly validadorService = inject(DecksValidadorService);
   private readonly destroy$ = new Subject<void>();
 
   deck = signal<Deck | null>(null);
   deckOriginal = signal<string>('');
   isNovoDeck = signal(false);
   salvando = signal(false);
-  validacao = signal<{ valido: boolean; erros: string[] }>({ valido: true, erros: [] });
-  exibirErros = false;
+  validacao = computed(() => this.validadorService.validar(this.deck()));
+  exibirErros = signal(false);
 
   hasChanges = computed(() => {
     const d = this.deck();
@@ -485,7 +491,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
       } else {
         this.deck.set(d);
       }
-      this.validarLocalmente();
     }
   }
 
@@ -530,7 +535,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
 
       return novoDeck;
     });
-    this.validarLocalmente();
   }
 
   removerDoDeckLocal(carta: Carta, comoComandante: boolean = false, tudo: boolean = false) {
@@ -562,7 +566,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
         estatisticas: { ...d.estatisticas, totalCartas: d.estatisticas.totalCartas - qtdRemover },
       };
     });
-    this.validarLocalmente();
   }
 
   private obterCategoriaCarta(c: Carta, comoComandante: boolean): keyof Deck['cartas'] {
@@ -612,7 +615,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
         } else {
           this.deck.set(resultado);
           this.deckOriginal.set(JSON.stringify(this.serializarParaLocal(resultado)));
-          this.validarLocalmente();
         }
       }
     } catch (e) {
