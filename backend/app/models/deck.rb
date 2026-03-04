@@ -3,6 +3,8 @@ class Deck < ApplicationRecord
   has_many :deck_cartas, dependent: :destroy
   has_many :cartas, through: :deck_cartas
 
+  accepts_nested_attributes_for :deck_cartas, allow_destroy: true
+
   enum :formato, pauper: 1, commander: 2
 
   validates :nome, presence: true

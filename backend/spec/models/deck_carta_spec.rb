@@ -1,5 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe DeckCarta, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  describe 'associações' do
+    it { should belong_to(:deck) }
+    it { should belong_to(:carta) }
+  end
 end

@@ -18,11 +18,23 @@ module Api
       end
 
       def create
-        @deck = current_user.decks.create!(deck_params)
-        render_json_success(template: "api/v1/decks/show", locals: { deck: @deck }, message: "Deck criado com sucesso")
+        @deck = current_user.decks.new(deck_params.except(:cartas_attributes))
+        
+        # Se vierem cartas no create, associamos
+        if deck_params[:cartas_attributes].present?
+          @deck.deck_cartas_attributes = deck_params[:cartas_attributes]
+        end
+
+        @deck.save!
+        render_json_success(template: "api/v1/decks/show", locals: { deck: @deck }, message: "Deck criado com sucesso", status: :created)
       end
 
       def update
+        # Se vierem cartas_attributes, limpamos as atuais primeiro para refletir o estado total enviado pelo front
+        if deck_params[:cartas_attributes].present?
+          @deck.deck_cartas.delete_all
+        end
+
         @deck.update!(deck_params)
         render_json_success(template: "api/v1/decks/show", locals: { deck: @deck }, message: "Deck atualizado com sucesso")
       end
@@ -46,7 +58,11 @@ module Api
       end
 
       def deck_params
-        params.require(:data).require(:deck).permit(:nome, :formato)
+        params.require(:data).require(:deck).permit(
+          :nome, 
+          :formato, 
+          cartas_attributes: [:carta_id, :quantidade, :eh_comandante]
+        )
       end
     end
   end

@@ -27,8 +27,8 @@ export default defineConfig({
   webServer: [
     {
       command: process.env['CI']
-        ? 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333'
-        : 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed && RAILS_ENV=test bundle exec rails server -p 3333',
+        ? 'cd ../backend && RAILS_ENV=test bundle exec rails db:create db:migrate db:seed scryfall:importar_famosas && RAILS_ENV=test bundle exec rails server -p 3333'
+        : 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed scryfall:importar_famosas && RAILS_ENV=test bundle exec rails server -p 3333',
       url: 'http://localhost:3333/api/v1/config',
       reuseExistingServer: !process.env['CI'],
       timeout: 120000,
