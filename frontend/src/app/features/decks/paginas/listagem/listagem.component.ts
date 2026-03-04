@@ -40,6 +40,13 @@ import { SelectModule } from 'primeng/select';
                   <span class="text-xs text-red-500 font-bold">INVÁLIDO</span>
                 }
               </div>
+
+              <div class="flex items-center gap-2 mt-2 pt-2 border-t border-surface-100">
+                <i class="pi pi-calendar text-surface-400 text-xs"></i>
+                <span class="text-[10px] text-surface-400 uppercase font-medium">
+                  Criado em {{ deck.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
             </div>
           </p-card>
         } @empty {
