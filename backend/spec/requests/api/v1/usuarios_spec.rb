@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Usuarios", type: :request do
-  let!(:admin) { create(:usuario, :admin) }
+  let!(:admin) { Usuario.find_by!(username: 'admin') }
   let!(:usuarios) { create_list(:usuario, 5) }
   let(:usuario) { usuarios.first }
   let(:headers) { auth_headers(admin).merge("Accept" => "application/json") }
@@ -12,7 +12,8 @@ RSpec.describe "Api::V1::Usuarios", type: :request do
 
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
-      expect(json_response["data"]["usuarios"].size).to eq(6) # 5 + 1 admin
+      # 5 (create_list) + 1 (admin do seed) = 6
+      expect(json_response["data"]["usuarios"].size).to eq(6)
     end
   end
 
