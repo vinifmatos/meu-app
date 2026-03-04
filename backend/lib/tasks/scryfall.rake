@@ -23,7 +23,7 @@ namespace :scryfall do
       "Black Lotus", "Ancestral Recall", "Time Walk", "Mox Pearl", "Mox Sapphire", 
       "Mox Jet", "Mox Ruby", "Mox Emerald", "Counterspell", "Lightning Bolt", 
       "Dark Ritual", "Giant Growth", "Sol Ring", "Command Tower", "Arcane Signet",
-      "Atog", "Delver of Secrets", "Brainstorm", "Ponder", "Faithless Looting",
+      "The Locust God", "Atog", "Delver of Secrets", "Brainstorm", "Ponder", "Faithless Looting",
       "Gush", "Daze", "Gitaxian Probe", "Mental Misstep", "Treasure Cruise",
       "Dig Through Time", "Okitra's Monument", "Bonder's Ornament", "Arcum's Astrolabe"
     ]

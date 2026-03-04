@@ -18,14 +18,19 @@ import { SimbolosPipe } from '@core/pipes/simbolos.pipe';
 import { AuthService } from '@core/servicos/auth.service';
 import { DecksValidadorService } from '@core/servicos/decks-validador.service';
 import { DecksService } from '@core/servicos/decks.service';
-import { CartasService } from '@features/cartas/servicos/cartas.service';
+import { CartasService, FiltrosCarta } from '@features/cartas/servicos/cartas.service';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { TooltipModule } from 'primeng/tooltip';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { PreviewCartaComponent } from './preview-carta.component';
 
@@ -47,8 +52,13 @@ import { PreviewCartaComponent } from './preview-carta.component';
     FormsModule,
     ReactiveFormsModule,
     PreviewCartaComponent,
+    SelectButtonModule,
+    ToggleButtonModule,
+    TooltipModule,
+    ConfirmDialogModule,
   ],
   template: `
+    <p-confirmdialog></p-confirmdialog>
     <div class="container mx-auto p-4 max-w-7xl">
       @if (deck(); as d) {
         <!-- Cabeçalho do Editor -->
@@ -109,20 +119,67 @@ import { PreviewCartaComponent } from './preview-carta.component';
           <div class="lg:col-span-4 flex flex-col gap-4">
             <p-card header="Adicionar Cartas">
               <div class="flex flex-col gap-4">
-                <p-iconField iconPosition="left">
-                  <p-inputIcon
-                    [styleClass]="carregandoBusca() ? 'pi pi-spin pi-spinner' : 'pi pi-search'"
-                  ></p-inputIcon>
-                  <input
-                    type="text"
-                    pInputText
-                    placeholder="Nome da carta..."
-                    [formControl]="buscaControl"
-                    class="w-full"
-                  />
-                </p-iconField>
+                <!-- Filtros de Busca -->
+                <div
+                  class="flex flex-col gap-2 p-3 bg-surface-emphasis rounded-lg border border-surface shadow-inner"
+                >
+                  <p-iconField iconPosition="left">
+                    <p-inputIcon
+                      [styleClass]="carregandoBusca() ? 'pi pi-spin pi-spinner' : 'pi pi-search'"
+                    ></p-inputIcon>
+                    <input
+                      type="text"
+                      pInputText
+                      placeholder="Nome da carta..."
+                      [formControl]="buscaControl"
+                      class="w-full p-inputtext-sm"
+                    />
+                  </p-iconField>
 
-                <div class="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-2">
+                  <div class="flex flex-col gap-2 mt-2">
+                    <input
+                      type="text"
+                      pInputText
+                      placeholder="Tipo (ex: Creature, Land...)"
+                      [(ngModel)]="filtroTipo"
+                      (ngModelChange)="onFiltroChange()"
+                      class="w-full p-inputtext-sm"
+                    />
+
+                    <div class="flex flex-col gap-1">
+                      <span class="text-[10px] font-bold uppercase text-surface/60 ml-1"
+                        >Cores</span
+                      >
+                      <p-selectButton
+                        [options]="opcoesCores"
+                        [(ngModel)]="filtroCores"
+                        [multiple]="true"
+                        (ngModelChange)="onFiltroChange()"
+                        styleClass="p-selectbutton-sm justify-between flex"
+                        data-test-id="filtro-cores"
+                      >
+                        <ng-template #item let-item>
+                          <div [innerHTML]="'{' + item.value + '}' | simbolos"></div>
+                        </ng-template>
+                      </p-selectButton>
+                    </div>
+
+                    @if (d.formato === 'commander') {
+                      <p-toggleButton
+                        [(ngModel)]="filtroIdentidade"
+                        onLabel="Filtrar por Identidade"
+                        offLabel="Ignorar Identidade"
+                        onIcon="pi pi-filter-fill"
+                        offIcon="pi pi-filter"
+                        (ngModelChange)="onFiltroChange()"
+                        styleClass="w-full p-button-sm mt-1"
+                        data-test-id="toggle-identidade"
+                      ></p-toggleButton>
+                    }
+                  </div>
+                </div>
+
+                <div class="flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-2">
                   @for (c of resultadosBusca(); track c.id) {
                     <div
                       class="flex items-center justify-between p-2 hover:bg-highlight group rounded-lg border border-transparent hover:border-surface transition-all"
@@ -160,6 +217,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
                             pTooltip="Comandante"
                             (click)="adicionarAoDeckLocal(c, true)"
                             styleClass="group-hover:text-color-emphasis"
+                            data-test-id="btn-adicionar-comandante"
                           ></p-button>
                         }
                         <p-button
@@ -169,6 +227,7 @@ import { PreviewCartaComponent } from './preview-carta.component';
                           (click)="adicionarAoDeckLocal(c)"
                           [disabled]="!podeAdicionar(c)"
                           styleClass="group-hover:text-color-emphasis"
+                          data-test-id="btn-adicionar-carta"
                         ></p-button>
                       </div>
                     </div>
@@ -304,6 +363,8 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
   private readonly cartasService = inject(CartasService);
   private readonly authService = inject(AuthService);
   private readonly validadorService = inject(DecksValidadorService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
   private readonly destroy$ = new Subject<void>();
 
   deck = signal<Deck | null>(null);
@@ -325,6 +386,18 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
   buscaControl = new FormControl('');
   resultadosBusca = signal<Carta[]>([]);
   carregandoBusca = signal(false);
+
+  // Filtros de Pesquisa
+  filtroTipo = '';
+  filtroCores: string[] = [];
+  filtroIdentidade = true;
+  opcoesCores = [
+    { label: 'W', value: 'W' },
+    { label: 'U', value: 'U' },
+    { label: 'B', value: 'B' },
+    { label: 'R', value: 'R' },
+    { label: 'G', value: 'G' },
+  ];
 
   // Preview
   cartaPreview = signal<Carta | null>(null);
@@ -370,21 +443,37 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
     effect(() => {
       const d = this.deck();
       if (d && this.authService.estaAutenticado()) {
-        const chave = `deck_edicao_${d.id || 'novo'}`;
+        const chave = this.gerarChaveCache(d.id, d.nome, d.formato);
         localStorage.setItem(chave, JSON.stringify(this.serializarParaLocal(d)));
       }
     });
   }
 
+  private gerarChaveCache(id: number, nome?: string, formato?: string): string {
+    if (id > 0) {
+      return `deck_edicao_id_${id}`;
+    }
+    const nomeSanitizado = (nome || 'novo').toLowerCase().replace(/\s+/g, '_');
+    return `deck_edicao_novo_${nomeSanitizado}_${formato || 'pauper'}`;
+  }
+
   ngOnInit() {
-    this.route.params.subscribe((params) => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const id = params['id'];
       if (id === 'novo') {
         this.isNovoDeck.set(true);
-        const queryParams = this.route.snapshot.queryParams;
-        const nome = queryParams['nome'] ?? 'Novo Deck';
-        const formato = (queryParams['formato'] as FormatoDeck) ?? 'pauper';
-        this.restaurarOuInicializar(0, nome, formato);
+        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((queryParams) => {
+          const nome = queryParams['nome'] ?? 'Novo Deck';
+          const formato = (queryParams['formato'] as FormatoDeck) ?? 'pauper';
+
+          const currentDeck = this.deck();
+          const mudouParametros =
+            !!currentDeck && (currentDeck.nome !== nome || currentDeck.formato !== formato);
+
+          if (!currentDeck || mudouParametros) {
+            this.restaurarOuInicializar(0, nome, formato, mudouParametros);
+          }
+        });
       } else if (id) {
         this.isNovoDeck.set(false);
         this.carregarDeck(+id);
@@ -423,32 +512,62 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
     };
   }
 
-  private restaurarOuInicializar(id: number, nomePadrao?: string, formatoPadrao?: FormatoDeck) {
-    const chave = `deck_edicao_${id || 'novo'}`;
-    const salvo = localStorage.getItem(chave);
+  private restaurarOuInicializar(
+    id: number,
+    nomePadrao?: string,
+    formatoPadrao?: FormatoDeck,
+    ignorarCache = false,
+  ) {
+    const chave = this.gerarChaveCache(id, nomePadrao, formatoPadrao);
+    const salvo = !ignorarCache ? localStorage.getItem(chave) : null;
 
     if (salvo) {
-      try {
-        const dados = JSON.parse(salvo);
-        const d: Deck = {
-          id: id,
-          nome: dados.nome,
-          formato: dados.formato,
-          usuarioId: 0,
-          cartas: dados.cartas,
-          estatisticas: { totalCartas: this.calcularTotal(dados.cartas), valido: false },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        this.deck.set(d);
-        return;
-      } catch (e) {
-        console.error('Erro ao restaurar deck do localStorage', e);
-      }
+      this.confirmationService.confirm({
+        message: 'Existe uma edição não salva para este deck. Deseja restaurar o progresso?',
+        header: 'Restaurar Alterações',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Sim, Restaurar',
+        rejectLabel: 'Não, Começar de Novo',
+        accept: () => {
+          try {
+            const dados = JSON.parse(salvo);
+            const d: Deck = {
+              id: id,
+              nome: dados.nome,
+              formato: dados.formato,
+              usuarioId: 0,
+              cartas: dados.cartas,
+              estatisticas: { totalCartas: this.calcularTotal(dados.cartas), valido: false },
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            this.deck.set(d);
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Restaurado',
+              detail: 'O progresso anterior foi carregado.',
+            });
+          } catch (e) {
+            console.error('Erro ao restaurar deck do localStorage', e);
+            if (id === 0) this.inicializarNovoDeck(nomePadrao!, formatoPadrao!);
+          }
+        },
+        reject: () => {
+          localStorage.removeItem(chave);
+          if (id === 0) {
+            this.inicializarNovoDeck(nomePadrao!, formatoPadrao!);
+          } else {
+            this.carregarDeckDoServidor(id);
+          }
+        },
+      });
+      return;
     }
 
     if (id === 0) {
       this.inicializarNovoDeck(nomePadrao!, formatoPadrao!);
+    } else {
+      this.carregarDeckDoServidor(id);
     }
   }
 
@@ -484,28 +603,55 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
   }
 
   async carregarDeck(id: number) {
+    this.restaurarOuInicializar(id);
+  }
+
+  private async carregarDeckDoServidor(id: number) {
     const d = await this.decksService.obterDeck(id);
     if (d) {
       this.deckOriginal.set(JSON.stringify(this.serializarParaLocal(d)));
-
-      const chave = `deck_edicao_${id}`;
-      const salvo = localStorage.getItem(chave);
-      if (salvo) {
-        this.restaurarOuInicializar(id);
-      } else {
-        this.deck.set(d);
-      }
+      this.deck.set(d);
     }
   }
 
+  onFiltroChange() {
+    this.buscarCartas(this.buscaControl.value || '');
+  }
+
   buscarCartas(termo: string) {
-    if (!termo || termo.trim().length === 0) {
+    const d = this.deck();
+    const termoTipo = this.filtroTipo.trim();
+    const temFiltroAtivo =
+      termo.trim().length > 0 || termoTipo.length > 0 || this.filtroCores.length > 0;
+
+    if (!temFiltroAtivo) {
       this.resultadosBusca.set([]);
       return;
     }
 
     this.carregandoBusca.set(true);
-    this.cartasService.obterCartas(1, 15, { nome: termo }).subscribe((res) => {
+
+    const filtros: FiltrosCarta = {
+      nome: termo,
+      typeLine: termoTipo,
+      colors: this.filtroCores.length > 0 ? this.filtroCores : undefined,
+    };
+
+    // Lógica de Identidade de Cor para Commander
+    if (d?.formato === 'commander' && this.filtroIdentidade) {
+      const comandantes = d.cartas.comandantes || [];
+      if (comandantes.length > 0) {
+        const identidade: string[] = [];
+        comandantes.forEach((c) => {
+          c.carta.colorIdentity?.forEach((cor) => {
+            if (!identidade.includes(cor)) identidade.push(cor);
+          });
+        });
+        filtros.colorIdentity = identidade;
+      }
+    }
+
+    this.cartasService.obterCartas(1, 15, filtros).subscribe((res) => {
       this.resultadosBusca.set(res.data?.cartas ?? []);
       this.carregandoBusca.set(false);
     });
@@ -517,8 +663,10 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
 
     const limite = this.validadorService.obterLimiteCopias(d.formato, carta);
     const todasAsCartas: DeckCarta[] = Object.values(d.cartas).flat();
-    
-    const itemExistente = todasAsCartas.find(dc => dc.carta.oracleId === carta.oracleId && dc.ehComandante === comoComandante);
+
+    const itemExistente = todasAsCartas.find(
+      (dc) => dc.carta.oracleId === carta.oracleId && dc.ehComandante === comoComandante,
+    );
     const quantidadeAtual = itemExistente?.quantidade ?? 0;
 
     return quantidadeAtual < limite;
@@ -624,7 +772,7 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
       }
 
       if (resultado) {
-        const chave = `deck_edicao_${d.id || 'novo'}`;
+        const chave = this.gerarChaveCache(d.id, d.nome, d.formato);
         localStorage.removeItem(chave);
 
         if (this.isNovoDeck()) {
@@ -640,8 +788,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
       this.salvando.set(false);
     }
   }
-
-  private async validarLocalmente() {}
 
   mostrarPreview(c: Carta, event: MouseEvent) {
     this.cartaPreview.set(c);

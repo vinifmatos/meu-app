@@ -6,11 +6,23 @@ module Middleware
 
     def call(env)
       transform_request(env)
+      transform_query_params(env)
       status, headers, response = @app.call(env)
       transform_response(status, headers, response)
     end
 
     private
+
+    def transform_query_params(env)
+      request = Rack::Request.new(env)
+      return if request.GET.empty?
+
+      transformed_params = transform_hash(request.GET, :underscore)
+      
+      # Atualiza a query string e os parâmetros processados pelo Rack
+      env['rack.request.query_hash'] = transformed_params
+      env['QUERY_STRING'] = Rack::Utils.build_nested_query(transformed_params)
+    end
 
     def transform_request(env)
       return unless transformable_request?(env)
@@ -27,8 +39,10 @@ module Middleware
     def transform_response(status, headers, response)
       return [ status, headers, response ] unless transformable_response?(headers, response)
 
-      body = response.body
-      body = body.join if body.is_a?(Array)
+      # Normaliza o corpo da resposta para string, lidando com o fato de que pode ser um array (Rack) ou um objeto (Rails)
+      body = ""
+      response.each { |part| body << part }
+      
       return [ status, headers, response ] if body.blank?
 
       new_body = transform_hash(JSON.parse(body), :camelize)
@@ -43,7 +57,7 @@ module Middleware
     end
 
     def transformable_response?(headers, response)
-      headers["Content-Type"]&.include?("application/json") && response.body.present?
+      headers["Content-Type"]&.include?("application/json")
     end
 
     def transform_hash(original_hash, method)

@@ -26,28 +26,26 @@ export class ApiService {
     let params = new HttpParams();
     if (!obj) return params;
 
-    Object.keys(obj).forEach((key) => {
-      const value = obj[key];
-      if (value === null || value === undefined || value === '') return;
+    const appendParam = (p: HttpParams, key: string, value: any): HttpParams => {
+      if (value === null || value === undefined || value === '') return p;
 
-      if (value instanceof Date) {
-        params = params.set(key, value.toJSON());
-      } else if (Array.isArray(value)) {
+      if (Array.isArray(value)) {
         value.forEach((v) => {
-          const finalValue = v instanceof Date ? v.toJSON() : v;
-          params = params.append(`${key}[]`, finalValue);
+          p = appendParam(p, `${key}[]`, v);
         });
-      } else if (typeof value === 'object') {
+      } else if (typeof value === 'object' && !(value instanceof Date)) {
         Object.keys(value).forEach((subKey) => {
-          const subValue = value[subKey];
-          if (subValue !== null && subValue !== undefined) {
-            const finalValue = subValue instanceof Date ? subValue.toJSON() : subValue;
-            params = params.append(`${key}[${subKey}]`, finalValue);
-          }
+          p = appendParam(p, `${key}[${subKey}]`, value[subKey]);
         });
       } else {
-        params = params.set(key, value);
+        const finalValue = value instanceof Date ? value.toJSON() : value;
+        p = p.append(key, finalValue);
       }
+      return p;
+    };
+
+    Object.keys(obj).forEach((key) => {
+      params = appendParam(params, key, obj[key]);
     });
 
     return params;
