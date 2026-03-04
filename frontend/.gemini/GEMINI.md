@@ -1,5 +1,10 @@
 You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
+## Git Workflow
+
+- ALWAYS create a new branch and checkout to it BEFORE starting any changes for a new feature or bug fix.
+- Use descriptive branch names (e.g., `feature/nome-da-funcionalidade` or `fix/nome-do-bug`).
+
 ## Interactions
 
 - Interactions with the user should preferably be in Brazilian Portuguese.
