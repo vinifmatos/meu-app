@@ -18,6 +18,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.preview
+      args:
+        APP_MAJOR_VERSION: ${APP_MAJOR_VERSION:-0}
+        APP_MINOR_VERSION: ${APP_MINOR_VERSION:-1}
+        APP_PATCH_VERSION: ${APP_PATCH_VERSION:-0}
     restart: always
     depends_on:
       - postgres
@@ -26,7 +30,6 @@ services:
     environment:
       RAILS_ENV: production
       DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/app_pr_${PR_NUMBER}
-      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api-${PR_NUMBER}.rule=Host(`${DOMAIN}`) && PathPrefix(`/pr-${PR_NUMBER}/api`)"
