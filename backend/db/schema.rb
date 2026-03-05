@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_05_014140) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_05_025356) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -87,6 +87,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_014140) do
     t.index ["face"], name: "index_faces_cartas_on_face"
   end
 
+  create_table "refresh_tokens", force: :cascade do |t|
+    t.bigint "usuario_id", null: false
+    t.string "token", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "revoked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_refresh_tokens_on_token", unique: true
+    t.index ["usuario_id"], name: "index_refresh_tokens_on_usuario_id"
+  end
+
   create_table "simbolos", force: :cascade do |t|
     t.string "symbol", null: false
     t.string "english", null: false
@@ -123,4 +134,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_014140) do
   add_foreign_key "deck_cartas", "decks"
   add_foreign_key "decks", "usuarios"
   add_foreign_key "faces_cartas", "cartas"
+  add_foreign_key "refresh_tokens", "usuarios"
 end

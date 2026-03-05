@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { realizarLogin } from '../support/auth';
 
 test.describe('Gerenciamento de Usuário', () => {
   const timestamp = Date.now();
@@ -48,11 +49,7 @@ test.describe('Gerenciamento de Usuário', () => {
 
   test.describe('Perfil do Usuário (Logado)', () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto('/login');
-      await page.fill('input[id="username"]', 'admin');
-      await page.locator('#password input').fill('Password123@');
-      await page.click('button[type="submit"]');
-      await expect(page).toHaveURL('/');
+      await realizarLogin(page);
     });
 
     test('deve permitir alterar informações do perfil', async ({ page }) => {

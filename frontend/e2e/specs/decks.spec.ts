@@ -1,17 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { realizarLogin } from '../support/auth';
 
 test.describe('Gerenciamento de Decks', () => {
   test.beforeEach(async ({ page }) => {
-    // Login inicial
-    await page.goto('/login');
-    await page.evaluate(() => localStorage.clear());
-    await page.fill('input#username', 'admin');
-    await page.fill('#password input', 'password123');
-    await page.click('button[type="submit"]');
-
-    // Aguarda o login e estabilização
-    await expect(page).not.toHaveURL(/\/login/, { timeout: 15000 });
-    await page.waitForLoadState('networkidle');
+    await realizarLogin(page);
   });
 
   test('deve abrir o diálogo de criação de deck', async ({ page }) => {

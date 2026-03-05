@@ -2,6 +2,7 @@ class Usuario < ApplicationRecord
   has_secure_password
 
   has_many :decks, dependent: :destroy
+  has_many :refresh_tokens, dependent: :destroy
 
   enum :role, admin: 0, usuario: 1
 

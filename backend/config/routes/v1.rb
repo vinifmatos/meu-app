@@ -3,12 +3,13 @@ namespace :v1 do
 
   post "auth/login", to: "auth#login"
   post "auth/refresh", to: "auth#refresh"
+  delete "auth/logout", to: "auth#logout"
 
   resources :registro_usuarios, only: :create do
     get :confirmar, on: :collection
   end
 
-  resource :perfil, only: [ :show, :update ], controller: "perfil"
+  resource :perfil, only: [:show, :update], controller: "perfil"
 
   resources :usuarios
   resources :cartas, only: %i[index show]
@@ -20,3 +21,4 @@ namespace :v1 do
     get :validar, on: :member
   end
 end
+

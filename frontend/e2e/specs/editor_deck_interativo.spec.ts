@@ -1,15 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { realizarLogin } from '../support/auth';
 
 test.describe('Editor de Deck Interativo', () => {
   test.beforeEach(async ({ page }) => {
-    // Login inicial
-    await page.goto('/login');
-    await page.evaluate(() => localStorage.clear());
-    await page.fill('input#username', 'admin');
-    await page.fill('#password input', 'password123');
-    await page.click('button[type="submit"]');
-    await expect(page).not.toHaveURL(/\/login/, { timeout: 15000 });
-    await page.waitForLoadState('networkidle');
+    await realizarLogin(page);
   });
 
   test('deve permitir buscar, visualizar e adicionar cartas com persistência local', async ({

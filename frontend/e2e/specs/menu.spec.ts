@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { realizarLogin } from '../support/auth';
 
 test.describe('Menu de Navegação', () => {
   test('não deve exibir link "Minha Conta" para usuário não autenticado', async ({ page }) => {
@@ -10,12 +11,7 @@ test.describe('Menu de Navegação', () => {
   });
 
   test('deve exibir link "Minha Conta" após login', async ({ page }) => {
-    // 1. Fazer login
-    await page.goto('/login');
-    await page.fill('input[id="username"]', 'admin');
-    await page.locator('#password input').fill('Password123@');
-    await page.click('button[type="submit"]');
-    await expect(page).toHaveURL('/');
+    await realizarLogin(page);
 
     // 2. Verificar se o link "Minha Conta" apareceu no menu
     const linkPerfil = page.locator('text=Minha Conta');

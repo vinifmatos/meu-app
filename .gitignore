@@ -59,3 +59,4 @@ Thumbs.db
 /frontend/test-results/
 
 /.gemini/plan/
+/.gemini/.playwright-mcp/
