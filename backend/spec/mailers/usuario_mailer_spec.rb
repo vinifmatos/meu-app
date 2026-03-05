@@ -13,7 +13,9 @@ RSpec.describe UsuarioMailer, type: :mailer do
 
     it "renders the body" do
       expect(mail.body.encoded).to match("Ativar minha conta")
-      expect(mail.body.encoded).to match("token=#{usuario.confirmation_token}")
+      # Removemos quebras de linha de quoted-printable e buscamos o token
+      body_limpo = mail.body.encoded.gsub("=\r\n", "").gsub("=3D", "=")
+      expect(body_limpo).to include("token=#{usuario.confirmation_token}")
     end
   end
 end
