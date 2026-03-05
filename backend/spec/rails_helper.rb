@@ -70,6 +70,13 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_backtrace("gem name")
 
+  config.include FactoryBot::Syntax::Methods
+
+  config.before(:each) do
+    Rack::Attack.enabled = false
+    Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+  end
+
   config.before(:suite) do
     # Limpa o banco de dados antes de iniciar a suíte de testes
     # para garantir que dados de execuções anteriores (ex: E2E) não interfiram.

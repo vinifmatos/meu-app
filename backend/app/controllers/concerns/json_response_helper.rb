@@ -15,15 +15,15 @@ module JsonResponseHelper
       @response_message = message
       @response_errors = nil
       @response_data = { template: template, locals: locals, data: data }
-      render template: "shared/wrapper", status: status
+      render template: "shared/wrapper", status: status, formats: [:json]
     end
   end
 
-  def render_json_error(message: "Não foi possível processar a requisição", validation_errors: nil, status: :unprocessable_entity)
+  def render_json_error(message: "Não foi possível processar a requisição", validation_errors: nil, status: :unprocessable_content)
     @response_message = message
     @response_validation_errors = validation_errors
     @response_data = nil
-    render template: "shared/wrapper", status: status
+    render template: "shared/wrapper", status: status, formats: [:json]
   end
 
   private
@@ -33,7 +33,7 @@ module JsonResponseHelper
     render_json_error(
       message: "Campos obrigatórios não informados ou inválidos",
       validation_errors: record.errors,
-      status: :unprocessable_entity
+      status: :unprocessable_content
     )
   end
 

@@ -4,9 +4,11 @@ services:
   postgres:
     image: postgres:16
     restart: always
+    env_file:
+      - /opt/app/configs/.env.preview
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -15,20 +17,21 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.staging
+      dockerfile: Dockerfile.preview
     restart: always
     depends_on:
       - postgres
+    env_file:
+      - /opt/app/configs/.env.preview
     environment:
-      RAILS_ENV: staging
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/app_pr_${PR_NUMBER}
+      RAILS_ENV: production
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/app_pr_${PR_NUMBER}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api-${PR_NUMBER}.rule=Host(`viniciusfreire.dev.br`) && PathPrefix(`/pr-${PR_NUMBER}/api`)"
+      - "traefik.http.routers.api-${PR_NUMBER}.rule=Host(`${DOMAIN}`) && PathPrefix(`/pr-${PR_NUMBER}/api`)"
       - "traefik.http.routers.api-${PR_NUMBER}.entrypoints=websecure"
       - "traefik.http.routers.api-${PR_NUMBER}.tls.certresolver=le"
-
       - "traefik.http.services.api-${PR_NUMBER}.loadbalancer.server.port=3000"
     networks:
       - postgres
@@ -37,19 +40,19 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.staging
+      dockerfile: Dockerfile.preview
       args:
         PR_PATH: pr-${PR_NUMBER}
     restart: always
+    env_file:
+      - /opt/app/configs/.env.preview
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.front-${PR_NUMBER}.rule=Host(`viniciusfreire.dev.br`) && PathPrefix(`/pr-${PR_NUMBER}`)"
+      - "traefik.http.routers.front-${PR_NUMBER}.rule=Host(`${DOMAIN}`) && PathPrefix(`/pr-${PR_NUMBER}`)"
       - "traefik.http.routers.front-${PR_NUMBER}.entrypoints=websecure"
       - "traefik.http.routers.front-${PR_NUMBER}.tls.certresolver=le"
       - "traefik.http.routers.front-${PR_NUMBER}.middlewares=front-${PR_NUMBER}-strip"
-
       - "traefik.http.middlewares.front-${PR_NUMBER}-strip.stripprefix.prefixes=/pr-${PR_NUMBER}"
-
       - "traefik.http.services.front-${PR_NUMBER}.loadbalancer.server.port=80"
     networks:
       - proxy
@@ -59,7 +62,5 @@ volumes:
 
 networks:
   postgres:
-
   proxy:
     external: true
-

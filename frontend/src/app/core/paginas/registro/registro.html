@@ -1,0 +1,58 @@
+<div class="flex items-center justify-center min-h-screen bg-surface">
+  <p-card header="Crie sua conta" class="w-full max-w-md m-4">
+    <form [formGroup]="form" (ngSubmit)="registrar()" class="flex flex-col gap-4">
+      @if (mensagemSucesso()) {
+        <p-message severity="success">{{ mensagemSucesso() }}</p-message>
+        <div class="text-center mt-2">
+          <a routerLink="/login" class="text-primary font-bold">Ir para o login</a>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-1">
+          <label for="username">Usuário</label>
+          <input pInputText id="username" formControlName="username" name="username" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="nome">Nome Completo</label>
+          <input pInputText id="nome" formControlName="nome" name="nome" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="email">E-mail</label>
+          <input pInputText id="email" type="email" formControlName="email" name="email" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="email_confirmation">Confirme o E-mail</label>
+          <input pInputText id="email_confirmation" type="email" formControlName="email_confirmation" name="email_confirmation" />
+          @if (form.errors?.['emailMismatch'] && form.get('email_confirmation')?.touched) {
+            <small class="text-red-500">Os e-mails não coincidem</small>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="password">Senha</label>
+          <p-password id="password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" name="password" />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="password_confirmation">Confirme a Senha</label>
+          <p-password id="password_confirmation" formControlName="password_confirmation" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" name="password_confirmation" />
+          @if (form.errors?.['passwordMismatch'] && form.get('password_confirmation')?.touched) {
+            <small class="text-red-500">As senhas não coincidem</small>
+          }
+        </div>
+
+        @if (erro()) {
+          <p-message severity="error" [text]="erro()!" />
+        }
+
+        <p-button type="submit" label="Registrar" [loading]="carregando()" [disabled]="form.invalid" class="w-full" styleClass="w-full" />
+
+        <div class="text-center mt-4 text-surface">
+          Já tem uma conta? <a routerLink="/login" class="text-primary font-bold">Entre aqui</a>
+        </div>
+      }
+    </form>
+  </p-card>
+</div>

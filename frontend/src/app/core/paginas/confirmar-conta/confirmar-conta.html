@@ -1,0 +1,21 @@
+<div class="flex items-center justify-center min-h-screen bg-surface">
+  <p-card header="Confirmação de Conta" class="w-full max-w-md m-4">
+    <div class="flex flex-col items-center gap-4">
+      @if (carregando()) {
+        <p-progressSpinner />
+        <p>Confirmando sua conta, por favor aguarde...</p>
+      }
+
+      @if (sucesso()) {
+        <p-message severity="success" text="Sua conta foi confirmada com sucesso!" />
+        <p>Você já pode entrar no sistema.</p>
+        <p-button label="Ir para o Login" routerLink="/login" styleClass="w-full" />
+      }
+
+      @if (erro()) {
+        <p-message severity="error" [text]="erro()!" />
+        <p-button label="Voltar para o Início" routerLink="/" styleClass="w-full" />
+      }
+    </div>
+  </p-card>
+</div>

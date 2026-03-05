@@ -46,6 +46,9 @@ module MeuApp
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
     config.active_job.queue_adapter = :solid_queue
+    config.solid_queue.connects_to = { database: { writing: :queue } }
+
+    config.middleware.use Rack::Attack
 
     config.rails_i18n.enabled_modules = [ :locale, :ordinals, :transliteration ]
   end

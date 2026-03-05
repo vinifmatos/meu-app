@@ -1,0 +1,78 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backend: Rails Server",
+      "type": "shell",
+      "command": "bundle exec rails s",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "group": "dev-environment",
+        "reveal": "always",
+        "panel": "new"
+      },
+      "isBackground": true,
+      "problemMatcher": ["$tsc-watch"]
+    },
+    {
+      "label": "Backend: SolidQueue Worker",
+      "type": "shell",
+      "command": "bundle exec rails solid_queue:start",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "group": "dev-environment",
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "Frontend: Angular Server",
+      "type": "shell",
+      "command": "yarn start",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "presentation": {
+        "group": "dev-environment",
+        "reveal": "always",
+        "panel": "new"
+      },
+      "isBackground": true,
+      "problemMatcher": ["$tsc-watch"]
+    },
+    {
+      "label": "🚀 Iniciar Ambiente Dev",
+      "dependsOn": [
+        "Backend: Rails Server",
+        "Backend: SolidQueue Worker",
+        "Frontend: Angular Server"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "🧹 Limpar e Popular Banco (Reset)",
+      "type": "shell",
+      "command": "bundle exec rails db:drop db:seed scryfall:importar_famosas scryfall:importar_simbolos",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

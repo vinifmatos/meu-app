@@ -135,9 +135,6 @@ jobs:
   preview:
     name: Ambiente de Preview
     runs-on: ubuntu-latest
-    # Só executa se:
-    # 1. A PR foi fechada (para limpeza)
-    # 2. OU Se os testes passaram (sucesso do backend e frontend)
     if: |
       always() && 
       github.event_name == 'pull_request' && 
@@ -164,14 +161,13 @@ jobs:
               echo "Removing preview PR-${PR_NUMBER}"
 
               docker compose \
-                -f pr-${PR_NUMBER}/docker-compose.staging.yml \
+                -f pr-${PR_NUMBER}/docker-compose.preview.yml \
                 --project-name pr-${PR_NUMBER} \
                 down -v
               rm -rf pr-${PR_NUMBER}
               exit 0
             fi
 
-            # Clonar ou atualizar repositório
             if [ ! -d "pr-${PR_NUMBER}" ]; then
               git clone https://$DEPLOY_TOKEN@github.com/vinifmatos/meu-app.git pr-${PR_NUMBER}
             fi
@@ -181,7 +177,7 @@ jobs:
             git checkout ${BRANCH}
             git pull origin ${BRANCH}
 
-            docker compose -f docker-compose.staging.yml \
+            docker compose -f docker-compose.preview.yml \
               --project-name pr-${PR_NUMBER} down
-            docker compose -f docker-compose.staging.yml \
+            docker compose -f docker-compose.preview.yml \
               --project-name pr-${PR_NUMBER} up -d --build

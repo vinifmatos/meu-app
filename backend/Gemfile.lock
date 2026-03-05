@@ -235,6 +235,8 @@ GEM
     raabro (1.4.0)
     racc (1.8.1)
     rack (3.2.5)
+    rack-attack (6.8.0)
+      rack (>= 1.0, < 4)
     rack-cors (3.0.0)
       logger
       rack (>= 3.0.14)
@@ -280,6 +282,9 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.3.1)
+    rbs (3.10.3)
+      logger
+      tsort
     rdoc (7.2.0)
       erb
       psych (>= 4.0.0)
@@ -333,6 +338,12 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
+    ruby-lsp (0.26.7)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 1.2, < 2.0)
+      rbs (>= 3, < 5)
+    ruby-lsp-rspec (0.1.28)
+      ruby-lsp (~> 0.26.0)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
     shoulda-matchers (7.0.1)
@@ -401,11 +412,14 @@ DEPENDENCIES
   pg (~> 1.1)
   pry-rails
   puma (>= 5.0)
+  rack-attack
   rack-cors
   rails (~> 8.0.2, >= 8.0.2.1)
   rails-i18n (~> 8.0.0)
   rspec-rails (~> 8.0.0)
   rubocop-rails-omakase
+  ruby-lsp
+  ruby-lsp-rspec
   shoulda-matchers
   solid_cable
   solid_cache

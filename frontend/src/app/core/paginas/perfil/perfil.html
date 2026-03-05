@@ -1,0 +1,66 @@
+<div class="container mx-auto p-4 flex flex-col gap-6 max-w-2xl">
+  <h1 class="text-2xl font-bold text-surface">Minha Conta</h1>
+
+  @if (carregando()) {
+    <p class="text-surface">Carregando...</p>
+  } @else if (usuario(); as u) {
+    @if (mensagemSucesso()) {
+      <p-message severity="success" [text]="mensagemSucesso()!" />
+    }
+    @if (erro()) {
+      <p-message severity="error" [text]="erro()!" />
+    }
+
+    <p-card header="Informações Gerais">
+      <div class="flex flex-col gap-2 text-surface">
+        <p><strong>Usuário:</strong> {{ u.username }}</p>
+        <p><strong>E-mail:</strong> {{ u.email }}</p>
+        @if (u.unconfirmedEmail) {
+          <p class="text-yellow-500 text-sm">Aguardando confirmação para: {{ u.unconfirmedEmail }}</p>
+        }
+        <p><strong>Membro desde:</strong> {{ u.created_at | date:'dd/MM/yyyy' }}</p>
+      </div>
+    </p-card>
+
+    <p-card header="Alterar Nome">
+      <form [formGroup]="formNome" (ngSubmit)="atualizarNome()" class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="nome" class="text-surface">Nome Completo</label>
+          <input pInputText id="nome" formControlName="nome" />
+        </div>
+        <p-button type="submit" label="Salvar Nome" [disabled]="formNome.invalid" styleClass="w-full sm:w-auto" />
+      </form>
+    </p-card>
+
+    <p-card header="Alterar E-mail">
+      <form [formGroup]="formEmail" (ngSubmit)="atualizarEmail()" class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="email" class="text-surface">Novo E-mail</label>
+          <input pInputText id="email" type="email" formControlName="email" />
+        </div>
+        <p-button type="submit" label="Alterar E-mail" [disabled]="formEmail.invalid" styleClass="w-full sm:w-auto" />
+      </form>
+    </p-card>
+
+    <p-card header="Alterar Senha">
+      <form [formGroup]="formSenha" (ngSubmit)="atualizarSenha()" class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="current_password" class="text-surface">Senha Atual</label>
+          <p-password id="current_password" formControlName="current_password" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="password" class="text-surface">Nova Senha</label>
+          <p-password id="password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="password_confirmation" class="text-surface">Confirme a Nova Senha</label>
+          <p-password id="password_confirmation" formControlName="password_confirmation" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" />
+          @if (formSenha.errors?.['passwordMismatch'] && formSenha.get('password_confirmation')?.touched) {
+            <small class="text-red-500">As senhas não coincidem</small>
+          }
+        </div>
+        <p-button type="submit" label="Alterar Senha" [disabled]="formSenha.invalid" styleClass="w-full sm:w-auto" />
+      </form>
+    </p-card>
+  }
+</div>

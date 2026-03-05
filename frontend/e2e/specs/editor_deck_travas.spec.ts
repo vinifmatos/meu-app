@@ -1,19 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { realizarLogin } from '../support/auth';
 
 test.describe('Travas do Editor de Deck', () => {
   test.beforeEach(async ({ page }) => {
-    // Garante um estado limpo antes do login
-    await page.goto('/login');
-    await page.evaluate(() => localStorage.clear());
-
-    // Login inicial
-    await page.fill('input#username', 'admin');
-    await page.fill('#password input', 'password123');
-    await page.click('button[type="submit"]');
-
-    // Aguarda o login e estabilização
-    await expect(page).not.toHaveURL(/\/login/, { timeout: 15000 });
-    await page.waitForLoadState('networkidle');
+    await realizarLogin(page);
   });
 
   test('deve limitar a 4 cópias no formato Pauper', async ({ page }) => {

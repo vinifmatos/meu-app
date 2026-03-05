@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { realizarLogin } from '../support/auth';
 
 test.describe('Visibilidade de Decks', () => {
   test('deve listar decks da comunidade na rota pública sem login', async ({ page }) => {
@@ -7,13 +8,7 @@ test.describe('Visibilidade de Decks', () => {
   });
 
   test('deve listar apenas meus decks na rota privada após login', async ({ page }) => {
-    // Login
-    await page.goto('/login');
-    await page.evaluate(() => localStorage.clear());
-    await page.fill('input#username', 'admin');
-    await page.fill('#password input', 'password123');
-    await page.click('button[type="submit"]');
-    await expect(page).not.toHaveURL(/\/login/);
+    await realizarLogin(page);
 
     await page.goto('/meus-decks');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Meus Decks');

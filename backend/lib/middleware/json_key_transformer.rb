@@ -5,8 +5,13 @@ module Middleware
     end
 
     def call(env)
-      transform_request(env)
-      transform_query_params(env)
+      begin
+        transform_request(env)
+        transform_query_params(env)
+      rescue JSON::ParserError
+        return [ 400, { 'Content-Type' => 'application/json' }, [{ message: "JSON malformado ou inválido" }.to_json] ]
+      end
+
       status, headers, response = @app.call(env)
       transform_response(status, headers, response)
     end
@@ -28,6 +33,8 @@ module Middleware
       return unless transformable_request?(env)
 
       request = ActionDispatch::Request.new(env)
+      return if request.body.nil?
+      
       request.body.rewind
       body = request.body.read
       return if body.blank?

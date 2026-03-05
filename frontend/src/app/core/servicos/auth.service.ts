@@ -17,10 +17,12 @@ export class AuthService {
   private readonly router = inject(Router);
 
   private readonly CHAVE_TOKEN = 'meu_app_token';
+  private readonly CHAVE_REFRESH = 'meu_app_refresh_token';
   private readonly CHAVE_USUARIO = 'meu_app_usuario';
 
   usuario = signal<UsuarioAutenticado | null>(null);
   token = signal<string | null>(null);
+  refreshToken = signal<string | null>(null);
   
   estaAutenticado = computed(() => !!this.token());
   isAdmin = computed(() => this.usuario()?.role === 'admin');
@@ -43,12 +45,12 @@ export class AuthService {
 
   async login(username: string, password: string): Promise<boolean> {
     try {
-      const resposta = await this.api.post<{ token: string, usuario: UsuarioAutenticado }>('auth/login', {
+      const resposta = await this.api.post<{ token: string, refreshToken: string, usuario: UsuarioAutenticado }>('auth/login', {
         data: { auth: { username, password } }
       });
 
       if (resposta.data) {
-        this.definirSessao(resposta.data.token, resposta.data.usuario);
+        this.definirSessao(resposta.data.token, resposta.data.refreshToken, resposta.data.usuario);
         return true;
       }
       return false;
@@ -58,42 +60,64 @@ export class AuthService {
     }
   }
 
-  logout() {
+  async logout(forcarLocal = false) {
+    if (!forcarLocal && this.refreshToken()) {
+      try {
+        await this.api.delete('auth/logout', { query: { 'data[refresh_token]': this.refreshToken() } });
+      } catch (error) {
+        console.warn('Erro ao revogar token no servidor', error);
+      }
+    }
+
     this.token.set(null);
+    this.refreshToken.set(null);
     this.usuario.set(null);
     localStorage.removeItem(this.CHAVE_TOKEN);
+    localStorage.removeItem(this.CHAVE_REFRESH);
     localStorage.removeItem(this.CHAVE_USUARIO);
     this.router.navigate(['/']);
   }
 
   private carregarPersistencia() {
     const tokenSalvo = localStorage.getItem(this.CHAVE_TOKEN);
+    const refreshSalvo = localStorage.getItem(this.CHAVE_REFRESH);
     const usuarioSalvo = localStorage.getItem(this.CHAVE_USUARIO);
 
-    if (tokenSalvo && usuarioSalvo) {
+    if (tokenSalvo && refreshSalvo && usuarioSalvo) {
       this.token.set(tokenSalvo);
+      this.refreshToken.set(refreshSalvo);
       this.usuario.set(JSON.parse(usuarioSalvo));
     }
   }
 
-  private definirSessao(token: string, usuario: UsuarioAutenticado) {
+  private definirSessao(token: string, refreshToken: string, usuario: UsuarioAutenticado) {
     this.token.set(token);
+    this.refreshToken.set(refreshToken);
     this.usuario.set(usuario);
     localStorage.setItem(this.CHAVE_TOKEN, token);
+    localStorage.setItem(this.CHAVE_REFRESH, refreshToken);
     localStorage.setItem(this.CHAVE_USUARIO, JSON.stringify(usuario));
   }
 
-  private async refresh() {
-    if (!this.estaAutenticado()) return;
+  async refreshSessao() {
+    if (!this.refreshToken()) {
+      this.logout(true);
+      return false;
+    }
 
     try {
-      const resposta = await this.api.post<{ token: string, usuario: UsuarioAutenticado }>('auth/refresh', {});
+      const resposta = await this.api.post<{ token: string, refreshToken: string, usuario: UsuarioAutenticado }>('auth/refresh', {
+        data: { refresh_token: this.refreshToken() }
+      });
       if (resposta.data) {
-        this.definirSessao(resposta.data.token, resposta.data.usuario);
+        this.definirSessao(resposta.data.token, resposta.data.refreshToken, resposta.data.usuario);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Falha no refresh do token:', error);
-      this.logout();
+      this.logout(true);
+      return false;
     }
   }
 
@@ -101,7 +125,7 @@ export class AuthService {
     this.limparRefreshAutomatico();
     // Refresh a cada 2 horas e 50 minutos (token dura 3h)
     const tresHorasMenosMargem = 1000 * 60 * 60 * 2.8; 
-    this.refreshTimer = setInterval(() => this.refresh(), tresHorasMenosMargem);
+    this.refreshTimer = setInterval(() => this.refreshSessao(), tresHorasMenosMargem);
   }
 
   private limparRefreshAutomatico() {

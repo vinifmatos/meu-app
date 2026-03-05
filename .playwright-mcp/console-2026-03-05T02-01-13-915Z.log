@@ -1,0 +1,16 @@
+[ 2386191ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/config:0
+[ 2386198ms] [ERROR] Erro ao carregar configurações: HttpErrorResponse @ http://localhost:4242/main.js:34
+[ 2386220ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/simbolos:0
+[ 2386224ms] [ERROR] Erro ao carregar simbolos: HttpErrorResponse @ http://localhost:4242/chunk-F3RNXRXL.js:28
+[ 2495664ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/config:0
+[ 2495666ms] [ERROR] Erro ao carregar configurações: HttpErrorResponse @ http://localhost:4242/main.js:34
+[ 2495681ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/simbolos:0
+[ 2495682ms] [ERROR] Erro ao carregar simbolos: HttpErrorResponse @ http://localhost:4242/chunk-F3RNXRXL.js:28
+[ 3436690ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/config:0
+[ 3436692ms] [ERROR] Erro ao carregar configurações: HttpErrorResponse @ http://localhost:4242/main.js:34
+[ 3436703ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/simbolos:0
+[ 3436704ms] [ERROR] Erro ao carregar simbolos: HttpErrorResponse @ http://localhost:4242/chunk-F3RNXRXL.js:28
+[ 3481153ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/config:0
+[ 3481155ms] [ERROR] Erro ao carregar configurações: HttpErrorResponse @ http://localhost:4242/main.js:34
+[ 3481182ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4242/api/v1/simbolos:0
+[ 3481184ms] [ERROR] Erro ao carregar simbolos: HttpErrorResponse @ http://localhost:4242/chunk-F3RNXRXL.js:28
