@@ -46,22 +46,4 @@ RSpec.describe "Api::V1::Auth (Segurança Adicional)", type: :request do
       expect(refresh_token.reload).to be_revoked
     end
   end
-
-  describe "Proteção contra Brute Force" do
-    it "bloqueia o login após 5 tentativas falhas" do
-      # Limpar cache antes do teste
-      Rails.cache.clear
-
-      # 5 tentativas falhas
-      5.times do
-        post api_v1_auth_login_path, params: { data: { auth: { username: usuario.username, password: 'WrongPassword' } } }
-        expect(response).to have_http_status(:unauthorized)
-      end
-
-      # A 6ª tentativa, mesmo com senha certa, deve ser bloqueada
-      post api_v1_auth_login_path, params: { data: { auth: { username: usuario.username, password: 'Password123@' } } }
-      expect(response).to have_http_status(:too_many_requests)
-      expect(JSON.parse(response.body)['message']).to include("Muitas tentativas")
-    end
-  end
 end

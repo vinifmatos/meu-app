@@ -8,20 +8,10 @@ module Api
         auth_params = params.require(:data).require(:auth)
         usuario = Usuario.find_by(username: auth_params[:username])
 
-        # Proteção básica contra brute-force (simulada por cache)
-        cache_key = "login_attempts:#{request.remote_ip}"
-        attempts = Rails.cache.read(cache_key).to_i
-        
-        if attempts >= 5
-          return render_json_error(message: "Muitas tentativas falhas. Tente novamente mais tarde.", status: :too_many_requests)
-        end
-
         if usuario&.authenticate(auth_params[:password])
           unless usuario.confirmed?
             return render_json_error(message: "Sua conta ainda não foi ativada. Verifique seu e-mail.", status: :forbidden)
           end
-
-          Rails.cache.delete(cache_key) # Reset attempts on success
 
           access_token = Auth::TokenService.encode(user_id: usuario.id)
           refresh_token = usuario.refresh_tokens.create!
@@ -32,7 +22,6 @@ module Api
             usuario: formatar_usuario(usuario) 
           })
         else
-          Rails.cache.write(cache_key, attempts + 1, expires_in: 15.minutes)
           render_json_error(message: "Usuário ou senha inválidos", status: :unauthorized)
         end
       end

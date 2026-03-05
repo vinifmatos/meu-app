@@ -29,4 +29,5 @@ group :development, :test do
   gem "shoulda-matchers"
 end
 gem "jwt"
+gem "rack-attack"
 gem "timecop", group: [:development, :test]

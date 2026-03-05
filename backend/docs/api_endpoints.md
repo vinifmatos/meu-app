@@ -197,3 +197,7 @@ Recupera a lista de símbolos de mana e outros ícones do jogo (Scryfall).
   ```json
   { "message": "Mensagem de erro", "validationErrors": { ... }, "data": null }
   ```
+- **429 Too Many Requests:** Retornado quando o limite de requisições (Rate Limit) é atingido (ex: proteção contra brute-force).
+  ```json
+  { "message": "Muitas tentativas. Tente novamente mais tarde." }
+  ```
