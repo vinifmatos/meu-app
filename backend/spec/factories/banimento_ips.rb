@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :banimento_ip do
-    ip { "MyString" }
-    motivo { "MyString" }
+    sequence(:ip) { |n| "127.0.0.#{n}" }
+    motivo { "Abuso de throttle ou acesso a arquivos sensíveis" }
   end
 end

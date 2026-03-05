@@ -22,6 +22,11 @@ Rails.application.configure do
   config.consider_all_requests_local = true
   config.cache_store = :memory_store
 
+  # Desativar Rack::Attack nos testes para evitar bloqueios de IP (Fail2Ban) e throttle
+  config.after_initialize do
+    Rack::Attack.enabled = false
+  end
+
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 

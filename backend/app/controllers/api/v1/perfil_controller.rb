@@ -27,7 +27,7 @@ module Api
 
       def update_password
         unless @current_user.authenticate(params[:usuario][:current_password])
-          return render_json_error(message: "Senha atual incorreta", status: :unprocessable_entity)
+          return render_json_error(message: "Senha atual incorreta", status: :unprocessable_content)
         end
 
         if @current_user.update(password: params[:usuario][:password], password_confirmation: params[:usuario][:password_confirmation])
@@ -41,7 +41,7 @@ module Api
         @current_user.unconfirmed_email = params[:usuario][:email]
         @current_user.generate_confirmation_token
         
-        if @current_user.save(validate: false) # Validamos apenas o formato se necessário, mas aqui confiamos no unconfirmed_email
+        if @current_user.save(validate: false)
           UsuarioMailer.confirmacao_email(@current_user).deliver_later
           render_json_success(message: "Um e-mail de confirmação foi enviado para o novo endereço. A alteração será efetivada após a confirmação.", template: nil, data: { usuario: current_user_data })
         else

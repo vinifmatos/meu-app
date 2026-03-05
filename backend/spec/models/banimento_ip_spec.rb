@@ -1,5 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe BanimentoIp, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  describe 'validations' do
+    subject { build(:banimento_ip) }
+    it { should validate_presence_of(:ip) }
+    it { should validate_uniqueness_of(:ip).case_insensitive }
+  end
+
+  it 'has a valid factory' do
+    expect(build(:banimento_ip)).to be_valid
+  end
 end

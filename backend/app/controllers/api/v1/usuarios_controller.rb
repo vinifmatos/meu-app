@@ -35,7 +35,7 @@ module Api
       end
 
       def usuario_params
-        params.require(:data).require(:usuario).permit(:username, :nome, :password, :password_confirmation, :role, :old_password)
+        params.require(:data).require(:usuario).permit(:username, :email, :nome, :password, :password_confirmation, :role, :old_password)
       end
     end
   end

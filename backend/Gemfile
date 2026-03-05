@@ -16,6 +16,8 @@ gem "rails-i18n", "~> 8.0.0"
 gem "http"
 gem "yajl-ffi", require: "yajl/ffi"
 gem "kaminari"
+gem "jwt"
+gem "rack-attack"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -27,7 +29,7 @@ group :development, :test do
   gem "factory_bot_rails"
   gem "faker"
   gem "shoulda-matchers"
+  gem "ruby-lsp-rspec", require: false
+  gem "ruby-lsp", require: false
+  gem "timecop"
 end
-gem "jwt"
-gem "rack-attack"
-gem "timecop", group: [:development, :test]

@@ -11,7 +11,7 @@ module Api
           UsuarioMailer.confirmacao_email(@usuario).deliver_later
           render_json_success(message: "Usuário registrado com sucesso. Verifique seu e-mail para confirmar a conta.", status: :created, template: nil, data: { usuario: { id: @usuario.id, username: @usuario.username } })
         else
-          render_json_error(message: "Erro ao registrar usuário", validation_errors: @usuario.errors, status: :unprocessable_entity)
+          render_json_error(message: "Erro ao registrar usuário", validation_errors: @usuario.errors, status: :unprocessable_content)
         end
       end
 
@@ -21,7 +21,7 @@ module Api
         if @usuario.confirm!
           render_json_success(message: "Conta confirmada com sucesso!", template: nil, data: {})
         else
-          render_json_error(message: "Erro ao confirmar conta", status: :unprocessable_entity)
+          render_json_error(message: "Erro ao confirmar conta", status: :unprocessable_content)
         end
       rescue ActiveRecord::RecordNotFound
         render_json_error(message: "Token de confirmação inválido ou expirado", status: :not_found)

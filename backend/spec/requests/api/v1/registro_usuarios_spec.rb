@@ -37,7 +37,7 @@ RSpec.describe "Api::V1::RegistroUsuarios", type: :request do
     context "com parâmetros inválidos" do
       it "retorna unprocessable_entity" do
         post api_v1_registro_usuarios_path, params: { usuario: { username: '' } }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

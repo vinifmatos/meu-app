@@ -28,6 +28,8 @@ module Middleware
       return unless transformable_request?(env)
 
       request = ActionDispatch::Request.new(env)
+      return if request.body.nil?
+      
       request.body.rewind
       body = request.body.read
       return if body.blank?
