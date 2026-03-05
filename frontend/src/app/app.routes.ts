@@ -12,6 +12,19 @@ export const routes: Routes = [
     loadComponent: () => import('./core/paginas/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'registro',
+    loadComponent: () => import('./core/paginas/registro/registro').then((m) => m.RegistroComponent),
+  },
+  {
+    path: 'confirmar-conta',
+    loadComponent: () => import('./core/paginas/confirmar-conta/confirmar-conta').then((m) => m.ConfirmarContaComponent),
+  },
+  {
+    path: 'perfil',
+    canActivate: [authGuard],
+    loadComponent: () => import('./core/paginas/perfil/perfil').then((m) => m.PerfilComponent),
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadChildren: () => import('./core/core.routes').then((m) => m.coreRoutes),

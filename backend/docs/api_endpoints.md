@@ -54,7 +54,54 @@ Retorna as configurações básicas da aplicação.
 
 ---
 
-## 2. Usuários (`/api/v1/usuarios`)
+## 2. Registro de Usuários (`/api/v1/registro_usuarios`)
+Endpoints para criação e ativação de novas contas.
+
+### Criar Conta
+Cria um novo usuário e envia e-mail de confirmação.
+
+- **Método:** `POST`
+- **Autenticação:** Não requer.
+- **Parâmetros `data[usuario]`:**
+  - `username` (Obrigatório)
+  - `nome` (Obrigatório)
+  - `email` (Obrigatório)
+  - `password` (Obrigatório)
+  - `password_confirmation` (Obrigatório)
+
+### Confirmar Conta
+Ativa a conta do usuário através do token enviado por e-mail.
+
+- **Método:** `GET`
+- **URL:** `/api/v1/registro_usuarios/confirmar?token=...`
+- **Autenticação:** Não requer.
+
+---
+
+## 3. Perfil do Usuário (`/api/v1/perfil`)
+Gerenciamento do perfil do usuário autenticado.
+
+### Visualizar Perfil
+Retorna as informações do usuário logado.
+
+- **Método:** `GET`
+- **Autenticação:** Requer token JWT.
+
+### Atualizar Perfil
+Permite alterar nome, e-mail ou senha.
+
+- **Método:** `PATCH`
+- **Autenticação:** Requer token JWT.
+- **Parâmetros `data[usuario]`:**
+  - `nome` (Opcional)
+  - `email` (Opcional - Exige nova confirmação)
+  - `current_password` (Obrigatório se estiver alterando a senha)
+  - `password` (Opcional)
+  - `password_confirmation` (Opcional)
+
+---
+
+## 4. Usuários (`/api/v1/usuarios`)
 Gerenciamento de usuários do sistema.
 
 ### Listar Usuários

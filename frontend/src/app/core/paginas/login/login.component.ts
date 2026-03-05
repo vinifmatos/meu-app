@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '@core/servicos/auth.service';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -20,7 +20,8 @@ import { MessageModule } from 'primeng/message';
     InputTextModule,
     PasswordModule,
     ButtonModule,
-    MessageModule
+    MessageModule,
+    RouterLink
   ],
   template: `
     <div class="flex items-center justify-center min-h-[80vh] px-4">
@@ -62,6 +63,10 @@ import { MessageModule } from 'primeng/message';
             [disabled]="loginForm.invalid"
             class="mt-2"
           ></p-button>
+
+          <div class="text-center mt-4">
+            Não tem uma conta? <a routerLink="/registro" class="text-primary font-bold hover:underline">Registre-se aqui</a>
+          </div>
         </form>
       </p-card>
     </div>

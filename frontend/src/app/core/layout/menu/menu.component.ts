@@ -64,6 +64,7 @@ export class MenuComponent {
       menu.push({
         label: 'Meu Espaço',
         items: [
+          { label: 'Minha Conta', icon: 'pi pi-user', routerLink: '/perfil' },
           { label: 'Meus Decks', icon: 'pi pi-clone', routerLink: '/meus-decks' },
         ],
       });

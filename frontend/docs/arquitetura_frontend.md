@@ -15,9 +15,9 @@ A estrutura segue uma divisão clara entre lógica global e funcionalidades espe
 
 - **`src/app/core`**: Lógica central da aplicação, serviços globais, interceptores, guards e área administrativa.
   - **`interceptores`**: Manipulação global de requisições HTTP (ex: tratamento de erros).
-  - **`interfaces`**: Definições globais de tipos e modelos de dados.
-  - **`servicos`**: Serviços compartilhados (ex: `ApiService`, `ConfiguracaoService`).
-  - **`paginas`**: Páginas de infraestrutura e administrativas (ex: `admin/usuarios`).
+  - **`interfaces`**: Definições globais de tipos e modelos de dados (ex: `usuario.interface.ts`).
+  - **`servicos`**: Serviços compartilhados (ex: `ApiService`, `RegistroService`, `ConfiguracaoService`).
+  - **`paginas`**: Páginas de infraestrutura, autenticação e administrativas (ex: `registro`, `perfil`, `admin/usuarios`).
 - **`src/app/features`**: Funcionalidades de domínio da aplicação (ex: `cartas`). Cada funcionalidade deve ter sua própria estrutura de componentes e serviços.
 - **`src/styles`**: Arquivos SCSS globais e customizações de tema.
 

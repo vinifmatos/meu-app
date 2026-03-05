@@ -1,6 +1,4 @@
 ActiveSupport::Inflector.inflections(:en) do |inflect|
-  inflect.clear
-
   inflections = {
     "usuario" => "usuarios",
     "face_carta" => "faces_cartas",

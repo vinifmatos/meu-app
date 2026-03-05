@@ -57,3 +57,5 @@ Thumbs.db
 /frontend/node_modules
 /frontend/playwright-report/
 /frontend/test-results/
+
+/.gemini/plan/

@@ -1,9 +1,11 @@
 # Usuário padrão para desenvolvimento e testes
 admin = Usuario.find_or_create_by!(username: 'admin') do |u|
   u.nome = 'Administrador'
-  u.password = 'password123'
-  u.password_confirmation = 'password123'
+  u.email = 'admin@example.com'
+  u.password = 'Password123@'
+  u.password_confirmation = 'Password123@'
   u.role = :admin
+  u.confirmed_at = Time.current
 end
 
 puts "Seed finalizado: Usuário 'admin' criado/verificado."
