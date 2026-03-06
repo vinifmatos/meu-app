@@ -18,7 +18,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: meu_app_test
         ports:
           - 5432:5432
@@ -49,14 +49,14 @@ jobs:
       - name: Configurar Banco de Dados
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:password@localhost:5432/meu_app_test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/meu_app_test
         run: |
           bundle exec rails db:prepare
 
       - name: Rodar RSpec
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:password@localhost:5432/meu_app_test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/meu_app_test
         run: bundle exec rspec
 
   frontend-tests:
@@ -68,7 +68,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: meu_app_test
         ports:
           - 5432:5432
@@ -115,14 +115,14 @@ jobs:
         working-directory: backend
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:password@localhost:5432/meu_app_test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/meu_app_test
         run: bundle exec rails db:prepare
 
       - name: Rodar Testes E2E
         working-directory: frontend
         env:
           RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:password@localhost:5432/meu_app_test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/meu_app_test
         run: yarn e2e
 
       - name: Upload de Artefatos Playwright
