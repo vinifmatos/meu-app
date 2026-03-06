@@ -1,4 +1,33 @@
-require 'rails_helper'
+require "rails_helper"
+
+RSpec.describe Scryfall::ParserCartasJson do
+  let(:parser) { Scryfall::ParserCartasJson.new }
+
+  describe "#<<" do
+    it "acumula cartas no lote e as importa quando o tamanho do lote é atingido" do
+      json_data = [
+        { id: "1", name: "Carta 1", image_uris: { small: "url1" } },
+        { id: "2", name: "Carta 2", colors: [ "W", "U" ] }
+      ].to_json
+
+      expect(Carta).to receive(:import_from_scryfall).once do |lote|
+        expect(lote.size).to eq(2)
+      end
+
+      json_data.chars.each_slice(10) { |chunk| parser << chunk.join }
+      parser.finish!
+    end
+
+    it "lança erro se a importação for cancelada" do
+      importacao = create(:importacao_scryfall, status: :cancelado)
+      parser_com_record = Scryfall::ParserCartasJson.new(record: importacao)
+
+      expect {
+        parser_com_record << '[{"id": "1"}]'
+      }.to raise_error(Scryfall::ImportCancelledError)
+    end
+  end
+end
 
 RSpec.describe Scryfall::Importador do
   let(:importer) { Scryfall::Importador.new }
