@@ -9,8 +9,8 @@ export class ImportacaoService {
   private api = inject(ApiService);
 
   async listar(): Promise<ImportacaoScryfall[]> {
-    const resposta = await this.api.get<{ impotacoes: ImportacaoScryfall[] }>('admin/importacoes');
-    return resposta.data?.impotacoes ?? [];
+    const resposta = await this.api.get<{ importacoes: ImportacaoScryfall[] }>('admin/importacoes');
+    return resposta.data?.importacoes ?? [];
   }
 
   async iniciar(tipo: ImportacaoTipo, force: boolean = false): Promise<ImportacaoScryfall | null> {
