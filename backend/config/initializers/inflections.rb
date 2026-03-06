@@ -5,7 +5,9 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
     "carta" => "cartas",
     "simbolo" => "simbolos",
     "deck" => "decks",
-    "deck_carta" => "deck_cartas"
+    "deck_carta" => "deck_cartas",
+    "banimento_ip" => "banimento_ips",
+    "importacao_scryfall" => "importacoes_scryfall"
   }
 
   inflections.each do |singular, plural|

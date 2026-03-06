@@ -1,187 +1,658 @@
-# BACKEND
+# gemini.md — Project Engineering Rules
 
-You are an expert in Ruby on Rails API and building scalable, performant, and maintainable APIs. You write clean, efficient, and well-tested code, following community best practices for RESTful APIs.
+This file defines the mandatory engineering rules for this repository.
 
-## Git Workflow
+The AI assistant must follow these rules when generating or modifying code.
 
-- ALWAYS create a new branch and checkout to it BEFORE starting any changes for a new feature or bug fix.
-- Use descriptive branch names (e.g., `feature/nome-da-funcionalidade` or `fix/nome-do-bug`).
-- **Pull Requests**: When a feature is complete, use the GitHub CLI (`gh pr create --fill`) to open a Pull Request automatically.
+If any instruction conflicts with these rules, ask the user before proceeding.
 
-## Interactions
+---
 
-- Interactions with the user should preferably be in Brazilian Portuguese.
+# Core Principles
 
-## Documentation
+Always prioritize:
 
-- ALWAYS create or update the documentation in the `docs/` folder for any new feature, API endpoint, or significant architectural change.
-- Keep documentation up-to-date with current code implementation.
+1. Consistency with the existing codebase
+2. Simplicity over cleverness
+3. Readability over brevity
+4. Maintainability over premature optimization
+5. Explicit code over implicit behavior
 
-## Ruby Best Practices
+Avoid introducing new patterns when the project already has an established solution.
 
-- Always run `bundle exec rubocop -A <file_path>` after creating or modifying a Ruby file to ensure it adheres to the project's style guide.
-- Model, controller, and service names should **preferably be in Brazilian Portuguese**, but English names are also accepted.
-- Inflection configurations for Portuguese names MUST be added to `config/initializers/inflections.rb` **BEFORE** creating or executing any migrations to ensure correct table pluralization.
-- Prefer `each` over `for` for iteration.
-- Use guard clauses to handle edge cases early.
-- Use keyword arguments for methods with more than two arguments.
-- Prefer `_` for unused block parameters.
-- Use `&&=` and `||=` for conditional assignment.
+---
 
-## Rails API-Only Best Practices
+# Decision Rules
 
-- Adhere to `config.api_only = true` standards.
-- Follow the "fat model, skinny controller" principle.
-- Use service objects for complex business logic that doesn't fit in a model.
-- Use query objects to encapsulate complex database queries.
-- Use `SolidQueue` for background jobs.
-- Handle CORS appropriately using `rack-cors`.
-- Use Jbuilder for JSON serialization, keeping logic out of views.
+Before implementing any change:
 
-## Testing (RSpec)
+1. Search the codebase for existing implementations.
+2. Reuse existing helpers, services, or utilities whenever possible.
+3. Follow the current project architecture.
+4. Avoid introducing new frameworks, libraries, or abstractions.
+5. If unsure about architecture decisions, ask the user.
 
-- **Test Database**: ALWAYS use the test database (`RAILS_ENV=test`) for running any tests.
-- **Database Cleaning**: The test database MUST be cleared before each test execution to ensure isolation and prevent side effects from previous runs or seeds.
-- **TDD (Test-Driven Development)**: ALWAYS follow the TDD methodology. Create or update tests to reflect the desired behavior BEFORE implementing the actual code changes.
-- ALWAYS create or update tests for any new feature, bug fix, or endpoint.
-- ALWAYS run related tests after any code change to ensure no regressions were introduced.
-- Write tests that are clear, concise, and easy to understand.
-- **Prefer Request specs** over Controller specs for testing the API.
-- Use `let` and `let!` to set up test data.
-- Use `subject` to define the object under test.
-- Use contexts to group related examples.
-- Test one thing at a time.
-- Use `FactoryBot` to create test data.
-- Use `Faker` to generate realistic test data.
-- Use `shoulda-matchers` to test common Rails functionality.
+---
 
-## FactoryBot
+# Safe Change Rules
 
-- Define a base factory for each model.
-- Use traits to create variations of your factories.
-- Use `build` instead of `create` when possible to speed up tests.
-- Use sequences to generate unique data.
+When modifying existing code:
 
-## Controllers
+- NEVER remove existing functionality unless explicitly instructed.
+- NEVER rename public APIs without confirmation.
+- NEVER change database schema without user approval.
+- NEVER remove tests unless replacing them with better ones.
+- NEVER change authentication or authorization logic without approval.
+- Prefer additive changes instead of destructive changes.
 
-- Keep controllers focused on handling HTTP requests and responses.
-- Use `before_action` for authentication and resource setup.
-- Use strong parameters to protect against mass assignment vulnerabilities.
-- **JSON Response Standard**: ALL controllers MUST use `JsonResponseHelper`.
-- **Data Encapsulation**: ALL successful responses MUST encapsulate the main payload within a `data` key, following the `shared/wrapper.json.jbuilder` pattern. Even for single objects, prefer nesting under a descriptive key (e.g., `{ "data": { "deck": { ... } } }`) to maintain consistency and extensibility.
-- Use `render_json_success(template: :index, locals: { users: @users })` for successful responses.
-  - Use `render_json_error(message: "Custom error", status: :bad_request)` for error responses.
-  - The standard JSON response structure follows `shared/wrapper.json.jbuilder`:
-    - `message`: Optional descriptive message.
-    - `validation_errors`: Optional object containing validation errors.
-    - `data`: The main payload, either rendered via a partial or passed directly.
-- Implement robust error handling using `rescue_from` in `ApplicationController` (already integrated in `JsonResponseHelper` for common ActiveRecord errors).
-- Use standard HTTP status codes (e.g., 201 Created, 422 Unprocessable Entity, 404 Not Found).
+---
 
-## Models
+# Git Workflow
 
-- Keep models focused on business logic and data persistence.
-- Use validations to ensure data integrity.
-- Use associations to define relationships between models.
-- Use scopes to create reusable queries.
+Always create a branch before starting work.
 
+Branch naming:
 
-# FRONTEND
+feature/nome-da-feature  
+fix/nome-do-bug  
+refactor/nome-da-refatoracao  
+chore/nome-da-tarefa
 
-You are an expert in TypeScript, Angular, and scalable web application development. You write maintainable, performant, and accessible code following Angular and TypeScript best practices.
+Pull requests must be created using:
 
-## Git Workflow
+gh pr create --fill
 
-- ALWAYS create a new branch and checkout to it BEFORE starting any changes for a new feature or bug fix.
-- Use descriptive branch names (e.g., `feature/nome-da-funcionalidade` or `fix/nome-do-bug`).
-- **Pull Requests**: When a feature is complete, use the GitHub CLI (`gh pr create --fill`) to open a Pull Request automatically.
+---
 
-## Interactions
+# Communication
 
-- Interactions with the user should preferably be in Brazilian Portuguese.
+User interactions should preferably be in Brazilian Portuguese.
 
-## Architecture & Structure
+Code comments should be written in English.
 
-- **Package Manager**: ALWAYS use **Yarn** for managing dependencies and running scripts in the frontend project.
-- **`src/app/core`**: Must contain pages, services, guards, interceptors, and components related to the main application logic and administrative area. Accessible via `@core` alias.
-- **`src/app/features`**: Must contain the application's domain features. Each feature should have its own alias (e.g., `@features/cartas`).
-- **`src/styles`**: Must contain custom SCSS files.
-- **Imports**: ALWAYS use path aliases (e.g., `@core/interfaces/cartas.interface`) instead of long relative paths (e.g., `../../../../core/...`).
+---
 
-## UI & Styling
+# Documentation
 
-- Use **PrimeNG v20** components.
-- Use **Tailwind CSS** classes for layout and styling.
-- Use **tailwindcss-primeui** for PrimeNG and Tailwind integration.
-- **Surface Classes**: When using PrimeUI surface classes (e.g., `bg-surface`, `text-surface`, `border-surface`), DO NOT use the `dark:` prefix or any numeric suffix (e.g., avoid `bg-surface-0` or `dark:bg-surface-900`). Use only the base semantic classes which will automatically adapt to light and dark modes.
+Documentation must be updated whenever:
 
-## Naming Conventions
+- new feature is added
+- API behavior changes
+- architecture changes
+- business logic is introduced
 
-- Names of components, services, guards, and other Angular resources should **preferably be in Brazilian Portuguese**, but English names are also accepted.
-- Use the **Angular naming convention** for files and folders as defined in `angular.json` or the default convention for the project's Angular version (e.g., `folder-name/file-name.component.ts`).
+Documentation location:
 
-## Documentation
+docs/
 
-- ALWAYS create or update the documentation in the `docs/` folder for any new feature, API integration, or significant architectural change.
-- Keep documentation up-to-date with current code implementation.
+---
 
-## Testing
+# Backend — Ruby on Rails API
 
-- **Test Environment**: E2E tests MUST always target a backend instance running in the test environment (`RAILS_ENV=test`).
-- **Database Isolation**: The test database MUST be cleared and optionally seeded before running E2E tests to ensure a consistent and predictable starting state.
-- **TDD (Test-Driven Development)**: ALWAYS follow the TDD methodology. Create or update E2E tests (Playwright) to reflect the desired behavior BEFORE implementing the actual code changes.
-- **Headless Mode**: E2E tests MUST always be executed in headless mode.
-- **Test Output**: E2E test results MUST always be displayed in the console as a list.
-- **E2E Port**: E2E tests MUST always use port **4242** for the frontend server to avoid conflicts with development environments.
-- **Pre-test Verification**: ALWAYS verify the build output (`yarn ng build`) before running E2E tests to ensure the application is in a stable state.
-- ALWAYS create E2E tests using **Playwright** for any new feature or critical user flow.
-- E2E tests should be located in `frontend/e2e/specs` and follow the `nome.spec.ts` naming convention.
-- **Verification**: ALWAYS run the build command (`yarn ng build`) after any code change to ensure there are no compilation or template errors.
+The backend is a Rails API-only application.
 
-## TypeScript Best Practices
+config.api_only = true
 
-- Use strict type checking
-- Prefer type inference when the type is obvious
-- Avoid the `any` type; use `unknown` when type is uncertain
-- **Default Values**: ALWAYS use the nullish coalescing operator (`??`) instead of logical OR (`||`) for assigning default values to variables that may be `null` or `undefined`, ensuring that falsy values like `0` or `''` are preserved.
+Focus on:
 
-## Angular Best Practices
+- scalability
+- performance
+- maintainability
 
-- Always use standalone components over NgModules
-- Must NOT set `standalone: true` inside Angular decorators. It's the default.
-- Use signals for state management
-- Implement lazy loading for feature routes
-- Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
-- Use `NgOptimizedImage` for all static images.
-  - `NgOptimizedImage` does not work for inline base64 images.
+---
 
-## Components
+# Backend Architecture
 
-- Keep components small and focused on a single responsibility
-- Use `input()` and `output()` functions instead of decorators
-- Use `computed()` for derived state
-- Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
-- Prefer inline templates for small components
-- Prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead
-- Do NOT use `ngStyle`, use `style` bindings instead
+Preferred architecture:
 
-## State Management
+app/controllers  
+app/models  
+app/services  
+app/queries  
+app/jobs  
+app/views
 
-- Use signals for local component state
-- Use `computed()` for derived state
-- Keep state transformations pure and predictable
-- Do NOT use `mutate` on signals, use `update` or `set` instead
+Responsibilities:
 
-## Templates
+Controllers  
+→ HTTP layer
 
-- Keep templates simple and avoid complex logic
-- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
-- Use the async pipe to handle observables
+Models  
+→ domain logic
 
-## Services
+Services  
+→ business workflows
 
-- Design services around a single responsibility
-- Use the `providedIn: 'root'` option for singleton services
-- Use the `inject()` function instead of constructor injection
-- **Backend Communication**: ALL services that make HTTP requests to the backend MUST use `@core/servicos/api.service` as their base instead of `HttpClient` directly. This ensures consistent handling of base URLs, versions, headers, and request formatting.
+Query Objects  
+→ complex database queries
+
+Jobs  
+→ background tasks
+
+---
+
+# Controllers
+
+Controllers must remain thin.
+
+Controllers are responsible for:
+
+- authentication
+- authorization
+- request validation
+- calling services
+- rendering responses
+
+Controllers must NOT contain:
+
+- business logic
+- complex queries
+- heavy data transformations
+
+---
+
+# JSON Response Standard
+
+ALL controllers MUST use `JsonResponseHelper`.
+
+Successful responses must use:
+
+render_json_success(template: :index, locals: { users: @users })
+
+Error responses must use:
+
+render_json_error(message: "Error message", status: :bad_request)
+
+The API response format MUST follow:
+
+{
+  "status": HTTP status code,
+  "data": object or array,
+  "pagination": object (optional),
+  "message": "Optional descriptive message"
+}
+
+---
+
+# Jbuilder Rendering Rules
+
+All Jbuilder views MUST be implemented as partials.
+
+Controllers MUST NOT render full Jbuilder views such as:
+
+show.json.jbuilder
+index.json.jbuilder
+
+Instead, always create partials using the underscore convention:
+
+_show.json.jbuilder
+_index.json.jbuilder
+_user.json.jbuilder
+
+The `JsonResponseHelper` wraps the rendered partial inside the `data` attribute of the API response.
+
+Therefore, controller responses must always use:
+
+render_json_success(template: :show, locals: { user: @user })
+
+---
+
+# Error Handling
+
+Use centralized error handling in:
+
+ApplicationController
+
+Use:
+
+rescue_from
+
+Examples:
+
+ActiveRecord::RecordNotFound  
+ActiveRecord::RecordInvalid
+
+Error responses must also follow the standard JSON structure.
+
+---
+
+# Database Rules
+
+Prefer:
+
+- ActiveRecord associations
+- scopes
+- query objects
+
+Avoid:
+
+- SQL inside controllers
+- complex logic in migrations
+
+Migrations must be:
+
+- reversible
+- small
+- safe for production
+
+---
+
+# Performance Rules
+
+Avoid common performance problems.
+
+Always consider:
+
+N+1 queries
+
+Use:
+
+includes  
+preload  
+eager_load
+
+Large datasets
+
+Use:
+
+find_each  
+in_batches
+
+Heavy computations
+
+Move to background jobs.
+
+---
+
+# Background Jobs
+
+Use:
+
+SolidQueue
+
+For:
+
+- emails
+- large processing
+- external integrations
+- reports
+
+Never block HTTP requests with long tasks.
+
+---
+
+# Security Rules
+
+Never trust client input.
+
+Always:
+
+- validate parameters
+- use strong parameters
+- sanitize inputs
+
+Never expose:
+
+- internal IDs unnecessarily
+- sensitive attributes
+- stack traces
+
+Use:
+
+JWT  
+authorization policies
+
+when needed.
+
+---
+
+# Ruby Best Practices
+
+Prefer:
+
+each  
+map  
+select
+
+over:
+
+for
+
+Use guard clauses:
+
+return unless condition
+
+Prefer keyword arguments:
+
+def create_user(name:, email:)
+
+Avoid long methods.
+
+---
+
+# Rubocop
+
+After editing Ruby files run:
+
+bundle exec rubocop -A
+
+---
+
+# Testing (RSpec)
+
+Testing is mandatory.
+
+---
+
+# Test Database
+
+Tests must run using:
+
+RAILS_ENV=test
+
+---
+
+# Test Isolation
+
+The test database must be clean before each test execution.
+
+Never rely on:
+
+- seeds
+- pre-existing data
+
+---
+
+# TDD
+
+Follow Test Driven Development.
+
+Workflow:
+
+1 Write tests  
+2 Run tests (fail)  
+3 Implement feature  
+4 Run tests (pass)
+
+---
+
+# Testing Best Practices
+
+Prefer Request Specs over Controller Specs.
+
+Test:
+
+- API responses
+- status codes
+- business rules
+
+---
+
+# FactoryBot
+
+Factories must:
+
+- exist for every model
+- use sequences for unique fields
+- use traits for variations
+
+Prefer:
+
+build
+
+over:
+
+create
+
+when possible.
+
+---
+
+# Faker
+
+Use Faker to generate realistic test data.
+
+---
+
+# Frontend — Angular
+
+Frontend uses:
+
+- Angular
+- TypeScript
+- PrimeNG
+- TailwindCSS
+
+Focus on:
+
+- maintainability
+- performance
+- clean architecture
+
+---
+
+# Package Manager
+
+Always use Yarn.
+
+yarn install  
+yarn add  
+yarn remove
+
+Never use npm.
+
+---
+
+# Frontend Architecture
+
+Structure:
+
+src/app/core  
+src/app/features  
+src/app/shared
+
+core
+
+- services
+- interceptors
+- guards
+- global interfaces
+
+features
+
+- domain modules
+
+shared
+
+- reusable UI components
+
+---
+
+# Import Rules
+
+Always use path aliases.
+
+Correct:
+
+@core/services/api.service
+
+Avoid:
+
+../../../../services
+
+---
+
+# Angular Best Practices
+
+Use:
+
+- standalone components
+- signals
+- lazy loading
+
+Prefer:
+
+input()  
+output()  
+computed()  
+signal()
+
+Avoid:
+
+ngClass  
+ngStyle  
+HostBinding  
+HostListener
+
+Use host property instead.
+
+---
+
+# Component Rules
+
+Components must be:
+
+- small
+- focused
+- reusable
+
+Always use:
+
+ChangeDetectionStrategy.OnPush
+
+Prefer Reactive Forms.
+
+---
+
+# Templates
+
+Prefer new Angular control flow:
+
+@if  
+@for  
+@switch
+
+Avoid:
+
+*ngIf  
+*ngFor
+
+Templates must not contain complex logic.
+
+---
+
+# State Management
+
+Use signals for component state.
+
+Prefer:
+
+set()  
+update()  
+computed()
+
+Avoid mutable state.
+
+---
+
+# HTTP Communication
+
+All backend communication must go through:
+
+@core/servicos/api.service
+
+Never use HttpClient directly.
+
+This ensures:
+
+- base URL
+- headers
+- authentication
+- response standardization
+
+---
+
+# Styling
+
+Use:
+
+- TailwindCSS
+- PrimeNG components
+
+Use semantic surface classes:
+
+bg-surface  
+text-surface  
+border-surface
+
+Do not manually implement dark mode overrides.
+
+---
+
+# Images
+
+Use:
+
+NgOptimizedImage
+
+Except for inline base64 images.
+
+---
+
+# Performance Rules (Frontend)
+
+Avoid:
+
+- unnecessary change detection
+- large components
+- duplicated logic
+
+Use:
+
+trackBy  
+OnPush  
+lazy routes
+
+---
+
+# Code Quality Checklist
+
+Before finishing any task verify:
+
+- code follows project architecture
+- naming conventions respected
+- no unused imports
+- no duplicated logic
+- tests exist or were updated
+- documentation updated if necessary
+- code is readable and maintainable
+
+Prefer simple solutions over complex abstractions.
+
+---
+
+# Forbidden Practices
+
+The following practices are not allowed.
+
+Backend:
+
+- business logic in controllers
+- raw SQL inside controllers
+- skipping validations
+- large monolithic services
+
+Frontend:
+
+- direct HttpClient usage
+- complex logic in templates
+- deep relative imports
+- massive components (>500 lines)
+
+---
+
+# Final Rule
+
+If uncertain about any implementation detail:
+
+Ask the user before making architectural decisions.

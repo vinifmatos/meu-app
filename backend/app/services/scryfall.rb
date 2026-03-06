@@ -12,22 +12,25 @@ module Scryfall
       if response.status.success?
         JSON.parse(response.body.to_s)["data"]
       else
-        raise "Sem dados dos simbolos"
+        raise ApiError, "Sem dados dos simbolos"
       end
     rescue StandardError => e
       raise ApiError, "Erro ao baixar o arquivo dos simbolos: #{e.message}"
     end
 
-    def baixar_todas_cartas(force: false)
+    def baixar_todas_as_cartas(force: false)
       bulk_data = ultimo_bulk_data
       return unless bulk_data && bulk_data["download_uri"]
 
       fazer_download = arquivo_bulk_desatualizado?(bulk_data["updated_at"]) ||
                        arquivo_bulk_corrompido? ||
                        force
-      return caminho_arquivo_bulk unless fazer_download
 
-      baixar_bulk_para_arquivo(bulk_data["download_uri"])
+      if fazer_download
+        baixar_bulk_para_arquivo(bulk_data["download_uri"])
+      end
+
+      [ caminho_arquivo_bulk, bulk_data ]
     rescue StandardError => e
       raise ApiError, "Erro ao baixar o arquivo do bulk data: #{e.message}"
     end
@@ -47,10 +50,20 @@ module Scryfall
       end
     end
 
+    def ultimo_bulk_data
+      response = @client.get("#{BASE_URL}/bulk-data/default_cards")
+
+      if response.status.success?
+        JSON.parse(response.body.to_s)
+      else
+        raise ApiError, "Sem dados do ultimo bulk data"
+      end
+    end
+
     private
 
     def caminho_arquivo_bulk
-      Rails.root.join("tmp", "scryfall", "all_cards.json")
+      Rails.root.join("tmp", "scryfall", "default_cards.json")
     end
 
     def garantir_diretorio_bulk
@@ -59,16 +72,6 @@ module Scryfall
 
     def arquivo_bulk_existe?
       File.exist?(caminho_arquivo_bulk)
-    end
-
-    def ultimo_bulk_data
-      response = @client.get("#{BASE_URL}/bulk-data/all_cards")
-
-      if response.status.success?
-        JSON.parse(response.body.to_s)
-      else
-        raise "Sem dados do ultimo bulk data"
-      end
     end
 
     def baixar_bulk_para_arquivo(download_uri)
@@ -83,8 +86,7 @@ module Scryfall
       File.open("#{caminho_arquivo_bulk}.lock", "w") do |lock|
         lock.flock(File::LOCK_EX)
 
-        # verifica novamente depois de pegar o lock
-        return caminho_arquivo_bulk if arquivo_bulk_existe?
+        return if arquivo_bulk_existe? && !arquivo_bulk_desatualizado?(ultimo_bulk_data["updated_at"])
 
         File.open(caminho_arquivo_bulk, "wb") do |file|
           response.body.each do |chunk|
@@ -92,8 +94,6 @@ module Scryfall
           end
         end
       end
-
-      caminho_arquivo_bulk
     end
 
     def arquivo_bulk_desatualizado?(updated_at)
@@ -114,17 +114,17 @@ module Scryfall
   end
 
   class ParserCartasJson
-    BATCH_SIZE = Rails.env.production? ? 5000 : 10000
+    BATCH_SIZE = Rails.env.production? ? 2000 : 5000
 
-    def initialize
+    def initialize(record: nil)
       @parser = Yajl::FFI::Parser.new
+      @record = record
 
       @batch = []
       @stack = []
       @current_key = nil
 
       @parser.start_array do
-        # Ignora o array raiz. Se a stack não estiver vazia, é um array aninhado.
         if @stack.any?
           array = []
           add_value(@stack.last, @current_key, array)
@@ -135,9 +135,6 @@ module Scryfall
       @parser.end_array do
         if @stack.any?
           @stack.pop
-          # Se após o pop a stack ficar vazia, significaria que um array era o objeto raiz.
-          # No Scryfall o objeto raiz é sempre um Hash (carta), mas mantemos a segurança.
-          check_and_clear_stack if @stack.empty?
         end
       end
 
@@ -153,7 +150,6 @@ module Scryfall
         completed = @stack.pop
         if @stack.empty?
           handle_completed_item(completed)
-          @stack.clear # Garante que a stack esteja limpa para o próximo objeto do array raiz
         end
       end
 
@@ -169,6 +165,7 @@ module Scryfall
     end
 
     def <<(data)
+      check_cancellation!
       @parser << data
     end
 
@@ -178,23 +175,29 @@ module Scryfall
 
     private
 
+    def check_cancellation!
+      if @record&.reload&.cancelado?
+        raise ImportCancelledError, "Importação cancelada pelo usuário"
+      end
+    end
+
     def handle_completed_item(item)
-      # No Scryfall, o arquivo é um array de objetos.
-      # Se o item for um Hash com dados, adicionamos ao batch.
       return unless item.is_a?(Hash) && item.any?
 
       @batch << item
-      importar_lote if @batch.size >= BATCH_SIZE
+      if @batch.size >= BATCH_SIZE
+        importar_lote
+      end
     end
 
     def importar_lote
       Carta.import_from_scryfall(@batch)
-      @batch.clear
-    end
 
-    def check_and_clear_stack
-      # Método auxiliar para garantir integridade se necessário
-      @stack.clear
+      if @record
+        @record.update_progresso!(Importador::CHUNK_SIZE)
+      end
+
+      @batch.clear
     end
 
     def add_value(container, key, value)
@@ -207,35 +210,65 @@ module Scryfall
   end
 
   class Importador
-    def self.importar
-      Importador.new.importar!
+    CHUNK_SIZE = 64.kilobyte
+
+    def self.importar_simbolos(record: nil)
+      new.importar_simbolos(record: record)
     end
 
-    def self.importar!
-      Importador.new.importar!
+    def self.importar_cartas(force: false, record: nil)
+      new.importar_cartas(force: force, record: record)
     end
 
-    def self.importar_simbolos
-      Importador.new.importar_simbolos
+    def importar_simbolos(record: nil)
+      record ||= ImportacaoScryfall.create!(tipo: :simbolos, status: :pendente, started_at: Time.current)
+      return unless record.pendente?
+
+      record.update!(status: :processando, started_at: Time.current)
+
+      api = Api.new
+      symbols_data = api.baixar_simbolos
+
+      Simbolo.import_from_scryfall(symbols_data)
+
+      record.finalizar!
+      record
+    rescue StandardError => e
+      record&.falhar!(e.message)
+      raise e
     end
 
-    def self.importar_dados(force: false)
-      Importador.new.importar_dados(force: force)
-    end
+    def importar_cartas(force: false, record: nil)
+      record ||= ImportacaoScryfall.create!(tipo: :bulk_data, status: :pendente, started_at: Time.current)
+      return unless record.pendente?
 
-    def self.importar_carta_por_nome(nome, lang: nil)
-      Importador.new.importar_carta_por_nome(nome, lang: lang)
-    end
+      record.update!(status: :processando, started_at: Time.current)
 
-    def importar!
-      importar_dados(force: true)
-    end
+      api = Api.new
+      file_path, metadata = api.baixar_todas_as_cartas(force: force)
 
-    def importar_dados(force: false)
-      importar_simbolos
-      importar_cartas(force: force)
+      record.update!(
+        metadata: metadata,
+        size_processado: 0,
+      )
 
+      parser = ParserCartasJson.new(record: record)
+
+      File.open(file_path, "rb") do |file|
+        while chunk = file.read(CHUNK_SIZE)
+          parser << chunk
+        end
+      end
+
+      parser.finish!
+      record.finalizar!
+      record
+    rescue ImportCancelledError => e
+      record.update!(status: :cancelado, finished_at: Time.current)
       nil
+    rescue StandardError => e
+      record&.falhar!(e.message)
+      raise ImportError, e.message
     end
 
     def importar_carta_por_nome(nome, lang: nil)
@@ -251,37 +284,11 @@ module Scryfall
         raise ImportError, "#{msg} não encontrada no Scryfall"
       end
     end
-
-    def importar_simbolos
-      api = Api.new
-      symbols_data = api.baixar_simbolos
-      Simbolo.import_from_scryfall(symbols_data)
-    rescue StandardError => e
-      raise e if Rails.env.development?
-
-      raise ImportError, "Erro ao importar os simbolos: #{e.message}"
-    end
-
-    def importar_cartas(force: false)
-      api = Api.new
-      file_path = api.baixar_todas_cartas(force: force)
-      parser = ParserCartasJson.new
-
-      File.open(file_path, "rb") do |file|
-        while chunk = file.read(16 * 1024)
-          parser << chunk
-        end
-      end
-
-      parser.finish!
-    rescue StandardError => e
-      raise e if Rails.env.development?
-
-      raise ImportError, "Erro ao importar as cartas: #{e.message}"
-    end
   end
 
   class ApiError < StandardError; end
 
   class ImportError < StandardError; end
+
+  class ImportCancelledError < StandardError; end
 end

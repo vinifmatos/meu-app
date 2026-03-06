@@ -9,7 +9,7 @@ namespace :v1 do
     get :confirmar, on: :collection
   end
 
-  resource :perfil, only: [:show, :update], controller: "perfil"
+  resource :perfil, only: [ :show, :update ], controller: "perfil"
 
   resources :usuarios
   resources :cartas, only: %i[index show]
@@ -20,5 +20,8 @@ namespace :v1 do
     end
     get :validar, on: :member
   end
-end
 
+  namespace :admin do
+    resources :importacoes, only: [ :index, :create, :destroy ]
+  end
+end

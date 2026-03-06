@@ -1,6 +1,6 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ApiResposta } from '@core/interfaces/api-resposta.interface';
+import { ErroService } from '@core/servicos/erro.service';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogService, DynamicDialog, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -31,8 +31,9 @@ export class UsuarioFormularioComponent implements OnInit, OnDestroy {
   private instancia?: DynamicDialog;
   private ref: DynamicDialogRef = inject(DynamicDialogRef);
   private fb: FormBuilder = inject(FormBuilder);
-  private servicoMensagem = inject(MessageService);
-  
+  private messageService = inject(MessageService);
+  private erroService = inject(ErroService);
+
   perfis = [
     { label: 'Administrador', value: 'admin' },
     { label: 'Usuário', value: 'usuario' },
@@ -80,32 +81,14 @@ export class UsuarioFormularioComponent implements OnInit, OnDestroy {
         await this.servicoUsuarios.atualizarUsuario(this.usuario!.id, this.formulario.value);
       }
 
-      this.servicoMensagem.add({
+      this.messageService.add({
         severity: 'success',
         summary: 'Sucesso',
         detail: 'Usuário salvo com sucesso',
       });
       this.ref.close(true);
     } catch (erro: any) {
-      if (erro instanceof ErrorEvent) {
-        this.servicoMensagem.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: `Ocorreu um erro de rede: ${erro.message}`,
-        });
-        return;
-      }
-
-      if (erro.status === 422) {
-        const err = erro.error as ApiResposta<unknown>;
-        this.erros = err.validationErrors ?? {};
-
-        this.servicoMensagem.add({
-          severity: 'warn',
-          summary: 'Atenção',
-          detail: err.message ?? 'Não foi possível salvar o usuário',
-        });
-      }
+      this.erroService.handle(erro);
     }
   }
 

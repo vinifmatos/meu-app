@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_05_033442) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_05_181422) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_033442) do
     t.index ["carta_id", "face", "illustration_id"], name: "index_faces_cartas_on_carta_id_and_face_and_illustration_id", unique: true
     t.index ["carta_id"], name: "index_faces_cartas_on_carta_id"
     t.index ["face"], name: "index_faces_cartas_on_face"
+  end
+
+  create_table "importacoes_scryfall", force: :cascade do |t|
+    t.integer "tipo"
+    t.integer "status"
+    t.integer "progresso"
+    t.integer "size_processado"
+    t.text "mensagem_erro"
+    t.jsonb "metadata"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "refresh_tokens", force: :cascade do |t|

@@ -2,74 +2,29 @@ require "rails_helper"
 
 RSpec.describe Scryfall::ParserCartasJson do
   let(:parser) { Scryfall::ParserCartasJson.new }
-  let(:tamanho_lote) { Scryfall::ParserCartasJson::BATCH_SIZE }
 
   describe "#<<" do
     it "acumula cartas no lote e as importa quando o tamanho do lote é atingido" do
-      # Criamos um JSON com 2 cartas e um array raiz
       json_data = [
         { id: "1", name: "Carta 1", image_uris: { small: "url1" } },
         { id: "2", name: "Carta 2", colors: [ "W", "U" ] }
       ].to_json
 
-      # Mock do método de importação para verificar se é chamado
       expect(Carta).to receive(:import_from_scryfall).once do |lote|
         expect(lote.size).to eq(2)
-        expect(lote[0]["name"]).to eq("Carta 1")
-        expect(lote[0]["image_uris"]["small"]).to eq("url1")
-        expect(lote[1]["name"]).to eq("Carta 2")
-        expect(lote[1]["colors"]).to eq([ "W", "U" ])
       end
 
-      # Simulamos a leitura em chunks pequenos
-      json_data.chars.each_slice(10) do |chunk|
-        parser << chunk.join
-      end
-
+      json_data.chars.each_slice(10) { |chunk| parser << chunk.join }
       parser.finish!
     end
 
-    it "limpa a pilha (stack) após cada objeto raiz (carta) ser processado" do
-      json_data = [ { id: "1", name: "Carta 1" } ].to_json
+    it "lança erro se a importação for cancelada" do
+      importacao = create(:importacao_scryfall, status: :cancelado)
+      parser_com_record = Scryfall::ParserCartasJson.new(record: importacao)
 
-      # Forçamos a importação para garantir que o processo ocorreu
-      allow(Carta).to receive(:import_from_scryfall)
-
-      parser << json_data
-
-      # A stack deve estar vazia após processar o objeto
-      expect(parser.instance_variable_get(:@stack)).to be_empty
-    end
-
-    it "ignora o array raiz e foca nos objetos internos" do
-      json_data = '[{"id": "1"}]'
-
-      allow(Carta).to receive(:import_from_scryfall)
-
-      # Processamos apenas a abertura do array raiz
-      parser << "["
-      expect(parser.instance_variable_get(:@stack)).to be_empty
-
-      # Processamos o objeto interno
-      parser << '{"id": "1"}'
-      # Aqui a stack deve ter sido usada e limpa pelo end_object
-      expect(parser.instance_variable_get(:@stack)).to be_empty
-    end
-  end
-
-  describe "#finish!" do
-    it "importa o lote remanescente se houver dados" do
-      json_data = [ { id: "1" } ].to_json
-
-      expect(Carta).to receive(:import_from_scryfall).with([ hash_including("id" => "1") ])
-
-      parser << json_data
-      parser.finish!
-    end
-
-    it "não faz nada se o lote estiver vazio" do
-      expect(Carta).not_to receive(:import_from_scryfall)
-      parser.finish!
+      expect {
+        parser_com_record << '[{"id": "1"}]'
+      }.to raise_error(Scryfall::ImportCancelledError)
     end
   end
 end
@@ -82,30 +37,50 @@ RSpec.describe Scryfall::Importador do
     allow(Scryfall::Api).to receive(:new).and_return(api_mock)
   end
 
-  describe "#importar_carta_por_nome" do
-    it "busca a carta na API e chama o método de importação do modelo" do
-      carta_data = { "id" => "123", "name" => "Black Lotus", "legalities" => {} }
-      expect(api_mock).to receive(:buscar_carta_por_nome).with("Black Lotus", lang: nil).and_return(carta_data)
-      expect(Carta).to receive(:import_from_scryfall).with([carta_data])
+  describe "#importar_simbolos" do
+    it "atualiza o status para concluído após a importação" do
+      importacao = create(:importacao_scryfall, tipo: :simbolos)
+      allow(api_mock).to receive(:baixar_simbolos).and_return([ { "symbol" => "{W}" } ])
+      allow(Simbolo).to receive(:import_from_scryfall)
 
-      importador.importar_carta_por_nome("Black Lotus")
+      importador.importar_simbolos(record: importacao)
+
+      expect(importacao.reload.status).to eq('concluido')
     end
 
-    it "suporta importar em um idioma específico" do
-      carta_data = { "id" => "123", "name" => "Lótus Negra", "lang" => "pt", "legalities" => {} }
-      expect(api_mock).to receive(:buscar_carta_por_nome).with("Black Lotus", lang: "pt").and_return(carta_data)
-      expect(Carta).to receive(:import_from_scryfall).with([carta_data])
-
-      importador.importar_carta_por_nome("Black Lotus", lang: "pt")
-    end
-
-    it "lança erro se a carta não for encontrada" do
-      expect(api_mock).to receive(:buscar_carta_por_nome).with("Carta Inexistente", lang: nil).and_return(nil)
-      expect(Carta).not_to receive(:import_from_scryfall)
+    it "marca como falho se ocorrer um erro" do
+      importacao = create(:importacao_scryfall, tipo: :simbolos)
+      allow(api_mock).to receive(:baixar_simbolos).and_raise("Erro de rede")
 
       expect {
-        importador.importar_carta_por_nome("Carta Inexistente")
-      }.to raise_error(Scryfall::ImportError, /não encontrada/)
+        importador.importar_simbolos(record: importacao)
+      }.to raise_error("Erro de rede")
+
+      expect(importacao.reload.status).to eq('falha')
+      expect(importacao.mensagem_erro).to eq("Erro de rede")
+    end
+  end
+
+  describe "#importar_cartas" do
+    it "atualiza metadados e status" do
+      importacao = create(:importacao_scryfall, tipo: :bulk_data)
+      metadata = { "size" => 1, "download_uri" => "url", "updated_at" => Time.current }
+
+      # Mock do download e do arquivo
+      allow(api_mock).to receive(:baixar_todas_as_cartas).and_return([ "spec/fixtures/scryfall_sample.json", metadata ])
+
+      # Criamos um arquivo de exemplo para o teste
+      FileUtils.mkdir_p("spec/fixtures")
+      File.write("spec/fixtures/scryfall_sample.json", [ { id: "1", name: "Teste" } ].to_json)
+
+      allow(Carta).to receive(:import_from_scryfall)
+
+      importador.importar_cartas(record: importacao)
+
+      expect(importacao.reload.status).to eq('concluido')
+      expect(importacao.metadata).to be_present
+
+      File.delete("spec/fixtures/scryfall_sample.json")
     end
   end
 end

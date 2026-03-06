@@ -32,7 +32,7 @@ RSpec.describe "Rack::Attack", type: :request do
     it "permanently bans IP after accessing a malicious path (.env)" do
       # 1ª tentativa: Acessa caminho crítico
       get "/.env"
-      
+
       # Verifica se foi criado no banco
       expect(BanimentoIp.exists?(ip: '127.0.0.1')).to be_truthy
 
@@ -50,7 +50,7 @@ RSpec.describe "Rack::Attack", type: :request do
         # O 6º post deve ser bloqueado por throttle (429)
         post api_v1_auth_login_path, params: login_params, headers: headers
         expect(response.status).to eq(429)
-        
+
         # Avança no tempo para limpar o throttle mas o Fail2Ban continua contando as violações
         travel 21.seconds
       end

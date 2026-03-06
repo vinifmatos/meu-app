@@ -1,6 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ApiResposta } from '@core/interfaces/api-resposta.interface';
+import { Component, inject, OnInit } from '@angular/core';
+import { ErroService } from '@core/servicos/erro.service';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
@@ -13,13 +13,7 @@ import { UsuariosService } from './usuarios.service';
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [
-    TableModule,
-    ButtonModule,
-    DynamicDialogModule,
-    ConfirmPopupModule,
-    DatePipe
-  ],
+  imports: [TableModule, ButtonModule, DynamicDialogModule, ConfirmPopupModule, DatePipe],
   templateUrl: './usuarios.component.html',
   styleUrl: './usuarios.component.scss',
 })
@@ -29,7 +23,8 @@ export class UsuariosComponent implements OnInit {
   private dialogService = inject(DialogService);
   private dialogRef: DynamicDialogRef | null = null;
   private confirmacaoService = inject(ConfirmationService);
-  private mensagemService = inject(MessageService);
+  private messageService = inject(MessageService);
+  private erroService = inject(ErroService);
 
   ngOnInit() {
     this.atualizarUsuarios();
@@ -63,30 +58,13 @@ export class UsuariosComponent implements OnInit {
         try {
           await this.servico.deletarUsuario(usuario.id);
           this.atualizarUsuarios();
-          this.mensagemService.add({
+          this.messageService.add({
             severity: 'success',
             summary: 'Sucesso',
             detail: 'Usuário excluído com sucesso',
           });
         } catch (erro: any) {
-          if (erro instanceof ErrorEvent) {
-            this.mensagemService.add({
-              severity: 'error',
-              summary: 'Erro',
-              detail: `Ocorreu um erro de rede: ${erro.message}`,
-            });
-            return;
-          }
-
-          if (erro.status === 422) {
-            const err = erro.error as ApiResposta<unknown>;
-
-            this.mensagemService.add({
-              severity: 'warn',
-              summary: 'Atenção',
-              detail: err.message ?? 'Não foi possível excluir o usuário',
-            });
-          }
+          this.erroService.handle(erro);
         }
       },
     });

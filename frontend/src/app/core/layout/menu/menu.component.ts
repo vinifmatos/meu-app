@@ -73,7 +73,10 @@ export class MenuComponent {
     if (admin) {
       menu.push({
         label: 'Administração',
-        items: [{ label: 'Usuários', icon: 'pi pi-users', routerLink: '/admin/usuarios' }],
+        items: [
+          { label: 'Usuários', icon: 'pi pi-users', routerLink: '/admin/usuarios' },
+          { label: 'Importações', icon: 'pi pi-cloud-download', routerLink: '/admin/importacoes' }
+        ],
       });
     }
 
