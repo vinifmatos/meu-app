@@ -13,8 +13,7 @@ module Api
           @importacao = ImportacaoScryfall.create!(importacao_params)
 
           ScryfallImportJob.perform_later(
-            tipo: @importacao.tipo,
-            record_id: @importacao.id,
+            @importacao.id,
             force: params[:data][:force] == true
           )
 

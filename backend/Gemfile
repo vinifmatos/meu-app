@@ -34,4 +34,6 @@ group :development, :test do
   gem "ruby-lsp-rspec", require: false
   gem "ruby-lsp", require: false
   gem "timecop"
+  gem "vcr"
+  gem "webmock"
 end
