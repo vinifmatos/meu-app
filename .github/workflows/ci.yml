@@ -149,6 +149,7 @@ jobs:
           username: ${{ secrets.HOST_USER }}
           key: ${{ secrets.HOST_KEY }}
           script: |
+            export DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
             export PR_NUMBER=${{ github.event.pull_request.number }}
             export BRANCH=${{ github.head_ref }}
             export PR_ACTION=${{ github.event.action }}
