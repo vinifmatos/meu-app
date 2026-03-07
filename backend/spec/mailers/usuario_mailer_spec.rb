@@ -7,8 +7,8 @@ RSpec.describe UsuarioMailer, type: :mailer do
 
     it "renders the headers" do
       expect(mail.subject).to eq("Confirmação de Conta")
-      expect(mail.to).to eq(["user@example.com"])
-      expect(mail.from).to eq(["from@example.com"])
+      expect(mail.to).to eq([ "user@example.com" ])
+      expect(mail.from).to eq([ "contato@viniciusfreire.dev.br" ])
     end
 
     it "renders the body" do

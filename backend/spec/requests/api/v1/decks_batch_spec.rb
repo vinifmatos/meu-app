@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Decks", type: :request do
-  let!(:usuario) { Usuario.find_by!(username: 'admin') }
+  let!(:usuario) { create(:usuario) }
   let(:headers) { auth_headers(usuario).merge("Accept" => "application/json") }
   let!(:cartas) { create_list(:carta, 3) }
 
@@ -27,7 +27,7 @@ RSpec.describe "Api::V1::Decks", type: :request do
       expect(response).to have_http_status(:created)
       json_response = JSON.parse(response.body)
       expect(json_response["data"]["deck"]["nome"]).to eq("Deck com Cartas")
-      
+
       deck = Deck.last
       expect(deck.deck_cartas.count).to eq(2)
       expect(deck.deck_cartas.first.quantidade).to eq(4)
