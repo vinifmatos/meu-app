@@ -15,9 +15,9 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: localhost
-  username: postgres
-  password: <%= ENV.fetch("POSTGRES_PASSWORD") { "postgres" } %>
+  host: <%= ENV.fetch("DB_HOST") { "localhost" } %>
+  username: <%= ENV.fetch("DB_USER") { "postgres" } %>
+  password: <%= ENV.fetch("DB_PASSWORD") { "postgres" } %>
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -64,8 +64,6 @@ production:
   primary: &primary_production
     <<: *default
     database: meu_app_production
-    username: meu_app
-    password: <%= ENV["MEU_APP_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
     database: meu_app_production_cache
@@ -78,3 +76,17 @@ production:
     <<: *primary_production
     database: meu_app_production_cable
     migrations_paths: db/cable_migrate
+
+preview:
+  primary:
+    <<: *primary_production
+    database: meu_app_preview
+  cache:
+    <<: *primary_production
+    database: meu_app_preview_cache
+  queue:
+    <<: *primary_production
+    database: meu_app_preview_queue
+  cable:
+    <<: *primary_production
+    database: meu_app_preview_cable

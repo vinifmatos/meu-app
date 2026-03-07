@@ -6,9 +6,6 @@ services:
     restart: always
     env_file:
       - /opt/app/configs/.env.preview
-    environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -28,8 +25,7 @@ services:
     env_file:
       - /opt/app/configs/.env.preview
     environment:
-      RAILS_ENV: production
-      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/app_pr_${PR_NUMBER}
+      RAILS_ENV: preview
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api-${PR_NUMBER}.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/pr-${PR_NUMBER}/api`)"
