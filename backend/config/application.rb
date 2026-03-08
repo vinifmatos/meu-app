@@ -51,5 +51,8 @@ module MeuApp
     config.middleware.use Rack::Attack
 
     config.rails_i18n.enabled_modules = [ :locale, :ordinals, :transliteration ]
+
+    config.mission_control.jobs.base_controller_class = "JobsController"
+    config.mission_control.jobs.http_basic_auth_enabled = true
   end
 end

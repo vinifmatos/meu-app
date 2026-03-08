@@ -63,7 +63,7 @@
     {
       "label": "🧹 Limpar e Popular Banco (Reset)",
       "type": "shell",
-      "command": "bundle exec rails db:drop db:seed scryfall:importar_famosas scryfall:importar_simbolos",
+      "command": "bundle exec rails db:reset db:prepare scryfall:importar_famosas scryfall:importar_simbolos",
       "options": {
         "cwd": "${workspaceFolder}/backend"
       },

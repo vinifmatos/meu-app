@@ -1,9 +1,10 @@
 # Usuário padrão para desenvolvimento e testes
+admin_password = ENV.fetch('ADMIN_PASSWORD', 'Password123@')
 admin = Usuario.find_or_create_by!(username: 'admin') do |u|
   u.nome = 'Administrador'
   u.email = 'admin@example.com'
-  u.password = 'Password123@'
-  u.password_confirmation = 'Password123@'
+  u.password = admin_password
+  u.password_confirmation = admin_password
   u.role = :admin
   u.confirmed_at = Time.current
 end

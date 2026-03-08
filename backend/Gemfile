@@ -18,6 +18,8 @@ gem "yajl-ffi", require: "yajl/ffi"
 gem "kaminari"
 gem "jwt"
 gem "rack-attack"
+gem "mission_control-jobs"
+gem "propshaft"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -32,4 +34,6 @@ group :development, :test do
   gem "ruby-lsp-rspec", require: false
   gem "ruby-lsp", require: false
   gem "timecop"
+  gem "vcr"
+  gem "webmock"
 end
