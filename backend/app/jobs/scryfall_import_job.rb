@@ -1,7 +1,7 @@
 class ScryfallImportJob < ApplicationJob
   queue_as :default
 
-  def perform(id, force: false)
+  def perform(id)
     raise ArgumentError, "Deve ser informado um ID válido" unless id.present?
 
     record = ImportacaoScryfall.find(id)
@@ -10,11 +10,9 @@ class ScryfallImportJob < ApplicationJob
     when :simbolos
       Scryfall::Importador.importar_simbolos(record: record)
     when :bulk_data
-      Scryfall::Importador.importar_cartas(force: force, record: record)
-    when :carta
-      Scryfall::Importador.importar_carta(force: force, record: record)
+      Scryfall::Importador.importar_cartas(record: record)
     else
-      raise "Tipo de importação inválido: #{tipo}"
+      raise "Tipo de importação inválido: #{record.tipo}"
     end
   end
 end

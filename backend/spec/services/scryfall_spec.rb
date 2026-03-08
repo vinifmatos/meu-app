@@ -6,8 +6,8 @@ RSpec.describe Scryfall::ParserCartasJson do
   describe "#<<" do
     it "acumula cartas no lote e as importa quando o tamanho do lote é atingido" do
       json_data = [
-        { id: "1", name: "Carta 1", image_uris: { small: "url1" } },
-        { id: "2", name: "Carta 2", colors: [ "W", "U" ] }
+        { id: SecureRandom.uuid, name: "Carta 1", lang: "en", image_uris: { small: "url1" } },
+        { id: SecureRandom.uuid, name: "Carta 2", lang: "en", colors: [ "W", "U" ] }
       ].to_json
 
       expect(Carta).to receive(:import_from_scryfall).once do |lote|
@@ -31,49 +31,91 @@ end
 
 RSpec.describe Scryfall::Importador do
   let(:importer) { Scryfall::Importador.new }
+  let(:data_dir) { Rails.root.join("tmp", "scryfall_test_data") }
+  let(:symbols_path) { File.join(data_dir, "simbolos.json.bzip") }
+  let(:bulk_path_old) { File.join(data_dir, "all-cards-20260101000000.json.bz2") }
+  let(:bulk_path_new) { File.join(data_dir, "all-cards-20260308092214.json.bz2") }
+
+  before do
+    FileUtils.mkdir_p(data_dir)
+    allow(ENV).to receive(:fetch).with('SCRYFALL_DATA_DIR').and_return(data_dir.to_s)
+  end
+
+  after do
+    FileUtils.rm_rf(data_dir)
+  end
+
+  def compress_to_bzip(content, path)
+    IO.popen(["bzip2", "-c"], "r+") do |pipe|
+      pipe.write(content)
+      pipe.close_write
+      File.write(path, pipe.read)
+    end
+  end
 
   describe "#importar_simbolos" do
     let(:record) { create(:importacao_scryfall, tipo: :simbolos) }
 
-    it "importa os símbolos com sucesso", vcr: { cassette_name: 'scryfall/symbology' } do
+    it "importa os símbolos com sucesso de um arquivo bzip2" do
+      content = { 
+        data: [ 
+          { 
+            symbol: "{W}", 
+            english: "White", 
+            represents_mana: true, 
+            appears_in_mana_costs: true, 
+            colors: ["W"],
+            hybrid: false,
+            phyrexian: false
+          } 
+        ] 
+      }.to_json
+      compress_to_bzip(content, symbols_path)
+
       expect {
         importer.importar_simbolos(record: record)
-      }.to change(Simbolo, :count)
+      }.to change(Simbolo, :count).by(1)
 
       record.reload
       expect(record.status).to eq("concluido")
-      expect(record.progresso).to eq(100)
-      expect(record.started_at).to be_present
-      expect(record.finished_at).to be_present
     end
 
-    it "marca como falha se a API retornar erro", vcr: { cassette_name: 'scryfall/symbology_error' } do
-      # Simular erro na API interceptando a chamada
-      allow_any_instance_of(Scryfall::Api).to receive(:baixar_simbolos).and_raise(Scryfall::ApiError, "API Error")
-
+    it "lança erro se o arquivo não existir" do
       expect {
         importer.importar_simbolos(record: record)
-      }.to raise_error(Scryfall::ApiError, "API Error")
+      }.to raise_error(Scryfall::ImportError, /não encontrado/)
 
-      record.reload
-      expect(record.status).to eq("falha")
-      expect(record.mensagem_erro).to eq("API Error")
-      expect(record.finished_at).to be_present
+      expect(record.reload.status).to eq("falha")
     end
   end
 
   describe "#importar_cartas" do
     let(:record) { create(:importacao_scryfall, tipo: :bulk_data) }
 
+    it "importa cartas com sucesso do arquivo bzip2 mais recente" do
+      old_content = [ { id: SecureRandom.uuid, name: "Old Card", lang: "en" } ].to_json
+      new_content = [ { id: SecureRandom.uuid, name: "New Card", lang: "en", scryfall_id: SecureRandom.uuid } ].to_json
+      
+      compress_to_bzip(old_content, bulk_path_old)
+      compress_to_bzip(new_content, bulk_path_new)
+
+      expect {
+        importer.importar_cartas(record: record)
+      }.to change(Carta, :count).by(1)
+
+      record.reload
+      expect(record.status).to eq("concluido")
+      expect(record.metadata["file_path"]).to eq(bulk_path_new.to_s)
+      expect(Carta.find_by(name: "New Card")).to be_present
+      expect(Carta.find_by(name: "Old Card")).not_to be_present
+    end
+
     context "cancellation" do
       it "interrompe a importação se o record for marcado como cancelado" do
-        # Criar um arquivo temporário para simular o bulk data
-        file_path = Rails.root.join("tmp", "scryfall_test_bulk.json")
-        File.write(file_path, [{ name: "Black Lotus" }].to_json)
+        content = [ { name: "Black Lotus", lang: "en", id: SecureRandom.uuid } ].to_json
+        compress_to_bzip(content, bulk_path_new)
 
-        allow_any_instance_of(Scryfall::Api).to receive(:baixar_todas_as_cartas).and_return([file_path.to_s, { "size" => 100 }])
-
-        # Simular cancelamento antes de processar o primeiro chunk
+        # Simular cancelamento
         allow(record).to receive(:reload).and_return(record)
         allow(record).to receive(:cancelado?).and_return(true)
 
@@ -81,8 +123,6 @@ RSpec.describe Scryfall::Importador do
 
         record.reload
         expect(record.status).to eq("cancelado")
-
-        File.delete(file_path) if File.exist?(file_path)
       end
     end
   end

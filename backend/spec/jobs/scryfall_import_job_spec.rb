@@ -35,8 +35,8 @@ RSpec.describe ScryfallImportJob, type: :job do
 
       it "chama o importador de cartas" do
         allow(Scryfall::Importador).to receive(:importar_cartas)
-        ScryfallImportJob.new.perform(record.id, force: true)
-        expect(Scryfall::Importador).to have_received(:importar_cartas).with(record: record, force: true)
+        ScryfallImportJob.new.perform(record.id)
+        expect(Scryfall::Importador).to have_received(:importar_cartas).with(record: record)
       end
     end
   end

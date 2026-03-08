@@ -1,118 +1,4 @@
 module Scryfall
-  class Api
-    BASE_URL = "https://api.scryfall.com"
-
-    def initialize
-      @client = HTTP.use(:auto_inflate).headers("Accept" => "application/json")
-    end
-
-    def baixar_simbolos
-      response = @client.get("#{BASE_URL}/symbology")
-
-      if response.status.success?
-        JSON.parse(response.body.to_s)["data"]
-      else
-        raise ApiError, "Sem dados dos simbolos"
-      end
-    rescue StandardError => e
-      raise ApiError, "Erro ao baixar o arquivo dos simbolos: #{e.message}"
-    end
-
-    def baixar_todas_as_cartas(force: false)
-      bulk_data = ultimo_bulk_data
-      return unless bulk_data && bulk_data["download_uri"]
-
-      fazer_download = arquivo_bulk_desatualizado?(bulk_data["updated_at"]) ||
-                       arquivo_bulk_corrompido? ||
-                       force
-
-      if fazer_download
-        baixar_bulk_para_arquivo(bulk_data["download_uri"])
-      end
-
-      [ caminho_arquivo_bulk, bulk_data ]
-    rescue StandardError => e
-      raise ApiError, "Erro ao baixar o arquivo do bulk data: #{e.message}"
-    end
-
-    def buscar_carta_por_nome(nome, lang: nil)
-      params = { fuzzy: nome }
-      params[:lang] = lang if lang
-
-      response = @client.get("#{BASE_URL}/cards/named", params: params)
-
-      if response.status.success?
-        JSON.parse(response.body.to_s)
-      elsif response.status.code == 404
-        nil
-      else
-        raise ApiError, "Erro ao buscar carta '#{nome}': #{response.status.code}"
-      end
-    end
-
-    def ultimo_bulk_data
-      response = @client.get("#{BASE_URL}/bulk-data/default_cards")
-
-      if response.status.success?
-        JSON.parse(response.body.to_s)
-      else
-        raise ApiError, "Sem dados do ultimo bulk data"
-      end
-    end
-
-    private
-
-    def caminho_arquivo_bulk
-      Rails.root.join("tmp", "scryfall", "default_cards.json")
-    end
-
-    def garantir_diretorio_bulk
-      FileUtils.mkdir_p(File.dirname(caminho_arquivo_bulk))
-    end
-
-    def arquivo_bulk_existe?
-      File.exist?(caminho_arquivo_bulk)
-    end
-
-    def baixar_bulk_para_arquivo(download_uri)
-      garantir_diretorio_bulk
-
-      response = @client.get(download_uri)
-
-      unless response.status.success?
-        raise ApiError, "Failed to download bulk data"
-      end
-
-      File.open("#{caminho_arquivo_bulk}.lock", "w") do |lock|
-        lock.flock(File::LOCK_EX)
-
-        return if arquivo_bulk_existe? && !arquivo_bulk_desatualizado?(ultimo_bulk_data["updated_at"])
-
-        File.open(caminho_arquivo_bulk, "wb") do |file|
-          response.body.each do |chunk|
-            file.write(chunk)
-          end
-        end
-      end
-    end
-
-    def arquivo_bulk_desatualizado?(updated_at)
-      return true unless arquivo_bulk_existe?
-
-      remote_time = Time.zone.parse(updated_at)
-      File.mtime(caminho_arquivo_bulk) < remote_time
-    end
-
-    def arquivo_bulk_corrompido?
-      return false unless arquivo_bulk_existe?
-
-      corrupted = File.size(caminho_arquivo_bulk) < 2.gigabytes
-      File.delete(caminho_arquivo_bulk) if corrupted
-
-      corrupted
-    end
-  end
-
   class ParserCartasJson
     BATCH_SIZE = Rails.env.production? ? 2000 : 5000
 
@@ -216,8 +102,8 @@ module Scryfall
       new.importar_simbolos(record: record)
     end
 
-    def self.importar_cartas(force: false, record: nil)
-      new.importar_cartas(force: force, record: record)
+    def self.importar_cartas(record: nil)
+      new.importar_cartas(record: record)
     end
 
     def importar_simbolos(record: nil)
@@ -226,8 +112,25 @@ module Scryfall
 
       record.update!(status: :processando, started_at: Time.current)
 
-      api = Api.new
-      symbols_data = api.baixar_simbolos
+      data_dir = ENV.fetch('SCRYFALL_DATA_DIR') do
+        raise ImportError, "Variável de ambiente SCRYFALL_DATA_DIR não definida"
+      end
+
+      path = File.join(data_dir, "simbolos.json.bzip")
+
+      unless File.exist?(path)
+        raise ImportError, "Arquivo de símbolos não encontrado em: #{path}"
+      end
+
+      # Usando bzcat para ler o arquivo comprimido
+      content = `bzcat "#{path}"`
+      if $?.exitstatus != 0
+        raise ImportError, "Erro ao descompactar o arquivo de símbolos: #{path}"
+      end
+
+      symbols_data = JSON.parse(content)
+      # O arquivo do Scryfall geralmente vem com os dados sob a chave "data"
+      symbols_data = symbols_data["data"] if symbols_data.is_a?(Hash) && symbols_data.key?("data")
 
       Simbolo.import_from_scryfall(symbols_data)
 
@@ -235,29 +138,41 @@ module Scryfall
       record
     rescue StandardError => e
       record&.falhar!(e.message)
-      raise e
+      raise ImportError, e.message
     end
 
-    def importar_cartas(force: false, record: nil)
+    def importar_cartas(record: nil)
       record ||= ImportacaoScryfall.create!(tipo: :bulk_data, status: :pendente, started_at: Time.current)
       return unless record.pendente?
 
       record.update!(status: :processando, started_at: Time.current)
 
-      api = Api.new
-      file_path, metadata = api.baixar_todas_as_cartas(force: force)
+      data_dir = ENV.fetch('SCRYFALL_DATA_DIR') do
+        raise ImportError, "Variável de ambiente SCRYFALL_DATA_DIR não definida"
+      end
+
+      file_path = buscar_arquivo_bulk_mais_recente(data_dir)
+
+      unless file_path && File.exist?(file_path)
+        raise ImportError, "Arquivo bulk data não encontrado no diretório: #{data_dir}"
+      end
 
       record.update!(
-        metadata: metadata,
+        metadata: { "file_path" => file_path, "last_modified" => File.mtime(file_path) },
         size_processado: 0,
       )
 
       parser = ParserCartasJson.new(record: record)
 
-      File.open(file_path, "rb") do |file|
-        while chunk = file.read(CHUNK_SIZE)
+      # Usando IO.popen para ler de forma eficiente do bzcat
+      IO.popen(["bzcat", file_path]) do |pipe|
+        while chunk = pipe.read(CHUNK_SIZE)
           parser << chunk
         end
+      end
+
+      if $?.exitstatus != 0
+        raise ImportError, "Erro ao descompactar o arquivo bulk data: #{file_path}"
       end
 
       parser.finish!
@@ -271,22 +186,16 @@ module Scryfall
       raise ImportError, e.message
     end
 
-    def importar_carta_por_nome(nome, lang: nil)
-      api = Api.new
-      carta_data = api.buscar_carta_por_nome(nome, lang: lang)
+    private
 
-      if carta_data
-        Carta.import_from_scryfall([ carta_data ])
-        true
-      else
-        msg = "Carta '#{nome}'"
-        msg += " no idioma '#{lang}'" if lang
-        raise ImportError, "#{msg} não encontrada no Scryfall"
-      end
+    def buscar_arquivo_bulk_mais_recente(dir)
+      # Padrão: all-cards-YYYYMMDDHHMMSS.json.bz2
+      arquivos = Dir.glob(File.join(dir, "all-cards-*.json.bz2"))
+      
+      # Ordena pelo nome para pegar o timestamp mais recente (alfabeticamente funciona para o padrão YYYYMMDD...)
+      arquivos.sort.last
     end
   end
-
-  class ApiError < StandardError; end
 
   class ImportError < StandardError; end
 
