@@ -36,6 +36,21 @@ services:
       - postgres
       - proxy
 
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - /opt/app/configs/.env.production
+    environment:
+      RAILS_ENV: production
+    command: ./bin/jobs
+    networks:
+      - postgres
+
   frontend:
     build:
       context: ./frontend
