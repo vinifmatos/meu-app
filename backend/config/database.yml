@@ -84,9 +84,12 @@ preview:
   cache:
     <<: *primary_production
     database: meu_app_preview_cache
+    migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
     database: meu_app_preview_queue
+    migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
     database: meu_app_preview_cable
+    migrations_paths: db/cable_migrate
