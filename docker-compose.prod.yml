@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16
@@ -31,6 +29,8 @@ services:
       - "traefik.http.routers.api-prod.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/${PATH_PREFIX}/api`)"
       - "traefik.http.routers.api-prod.entrypoints=websecure"
       - "traefik.http.routers.api-prod.tls.certresolver=le"
+      - "traefik.http.routers.api-prod.middlewares=api-prod-strip"
+      - "traefik.http.middlewares.api-prod-strip.stripprefix.prefixes=/${PATH_PREFIX}"
       - "traefik.http.services.api-prod.loadbalancer.server.port=80"
     networks:
       - postgres

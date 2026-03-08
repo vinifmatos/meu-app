@@ -198,6 +198,7 @@ jobs:
           script: |
             export DEPLOY_TOKEN=${{ secrets.DEPLOY_TOKEN }}
             export TAG_NAME=${{ github.ref_name }}
+            export PATH_PREFIX=/app
 
             echo "Iniciando Deploy de Produção para Tag ${TAG_NAME}"
 
