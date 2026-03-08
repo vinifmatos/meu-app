@@ -9,14 +9,20 @@ module Scryfall
         @record ||= ImportacaoScryfall.create!(tipo: :simbolos)
 
         processar_com_status do
-          path = File.join(data_dir, "simbolos.json.bzip")
+          path = File.join(data_dir, "simbolos.json.bz2")
           validar_arquivo!(path)
+
+          @record.update!(
+            file_path: path,
+            file_size: File.size(path),
+            readed_size: 0
+          )
 
           content = descompactar(path)
           data = JSON.parse(content)
-          simbolos = data.is_a?(Hash) && data.key?("data") ? data["data"] : data
 
-          Simbolo.import_from_scryfall(simbolos)
+          Simbolo.import_from_scryfall(data)
+          @record.update!(readed_size: @record.file_size)
         end
       end
 

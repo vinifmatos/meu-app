@@ -19,7 +19,7 @@ end
 
 # 1. Simbolos
 simbolos_src = File.join(project_root, 'spec', 'fixtures', 'simbolos.json')
-simbolos_dest = File.join(data_dir, "simbolos.json.bzip")
+simbolos_dest = File.join(data_dir, "simbolos.json.bz2")
 
 puts "Copiando fixture de simbolos..."
 

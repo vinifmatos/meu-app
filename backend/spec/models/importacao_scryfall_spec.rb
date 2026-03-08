@@ -16,7 +16,7 @@ RSpec.describe ImportacaoScryfall, type: :model do
   end
 
   describe 'métodos auxiliares' do
-    let(:importacao) { create(:importacao_scryfall, :processando, metadata: { "size" => 100 }, size_processado: 0) }
+    let(:importacao) { create(:importacao_scryfall, :processando, file_size: 100, readed_size: 0) }
 
     it 'calcula o progresso corretamente' do
       importacao.update_progresso!(50)

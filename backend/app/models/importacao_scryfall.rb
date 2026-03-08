@@ -7,18 +7,17 @@ class ImportacaoScryfall < ApplicationRecord
   before_validation :set_default_status, on: :create
 
   def update_progresso!(processado)
-    total_esperado = metadata["size"].to_i
-    return if total_esperado.zero?
+    return if file_size.to_i.zero?
 
-    self.size_processado += processado
-    percentual = (size_processado.to_f / total_esperado * 100).round(2)
+    self.readed_size += processado
+    percentual = (readed_size.to_f / file_size * 100).round(2)
     percentual = 100.0 if percentual > 100.0
 
     # Throttle: Atualiza apenas se mudar mais de 0.1% ou se chegar no fim
     return if (percentual - progresso).abs < 0.1 && percentual < 100
 
     # Usar update_columns para evitar disparar callbacks e validações
-    update_columns(progresso: percentual, size_processado: size_processado)
+    update_columns(progresso: percentual, readed_size: readed_size)
   end
 
   def finalizar!

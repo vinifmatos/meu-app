@@ -15,8 +15,9 @@ module Scryfall
           # O progresso agora é baseado no tamanho do arquivo comprimido (real e preciso)
           total_compressed_size = File.size(file_path)
           @record.update!(
-            metadata: { "file_path" => file_path, "size" => total_compressed_size },
-            size_processado: 0
+            file_path: file_path,
+            file_size: total_compressed_size,
+            readed_size: 0
           )
 
           parser = ParserCartasJson.new(record: @record)
