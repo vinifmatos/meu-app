@@ -29,6 +29,10 @@ module MeuApp
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_paths << Rails.root.join("app", "services")
+
+    # Ignorar queries SQL para evitar que o Zeitwerk tente carregar arquivos .sql.rb como constantes
+    Rails.autoloaders.main.ignore(Rails.root.join("app", "sql_queries"))
 
     config.middleware.use ::Middleware::JsonKeyTransformer
 
