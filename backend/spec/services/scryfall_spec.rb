@@ -45,7 +45,7 @@ RSpec.describe Scryfall do
   end
 
   def compress_to_bzip(content, path)
-    IO.popen(["bzip2", "-c"], "r+") do |pipe|
+    IO.popen([ "bzip2", "-c" ], "r+") do |pipe|
       pipe.write(content)
       pipe.close_write
       File.write(path, pipe.read)
@@ -56,18 +56,18 @@ RSpec.describe Scryfall do
     let(:record) { create(:importacao_scryfall, tipo: :simbolos) }
 
     it "importa os símbolos com sucesso de um arquivo bzip2" do
-      content = { 
-        data: [ 
-          { 
-            symbol: "{W}", 
-            english: "White", 
-            represents_mana: true, 
-            appears_in_mana_costs: true, 
-            colors: ["W"],
+      content = {
+        data: [
+          {
+            symbol: "{W}",
+            english: "White",
+            represents_mana: true,
+            appears_in_mana_costs: true,
+            colors: [ "W" ],
             hybrid: false,
             phyrexian: false
-          } 
-        ] 
+          }
+        ]
       }.to_json
       compress_to_bzip(content, symbols_path)
 
@@ -94,7 +94,7 @@ RSpec.describe Scryfall do
     it "importa cartas com sucesso do arquivo bzip2 mais recente" do
       old_content = [ { id: SecureRandom.uuid, name: "Old Card", lang: "en" } ].to_json
       new_content = [ { id: SecureRandom.uuid, name: "New Card", lang: "en", scryfall_id: SecureRandom.uuid } ].to_json
-      
+
       compress_to_bzip(old_content, bulk_path_old)
       compress_to_bzip(new_content, bulk_path_new)
 

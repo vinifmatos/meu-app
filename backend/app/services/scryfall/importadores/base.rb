@@ -10,7 +10,7 @@ module Scryfall
       protected
 
       def data_dir
-        ENV.fetch('SCRYFALL_DATA_DIR') do
+        ENV.fetch("SCRYFALL_DATA_DIR") do
           raise ImportError, "Variável de ambiente SCRYFALL_DATA_DIR não definida"
         end
       end

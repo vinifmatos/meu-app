@@ -14,7 +14,10 @@ class ImportacaoScryfall < ApplicationRecord
     percentual = (size_processado.to_f / total_esperado * 100).round(2)
     percentual = 100.0 if percentual > 100.0
 
-    # Usar update_columns para evitar disparar callbacks e validações repetidamente no meio do processo
+    # Throttle: Atualiza apenas se mudar mais de 0.1% ou se chegar no fim
+    return if (percentual - progresso).abs < 0.1 && percentual < 100
+
+    # Usar update_columns para evitar disparar callbacks e validações
     update_columns(progresso: percentual, size_processado: size_processado)
   end
 

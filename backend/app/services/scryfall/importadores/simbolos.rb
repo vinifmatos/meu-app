@@ -7,7 +7,7 @@ module Scryfall
 
       def importar
         @record ||= ImportacaoScryfall.create!(tipo: :simbolos)
-        
+
         processar_com_status do
           path = File.join(data_dir, "simbolos.json.bzip")
           validar_arquivo!(path)

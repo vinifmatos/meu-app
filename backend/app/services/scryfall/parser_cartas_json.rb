@@ -73,7 +73,6 @@ module Scryfall
 
     def importar_lote
       Carta.import_from_scryfall(@batch)
-      @record&.update_progresso!(Importadores::Base::CHUNK_SIZE)
       @batch.clear
     end
 
