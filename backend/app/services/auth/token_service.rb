@@ -1,7 +1,7 @@
 module Auth
   class TokenService
     SECRET_KEY = Rails.application.secret_key_base
-    ALGORITHM = 'HS256'
+    ALGORITHM = "HS256"
     EXPIRATION = 3.hours
 
     def self.encode(payload)

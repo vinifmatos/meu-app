@@ -15,7 +15,7 @@ module JsonResponseHelper
       @response_message = message
       @response_errors = nil
       @response_data = { template: template, locals: locals, data: data }
-      render template: "shared/wrapper", status: status, formats: [:json]
+      render template: "shared/wrapper", status: status, formats: [ :json ]
     end
   end
 
@@ -23,7 +23,7 @@ module JsonResponseHelper
     @response_message = message
     @response_validation_errors = validation_errors
     @response_data = nil
-    render template: "shared/wrapper", status: status, formats: [:json]
+    render template: "shared/wrapper", status: status, formats: [ :json ]
   end
 
   private

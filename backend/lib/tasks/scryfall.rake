@@ -20,8 +20,8 @@ namespace :scryfall do
   task importar_famosas: :environment do
     cartas_famosas = [
       "Plains", "Island", "Swamp", "Mountain", "Forest",
-      "Black Lotus", "Ancestral Recall", "Time Walk", "Mox Pearl", "Mox Sapphire", 
-      "Mox Jet", "Mox Ruby", "Mox Emerald", "Counterspell", "Lightning Bolt", 
+      "Black Lotus", "Ancestral Recall", "Time Walk", "Mox Pearl", "Mox Sapphire",
+      "Mox Jet", "Mox Ruby", "Mox Emerald", "Counterspell", "Lightning Bolt",
       "Dark Ritual", "Giant Growth", "Sol Ring", "Command Tower", "Arcane Signet",
       "The Locust God", "Atog", "Delver of Secrets", "Brainstorm", "Ponder", "Faithless Looting",
       "Gush", "Daze", "Gitaxian Probe", "Mental Misstep", "Treasure Cruise",

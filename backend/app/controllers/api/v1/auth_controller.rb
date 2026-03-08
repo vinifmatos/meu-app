@@ -1,8 +1,8 @@
 module Api
   module V1
     class AuthController < ApplicationController
-      skip_before_action :carregar_usuario_atual, only: [:login, :refresh]
-      skip_before_action :autenticar_usuario!, only: [:login, :refresh]
+      skip_before_action :carregar_usuario_atual, only: [ :login, :refresh ]
+      skip_before_action :autenticar_usuario!, only: [ :login, :refresh ]
 
       def login
         auth_params = params.require(:data).require(:auth)
@@ -16,10 +16,10 @@ module Api
           access_token = Auth::TokenService.encode(user_id: usuario.id)
           refresh_token = usuario.refresh_tokens.create!
 
-          render_json_success(template: nil, data: { 
-            token: access_token, 
+          render_json_success(template: nil, data: {
+            token: access_token,
             refresh_token: refresh_token.token,
-            usuario: formatar_usuario(usuario) 
+            usuario: formatar_usuario(usuario)
           })
         else
           render_json_error(message: "Usuário ou senha inválidos", status: :unauthorized)
@@ -28,7 +28,7 @@ module Api
 
       def refresh
         refresh_token_param = params.dig(:data, :refresh_token)
-        
+
         unless refresh_token_param
           return render_json_error(message: "Refresh token ausente", status: :unauthorized)
         end
@@ -39,14 +39,14 @@ module Api
           # Revoga o token atual e gera um novo (Rotação de Token)
           rt.revoke!
           usuario = rt.usuario
-          
+
           novo_access_token = Auth::TokenService.encode(user_id: usuario.id)
           novo_refresh_token = usuario.refresh_tokens.create!
 
-          render_json_success(template: nil, data: { 
-            token: novo_access_token, 
+          render_json_success(template: nil, data: {
+            token: novo_access_token,
             refresh_token: novo_refresh_token.token,
-            usuario: formatar_usuario(usuario) 
+            usuario: formatar_usuario(usuario)
           })
         else
           render_json_error(message: "Refresh token inválido ou expirado", status: :unauthorized)
@@ -55,7 +55,7 @@ module Api
 
       def logout
         refresh_token_param = params.dig(:data, :refresh_token)
-        
+
         if refresh_token_param
           rt = current_user.refresh_tokens.find_by(token: refresh_token_param)
           rt&.revoke!

@@ -9,7 +9,7 @@ module Middleware
         transform_request(env)
         transform_query_params(env)
       rescue JSON::ParserError
-        return [ 400, { 'Content-Type' => 'application/json' }, [{ message: "JSON malformado ou inválido" }.to_json] ]
+        return [ 400, { "Content-Type" => "application/json" }, [ { message: "JSON malformado ou inválido" }.to_json ] ]
       end
 
       status, headers, response = @app.call(env)
@@ -23,10 +23,10 @@ module Middleware
       return if request.GET.empty?
 
       transformed_params = transform_hash(request.GET, :underscore)
-      
+
       # Atualiza a query string e os parâmetros processados pelo Rack
-      env['rack.request.query_hash'] = transformed_params
-      env['QUERY_STRING'] = Rack::Utils.build_nested_query(transformed_params)
+      env["rack.request.query_hash"] = transformed_params
+      env["QUERY_STRING"] = Rack::Utils.build_nested_query(transformed_params)
     end
 
     def transform_request(env)
@@ -34,7 +34,7 @@ module Middleware
 
       request = ActionDispatch::Request.new(env)
       return if request.body.nil?
-      
+
       request.body.rewind
       body = request.body.read
       return if body.blank?
@@ -49,7 +49,7 @@ module Middleware
       # Normaliza o corpo da resposta para string, lidando com o fato de que pode ser um array (Rack) ou um objeto (Rails)
       body = ""
       response.each { |part| body << part }
-      
+
       return [ status, headers, response ] if body.blank?
 
       new_body = transform_hash(JSON.parse(body), :camelize)

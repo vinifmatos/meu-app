@@ -17,7 +17,7 @@ RSpec.describe Deck, type: :model do
     let(:deck) { create(:deck) }
     let(:carta_criatura) { create(:carta, type_line: 'Creature — Human') }
     let(:carta_terreno) { create(:carta, type_line: 'Basic Land — Island') }
-    
+
     before do
       deck.deck_cartas.create!(carta: carta_criatura, quantidade: 1, eh_comandante: true)
       deck.deck_cartas.create!(carta: carta_terreno, quantidade: 1, eh_comandante: false)

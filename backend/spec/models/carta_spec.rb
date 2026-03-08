@@ -26,7 +26,7 @@ RSpec.describe Carta, type: :model do
     it 'salva as legalidades da carta' do
       Carta.import_from_scryfall(data)
       carta = Carta.find_by(scryfall_id: "scryfall-id-1")
-      
+
       expect(carta.legalities).to be_present
       expect(carta.legalities['pauper']).to eq('legal')
       expect(carta.legalities['vintage']).to eq('restricted')

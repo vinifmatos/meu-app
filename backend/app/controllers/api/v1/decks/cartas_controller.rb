@@ -8,8 +8,8 @@ module Api
         def create
           # Busca se a carta já existe no deck
           deck_carta = @deck.deck_cartas.find_or_initialize_by(carta_id: carta_params[:carta_id])
-          
-          # Se for marcada como comandante, precisamos garantir que o formato permita 
+
+          # Se for marcada como comandante, precisamos garantir que o formato permita
           # e que outras não sejam comandantes
           if carta_params[:eh_comandante]
             deck_carta.eh_comandante = true
@@ -19,13 +19,13 @@ module Api
           end
 
           deck_carta.save!
-          
+
           render_json_success(template: "api/v1/decks/show", locals: { deck: @deck.reload }, message: "Carta adicionada ao deck")
         end
 
         def destroy
           deck_carta = @deck.deck_cartas.find_by!(carta_id: params[:id])
-          
+
           if deck_carta.quantidade > 1 && params[:tudo] != "true"
             deck_carta.decrement!(:quantidade)
           else

@@ -6,7 +6,7 @@ module Api
       before_action :verificar_proprietario!, only: %i[update destroy]
 
       def index
-        if params[:meus] == 'true'
+        if params[:meus] == "true"
           if current_user
             @decks = current_user.decks.order(updated_at: :desc)
           else
@@ -24,7 +24,7 @@ module Api
 
       def create
         @deck = current_user.decks.new(deck_params.except(:cartas_attributes))
-        
+
         if deck_params[:cartas_attributes].present?
           @deck.deck_cartas_attributes = deck_params[:cartas_attributes]
         end
@@ -50,7 +50,7 @@ module Api
       def validar
         validador = ::Decks::Validador.new(@deck)
         erros = validador.validar!
-        
+
         render_json_success(template: nil, data: { valido: erros.empty?, erros: erros })
       end
 
@@ -68,9 +68,9 @@ module Api
 
       def deck_params
         params.require(:data).require(:deck).permit(
-          :nome, 
-          :formato, 
-          cartas_attributes: [:carta_id, :quantidade, :eh_comandante]
+          :nome,
+          :formato,
+          cartas_attributes: [ :carta_id, :quantidade, :eh_comandante ]
         )
       end
     end

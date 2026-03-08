@@ -6,7 +6,7 @@ if @response_data
     if @response_data[:template]
       # Tentamos renderizar como template completo primeiro para respeitar o encapsulamento
       begin
-        json.merge! JSON.parse(ApplicationController.render(template: @response_data[:template], locals: @response_data[:locals], formats: [:json]))
+        json.merge! JSON.parse(ApplicationController.render(template: @response_data[:template], locals: @response_data[:locals], formats: [ :json ]))
       rescue ActionView::MissingTemplate
         # Se falhar (ex: index), tentamos como partial
         json.partial! @response_data[:template], @response_data[:locals]
