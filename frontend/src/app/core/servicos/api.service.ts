@@ -11,7 +11,7 @@ export enum ApiVersao {
   providedIn: 'root',
 })
 export class ApiService {
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = 'api';
   private http = inject(HttpClient);
 
   private get headers() {

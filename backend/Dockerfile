@@ -16,7 +16,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client libyajl2 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
@@ -24,6 +24,13 @@ ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development"
+
+ARG APP_MAJOR_VERSION=0
+ARG APP_MINOR_VERSION=1
+ARG APP_PATCH_VERSION=0
+ENV APP_MAJOR_VERSION=$APP_MAJOR_VERSION
+ENV APP_MINOR_VERSION=$APP_MINOR_VERSION
+ENV APP_PATCH_VERSION=$APP_PATCH_VERSION
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build

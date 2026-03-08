@@ -1,14 +1,14 @@
 module Version
   def major
-    0
+    ENV.fetch("APP_MAJOR_VERSION", 0).to_i
   end
 
   def minor
-    1
+    ENV.fetch("APP_MINOR_VERSION", 1).to_i
   end
 
   def patch
-    0
+    ENV.fetch("APP_PATCH_VERSION", 0).to_i
   end
 
   def to_s
