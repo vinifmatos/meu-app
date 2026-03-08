@@ -29,8 +29,7 @@ RSpec.describe Scryfall::ParserCartasJson do
   end
 end
 
-RSpec.describe Scryfall::Importador do
-  let(:importer) { Scryfall::Importador.new }
+RSpec.describe Scryfall do
   let(:data_dir) { Rails.root.join("tmp", "scryfall_test_data") }
   let(:symbols_path) { File.join(data_dir, "simbolos.json.bzip") }
   let(:bulk_path_old) { File.join(data_dir, "all-cards-20260101000000.json.bz2") }
@@ -53,7 +52,7 @@ RSpec.describe Scryfall::Importador do
     end
   end
 
-  describe "#importar_simbolos" do
+  describe ".importar_simbolos" do
     let(:record) { create(:importacao_scryfall, tipo: :simbolos) }
 
     it "importa os símbolos com sucesso de um arquivo bzip2" do
@@ -73,7 +72,7 @@ RSpec.describe Scryfall::Importador do
       compress_to_bzip(content, symbols_path)
 
       expect {
-        importer.importar_simbolos(record: record)
+        Scryfall.importar_simbolos(record: record)
       }.to change(Simbolo, :count).by(1)
 
       record.reload
@@ -82,14 +81,14 @@ RSpec.describe Scryfall::Importador do
 
     it "lança erro se o arquivo não existir" do
       expect {
-        importer.importar_simbolos(record: record)
+        Scryfall.importar_simbolos(record: record)
       }.to raise_error(Scryfall::ImportError, /não encontrado/)
 
       expect(record.reload.status).to eq("falha")
     end
   end
 
-  describe "#importar_cartas" do
+  describe ".importar_cartas" do
     let(:record) { create(:importacao_scryfall, tipo: :bulk_data) }
 
     it "importa cartas com sucesso do arquivo bzip2 mais recente" do
@@ -100,7 +99,7 @@ RSpec.describe Scryfall::Importador do
       compress_to_bzip(new_content, bulk_path_new)
 
       expect {
-        importer.importar_cartas(record: record)
+        Scryfall.importar_cartas(record: record)
       }.to change(Carta, :count).by(1)
 
       record.reload
@@ -119,7 +118,7 @@ RSpec.describe Scryfall::Importador do
         allow(record).to receive(:reload).and_return(record)
         allow(record).to receive(:cancelado?).and_return(true)
 
-        importer.importar_cartas(record: record)
+        Scryfall.importar_cartas(record: record)
 
         record.reload
         expect(record.status).to eq("cancelado")

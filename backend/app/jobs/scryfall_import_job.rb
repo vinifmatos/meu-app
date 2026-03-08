@@ -8,9 +8,9 @@ class ScryfallImportJob < ApplicationJob
 
     case record.tipo.to_sym
     when :simbolos
-      Scryfall::Importador.importar_simbolos(record: record)
+      Scryfall.importar_simbolos(record: record)
     when :bulk_data
-      Scryfall::Importador.importar_cartas(record: record)
+      Scryfall.importar_cartas(record: record)
     else
       raise "Tipo de importação inválido: #{record.tipo}"
     end

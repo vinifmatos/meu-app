@@ -7,11 +7,15 @@ class ImportacaoScryfall < ApplicationRecord
   before_validation :set_default_status, on: :create
 
   def update_progresso!(processado)
-    return if metadata["size"].to_i.zero?
+    total_esperado = metadata["size"].to_i
+    return if total_esperado.zero?
 
     self.size_processado += processado
-    percentual = (size_processado.to_f / metadata["size"].to_f * 100).round(2)
-    update!(progresso: percentual, size_processado: size_processado)
+    percentual = (size_processado.to_f / total_esperado * 100).round(2)
+    percentual = 100.0 if percentual > 100.0
+
+    # Usar update_columns para evitar disparar callbacks e validações repetidamente no meio do processo
+    update_columns(progresso: percentual, size_processado: size_processado)
   end
 
   def finalizar!
@@ -20,6 +24,10 @@ class ImportacaoScryfall < ApplicationRecord
 
   def falhar!(erro)
     update!(status: :falha, finished_at: Time.current, mensagem_erro: erro)
+  end
+
+  def cancelado?
+    status == "cancelado"
   end
 
   private
