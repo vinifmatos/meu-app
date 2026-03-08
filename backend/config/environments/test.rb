@@ -58,4 +58,7 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Diretório para arquivos de teste do Scryfall
+  ENV["SCRYFALL_DATA_DIR"] ||= Rails.root.join("tmp", "scryfall_test_data").to_s
 end

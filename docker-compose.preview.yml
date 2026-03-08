@@ -24,6 +24,9 @@ services:
       - /opt/app/configs/.env.preview
     environment:
       RAILS_ENV: preview
+      SCRYFALL_DATA_DIR: /scryfall
+    volumes:
+      - /opt/app/scryfall:/scryfall
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api-${PR_NUMBER}.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/pr-${PR_NUMBER}/api`)"
@@ -47,6 +50,9 @@ services:
       - /opt/app/configs/.env.preview
     environment:
       RAILS_ENV: preview
+      SCRYFALL_DATA_DIR: /scryfall
+    volumes:
+      - /opt/app/scryfall:/scryfall
     command: ./bin/jobs
     networks:
       - postgres

@@ -8,7 +8,6 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,
-  workers: process.env['CI'] ? 1 : undefined,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:4242',
@@ -28,8 +27,8 @@ export default defineConfig({
   webServer: [
     {
       command: process.env['CI']
-        ? 'cd ../backend && RAILS_ENV=test bundle exec rails db:create db:migrate db:seed scryfall:importar_famosas && RAILS_ENV=test bundle exec rails server -p 3333'
-        : 'cd ../backend && RAILS_ENV=test bundle exec rails db:drop db:create db:migrate db:seed scryfall:importar_famosas && RAILS_ENV=test bundle exec rails server -p 3333',
+        ? 'cd ../backend && ./bin/setup_e2e_data && RAILS_ENV=test bundle exec rails db:prepare db:seed scryfall:test:importar && RAILS_ENV=test bundle exec rails server -p 3333'
+        : 'cd ../backend && ./bin/setup_e2e_data && RAILS_ENV=test bundle exec rails db:reset db:setup scryfall:test:importar && RAILS_ENV=test bundle exec rails server -p 3333',
       url: 'http://localhost:3333/api/v1/config',
       reuseExistingServer: !process.env['CI'],
       timeout: 30000,
