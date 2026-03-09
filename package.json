@@ -11,19 +11,5 @@
   },
   "scripts": {
     "prepare": "husky install"
-  },
-  "lint-staged": {
-    "backend/**/*.rb": [
-      "bundle exec rubocop -A --dir backend"
-    ],
-    "frontend/src/**/*.{ts,html}": [
-      "yarn workspace meu-app run lint --fix"
-    ],
-    "frontend/src/**/*.scss": [
-      "yarn workspace meu-app run lint:style --fix"
-    ],
-    "frontend/src/**/*.{ts,html,scss,json}": [
-      "yarn workspace meu-app run format"
-    ]
   }
 }
