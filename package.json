@@ -1,6 +1,10 @@
 {
   "name": "meu-app-root",
+  "private": true,
   "packageManager": "yarn@4.13.0",
+  "workspaces": [
+    "frontend"
+  ],
   "devDependencies": {
     "husky": "^8.0.3",
     "lint-staged": "^16.3.2"
@@ -13,13 +17,13 @@
       "bundle exec rubocop -A --dir backend"
     ],
     "frontend/src/**/*.{ts,html}": [
-      "yarn --cwd frontend run lint --fix"
+      "yarn workspace meu-app run lint --fix"
     ],
     "frontend/src/**/*.scss": [
-      "yarn --cwd frontend run lint:style --fix"
+      "yarn workspace meu-app run lint:style --fix"
     ],
     "frontend/src/**/*.{ts,html,scss,json}": [
-      "yarn --cwd frontend run format"
+      "yarn workspace meu-app run format"
     ]
   }
 }
