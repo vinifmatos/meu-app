@@ -8,13 +8,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-confirmar-conta',
-  imports: [
-    MessageModule,
-    CardModule,
-    RouterLink,
-    ProgressSpinnerModule,
-    ButtonModule
-  ],
+  imports: [MessageModule, CardModule, RouterLink, ProgressSpinnerModule, ButtonModule],
   templateUrl: './confirmar-conta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

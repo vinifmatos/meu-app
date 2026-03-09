@@ -17,7 +17,7 @@ import { CardModule } from 'primeng/card';
     ButtonModule,
     MessageModule,
     CardModule,
-    RouterLink
+    RouterLink,
   ],
   templateUrl: './registro.html',
   styleUrl: './registro.scss',
@@ -32,27 +32,30 @@ export class RegistroComponent {
   erro = signal<string | null>(null);
   carregando = signal(false);
 
-  form = this.fb.group({
-    username: ['', [Validators.required, Validators.minLength(3)]],
-    nome: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    email_confirmation: ['', [Validators.required]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    password_confirmation: ['', [Validators.required]]
-  }, {
-    validators: [
-      (control) => {
-        const email = control.get('email');
-        const confirm = control.get('email_confirmation');
-        return email?.value === confirm?.value ? null : { emailMismatch: true };
-      },
-      (control) => {
-        const pass = control.get('password');
-        const confirm = control.get('password_confirmation');
-        return pass?.value === confirm?.value ? null : { passwordMismatch: true };
-      }
-    ]
-  });
+  form = this.fb.group(
+    {
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      nome: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
+      email_confirmation: ['', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      password_confirmation: ['', [Validators.required]],
+    },
+    {
+      validators: [
+        (control) => {
+          const email = control.get('email');
+          const confirm = control.get('email_confirmation');
+          return email?.value === confirm?.value ? null : { emailMismatch: true };
+        },
+        (control) => {
+          const pass = control.get('password');
+          const confirm = control.get('password_confirmation');
+          return pass?.value === confirm?.value ? null : { passwordMismatch: true };
+        },
+      ],
+    },
+  );
 
   async registrar() {
     if (this.form.invalid) return;

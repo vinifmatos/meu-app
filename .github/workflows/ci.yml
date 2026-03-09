@@ -9,10 +9,49 @@ on:
     branches: [main]
 
 jobs:
-  backend-tests:
-    name: Backend (Rails)
+  lint:
+    name: Lint & Style Check
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Instalar Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4.6"
+          bundler-cache: true
+          working-directory: backend
+
+      - name: Rodar RuboCop (Backend)
+        working-directory: backend
+        run: bundle exec rubocop
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.8.0"
+
+      - name: Habilitar Corepack
+        run: corepack enable
+
+      - name: Instalar Dependências (Frontend)
+        working-directory: frontend
+        run: yarn install
+
+      - name: Rodar Lint (Frontend)
+        working-directory: frontend
+        run: yarn lint
+
+      - name: Rodar Stylelint (Frontend)
+        working-directory: frontend
+        run: yarn lint:style
+
+  backend-tests:
+    name: Testes Backend (Rails)
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+    needs: lint
     services:
       postgres:
         image: postgres:16
@@ -60,9 +99,10 @@ jobs:
         run: bundle exec rspec
 
   frontend-tests:
-    name: Frontend (Build & E2E)
+    name: Testes Frontend (Build & E2E)
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
+    needs: lint
     services:
       postgres:
         image: postgres:16
@@ -96,8 +136,9 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.8.0"
-          cache: "yarn"
-          cache-dependency-path: frontend/yarn.lock
+
+      - name: Habilitar Corepack
+        run: corepack enable
 
       - name: Instalar Dependências (Frontend)
         working-directory: frontend

@@ -75,7 +75,7 @@ export class MenuComponent {
         label: 'Administração',
         items: [
           { label: 'Usuários', icon: 'pi pi-users', routerLink: '/admin/usuarios' },
-          { label: 'Importações', icon: 'pi pi-cloud-download', routerLink: '/admin/importacoes' }
+          { label: 'Importações', icon: 'pi pi-cloud-download', routerLink: '/admin/importacoes' },
         ],
       });
     }

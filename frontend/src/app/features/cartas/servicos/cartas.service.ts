@@ -15,17 +15,21 @@ export interface FiltrosCarta {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CartasService {
   private readonly api = inject(ApiService);
   private readonly endpoint = 'cartas';
 
-  obterCartas(pagina: number = 1, porPagina: number = 20, filtros: FiltrosCarta = {}): Observable<ApiResposta<{ cartas: Carta[], pagination: Paginacao }>> {
+  obterCartas(
+    pagina = 1,
+    porPagina = 20,
+    filtros: FiltrosCarta = {},
+  ): Observable<ApiResposta<{ cartas: Carta[]; pagination: Paginacao }>> {
     const query: Record<string, any> = {
       page: pagina,
       per_page: porPagina, // Padronizado para snake_case como o backend espera
-      filters: {}
+      filters: {},
     };
 
     if (filtros.nome) query['filters']['name'] = filtros.nome;
@@ -36,11 +40,19 @@ export class CartasService {
     if (filtros.colors) query['filters']['colors'] = [...filtros.colors];
     if (filtros.colorIdentity) query['filters']['color_identity'] = [...filtros.colorIdentity];
 
-    return from(this.api.get<{ cartas: Carta[], pagination: Paginacao }>(this.endpoint, { query }));
+    return from(this.api.get<{ cartas: Carta[]; pagination: Paginacao }>(this.endpoint, { query }));
   }
 
-  obterCarta(id: number, idioma?: string): Observable<ApiResposta<{ carta: Carta, versoes: Carta[], idiomasDisponiveis: string[] }>> {
+  obterCarta(
+    id: number,
+    idioma?: string,
+  ): Observable<ApiResposta<{ carta: Carta; versoes: Carta[]; idiomasDisponiveis: string[] }>> {
     const query = idioma ? { idioma } : {};
-    return from(this.api.get<{ carta: Carta, versoes: Carta[], idiomasDisponiveis: string[] }>(`${this.endpoint}/${id}`, { query }));
+    return from(
+      this.api.get<{ carta: Carta; versoes: Carta[]; idiomasDisponiveis: string[] }>(
+        `${this.endpoint}/${id}`,
+        { query },
+      ),
+    );
   }
 }

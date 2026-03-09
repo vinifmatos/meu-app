@@ -13,13 +13,7 @@ import { CriarDeckComponent } from './criar-deck.component';
 @Component({
   selector: 'app-listagem-decks',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    ButtonModule,
-    CardModule,
-    TagModule,
-  ],
+  imports: [CommonModule, RouterLink, ButtonModule, CardModule, TagModule],
   providers: [DialogService],
   template: `
     <div class="container mx-auto p-6 max-w-6xl">
@@ -44,10 +38,15 @@ import { CriarDeckComponent } from './criar-deck.component';
                   [severity]="deck.formato === 'pauper' ? 'info' : 'warn'"
                 ></p-tag>
                 <div class="flex flex-col items-end">
-                   <span class="text-sm text-surface group-hover:text-color-emphasis">{{ deck.estatisticas.totalCartas }} cartas</span>
-                   @if (!apenasMeus()) {
-                     <span class="text-[10px] text-surface group-hover:text-color-emphasis/80 font-bold uppercase tracking-tighter">Por {{ deck.usuario?.nome }}</span>
-                   }
+                  <span class="text-sm text-surface group-hover:text-color-emphasis"
+                    >{{ deck.estatisticas.totalCartas }} cartas</span
+                  >
+                  @if (!apenasMeus()) {
+                    <span
+                      class="text-[10px] text-surface group-hover:text-color-emphasis/80 font-bold uppercase tracking-tighter"
+                      >Por {{ deck.usuario?.nome }}</span
+                    >
+                  }
                 </div>
               </div>
 
@@ -63,7 +62,9 @@ import { CriarDeckComponent } from './criar-deck.component';
 
               <div class="flex items-center gap-2 mt-2 pt-2 border-t border-surface">
                 <i class="pi pi-calendar text-surface group-hover:text-color-emphasis text-xs"></i>
-                <span class="text-[10px] text-surface group-hover:text-color-emphasis/80 uppercase font-medium">
+                <span
+                  class="text-[10px] text-surface group-hover:text-color-emphasis/80 uppercase font-medium"
+                >
                   Atualizado em {{ deck.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
                 </span>
               </div>
@@ -84,11 +85,11 @@ export class ListagemDecksComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
-  
+
   private ref: DynamicDialogRef | null = null;
 
   apenasMeus = input<boolean>(false);
-  
+
   titulo = signal('Decks da Comunidade');
   decks = signal<Deck[]>([]);
   estaAutenticado = this.authService.estaAutenticado;
@@ -112,12 +113,12 @@ export class ListagemDecksComponent implements OnInit {
       modal: true,
       breakpoints: {
         '960px': '75vw',
-        '640px': '90vw'
-      }
+        '640px': '90vw',
+      },
     });
 
     if (this.ref) {
-      this.ref.onClose.subscribe((dados: { nome: string, formato: string } | undefined) => {
+      this.ref.onClose.subscribe((dados: { nome: string; formato: string } | undefined) => {
         if (dados) {
           this.router.navigate(['/decks/novo'], {
             queryParams: {

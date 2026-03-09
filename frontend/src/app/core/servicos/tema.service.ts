@@ -1,11 +1,11 @@
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TemaService {
   private readonly STORAGE_KEY = 'meuapp_tema_escuro';
-  
+
   // Signal para o estado do tema
   isDarkMode = signal<boolean>(false);
 
@@ -14,7 +14,7 @@ export class TemaService {
   }
 
   toggleTema(): void {
-    this.isDarkMode.update(v => !v);
+    this.isDarkMode.update((v) => !v);
     this.aplicarTema();
     this.salvarTema();
   }

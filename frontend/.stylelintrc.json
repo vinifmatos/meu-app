@@ -1,0 +1,25 @@
+{
+  "extends": [
+    "stylelint-config-standard-scss",
+    "stylelint-config-tailwindcss",
+    "stylelint-prettier/recommended"
+  ],
+  "rules": {
+    "scss/at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "theme",
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "plugin"
+        ]
+      }
+    ],
+    "at-rule-no-unknown": null,
+    "no-descending-specificity": null
+  }
+}

@@ -10,7 +10,7 @@ export interface UsuarioAutenticado {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private readonly api = inject(ApiService);
@@ -23,7 +23,7 @@ export class AuthService {
   usuario = signal<UsuarioAutenticado | null>(null);
   token = signal<string | null>(null);
   refreshToken = signal<string | null>(null);
-  
+
   estaAutenticado = computed(() => !!this.token());
   isAdmin = computed(() => this.usuario()?.role === 'admin');
 
@@ -31,7 +31,7 @@ export class AuthService {
 
   constructor() {
     this.carregarPersistencia();
-    
+
     // Efeito para gerenciar o refresh automático quando o token muda
     effect(() => {
       const t = this.token();
@@ -45,8 +45,12 @@ export class AuthService {
 
   async login(username: string, password: string): Promise<boolean> {
     try {
-      const resposta = await this.api.post<{ token: string, refreshToken: string, usuario: UsuarioAutenticado }>('auth/login', {
-        data: { auth: { username, password } }
+      const resposta = await this.api.post<{
+        token: string;
+        refreshToken: string;
+        usuario: UsuarioAutenticado;
+      }>('auth/login', {
+        data: { auth: { username, password } },
       });
 
       if (resposta.data) {
@@ -63,7 +67,9 @@ export class AuthService {
   async logout(forcarLocal = false) {
     if (!forcarLocal && this.refreshToken()) {
       try {
-        await this.api.delete('auth/logout', { query: { 'data[refresh_token]': this.refreshToken() } });
+        await this.api.delete('auth/logout', {
+          query: { 'data[refresh_token]': this.refreshToken() },
+        });
       } catch (error) {
         console.warn('Erro ao revogar token no servidor', error);
       }
@@ -106,8 +112,12 @@ export class AuthService {
     }
 
     try {
-      const resposta = await this.api.post<{ token: string, refreshToken: string, usuario: UsuarioAutenticado }>('auth/refresh', {
-        data: { refresh_token: this.refreshToken() }
+      const resposta = await this.api.post<{
+        token: string;
+        refreshToken: string;
+        usuario: UsuarioAutenticado;
+      }>('auth/refresh', {
+        data: { refresh_token: this.refreshToken() },
       });
       if (resposta.data) {
         this.definirSessao(resposta.data.token, resposta.data.refreshToken, resposta.data.usuario);
@@ -124,7 +134,7 @@ export class AuthService {
   private configurarRefreshAutomatico() {
     this.limparRefreshAutomatico();
     // Refresh a cada 2 horas e 50 minutos (token dura 3h)
-    const tresHorasMenosMargem = 1000 * 60 * 60 * 2.8; 
+    const tresHorasMenosMargem = 1000 * 60 * 60 * 2.8;
     this.refreshTimer = setInterval(() => this.refreshSessao(), tresHorasMenosMargem);
   }
 

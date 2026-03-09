@@ -5,6 +5,17 @@
 .DS_Store
 Thumbs.db
 
+# Node & Package Managers
+node_modules/
+**/node_modules/
+.pnp.*
+.yarn/*
+!.yarn/patches/
+!.yarn/plugins/
+!.yarn/releases/
+!.yarn/sdks/
+!.yarn/versions/
+
 ## BACKEND
 
 # Ignore bundler config.
@@ -40,7 +51,7 @@ Thumbs.db
 /frontend/bazel-out
 
 # Node
-/frontend/node_modules
+/**/node_modules
 /frontend/npm-debug.log
 /frontend/yarn-error.log
 
