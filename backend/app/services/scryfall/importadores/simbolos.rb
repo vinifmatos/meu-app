@@ -33,7 +33,7 @@ module Scryfall
       end
 
       def descompactar(path)
-        content = `bzcat "#{path}"`
+        content = IO.popen([ "bzcat", path ], "r", &:read)
         raise ImportError, "Erro ao descompactar o arquivo de símbolos: #{path}" if $?.exitstatus != 0
         content
       end

@@ -9,7 +9,7 @@ RSpec.describe "Rack::Attack", type: :request do
     # Garante que o Rack::Attack use a mesma loja de cache que estamos controlando
     allow(Rack::Attack).to receive(:cache).and_return(Rack::Attack::Cache.new)
     Rack::Attack.cache.store = cache_store
-    
+
     Rack::Attack.enabled = true
     BanimentoIp.delete_all
     Rails.cache.clear
@@ -53,7 +53,7 @@ RSpec.describe "Rack::Attack", type: :request do
       3.times do
         # Esgota o throttle (5 tentativas)
         5.times { post api_v1_auth_login_path, params: login_params, headers: headers }
-        
+
         # O 6º post deve ser bloqueado por throttle (429)
         post api_v1_auth_login_path, params: login_params, headers: headers
         expect(response.status).to eq(429)

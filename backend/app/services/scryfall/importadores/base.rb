@@ -28,9 +28,9 @@ module Scryfall
 
         @record.update!(status: :processando, started_at: Time.current)
         import_logger.info "--- Iniciando processamento: #{@record.tipo} (ID: #{@record.id}) ---"
-        
+
         yield
-        
+
         # Só finaliza se não tiver sido cancelado externamente
         if @record.reload.processando?
           @record.finalizar!
