@@ -1,4 +1,4 @@
-name: CI - Testes Automáticos & Preview
+name: CI - Testes, Deploy Preview e Produção
 
 on:
   push:
@@ -174,8 +174,8 @@ jobs:
           path: frontend/playwright-report/
           retention-days: 7
 
-  preview:
-    name: Ambiente de Preview
+  deploy-preview:
+    name: Deploy Preview
     runs-on: ubuntu-latest
     if: |
       always() && 
@@ -241,6 +241,7 @@ jobs:
             export DEPLOY_TOKEN=${{ secrets.DEPLOY_TOKEN }}
             export TAG_NAME=${{ github.ref_name }}
             export PATH_PREFIX=/app
+            export DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
 
             echo "Iniciando Deploy de Produção para Tag ${TAG_NAME}"
 
@@ -258,6 +259,8 @@ jobs:
             cd production
             git fetch origin --tags
             git checkout ${TAG_NAME}
+
+            docker compose -f docker-compose.prod.yml --project-name production down
 
             APP_MAJOR_VERSION=$MAJOR \
             APP_MINOR_VERSION=$MINOR \
