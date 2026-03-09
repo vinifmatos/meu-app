@@ -6,18 +6,16 @@ class ImportacaoScryfall < ApplicationRecord
 
   before_validation :set_default_status, on: :create
 
-  def update_progresso!(processado)
-    return if file_size.to_i.zero?
+  def update_progresso!(bytes_processados)
+    return if bytes_processados <= 0 || file_size.to_i.zero?
 
-    self.readed_size += processado
-    percentual = (readed_size.to_f / file_size * 100).round(2)
-    percentual = 100.0 if percentual > 100.0
-
-    # Throttle: Atualiza apenas se mudar mais de 0.1% ou se chegar no fim
-    return if (percentual - progresso).abs < 0.1 && percentual < 100
-
-    # Usar update_columns para evitar disparar callbacks e validações
-    update_columns(progresso: percentual, readed_size: readed_size)
+    # Atualização atômica no banco de dados: evita reloads e race conditions.
+    # O PostgreSQL faz o incremento e o cálculo do percentual em uma única operação.
+    self.class.where(id: id).update_all([
+      "readed_size = readed_size + ?, " \
+      "progresso = LEAST(100.0, ROUND(((readed_size + ?)::float / file_size * 100)::numeric, 2))",
+      bytes_processados, bytes_processados
+    ])
   end
 
   def finalizar!

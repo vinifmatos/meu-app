@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ImportacaoScryfall } from '@core/interfaces/importacao-scryfall.interface';
 import { ErroService } from '@core/servicos/erro.service';
@@ -11,7 +11,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { timer, tap, switchMap, finalize } from 'rxjs';
+import { switchMap, tap, timer } from 'rxjs';
 
 @Component({
   selector: 'app-importacao-scryfall',
@@ -31,7 +31,8 @@ import { timer, tap, switchMap, finalize } from 'rxjs';
         <div>
           <h1 class="text-2xl font-bold text-surface">Gerenciamento de Importação de Dados</h1>
           <p class="text-sm text-surface/60 mt-1">
-            Atualizando em <span class="font-mono font-bold text-primary">{{ tempoRestante() }}s</span>...
+            Atualizando em
+            <span class="font-mono font-bold text-primary">{{ tempoRestante() }}s</span>...
           </p>
         </div>
 
@@ -69,11 +70,34 @@ import { timer, tap, switchMap, finalize } from 'rxjs';
 
                 @if (imp.status === 'processando' || imp.status === 'pendente') {
                   <div class="mt-2">
-                    <div class="flex justify-between text-xs mb-1">
-                      <span>Progresso</span>
+                    <div
+                      class="flex justify-between text-[10px] mb-1 text-surface/60 uppercase font-bold tracking-wider"
+                    >
+                      @if (imp.status === 'processando') {
+                        @if (calcularTempos(imp); as tempos) {
+                          <div class="flex gap-3">
+                            <span class="inline-flex items-center"
+                              ><i class="pi pi-clock mr-1"></i>{{ tempos.decorrido }}</span
+                            >
+                            @if (tempos.restante) {
+                              <span class="text-primary inline-flex items-center"
+                                ><i class="pi pi-hourglass mr-1"></i>ETA:
+                                {{ tempos.restante }}</span
+                              >
+                            }
+                          </div>
+                        }
+                      } @else {
+                        <span>Aguardando início...</span>
+                      }
                       <span>{{ imp.progresso }}%</span>
                     </div>
                     <p-progressBar [value]="imp.progresso" [showValue]="false" styleClass="h-2" />
+
+                    <div class="flex justify-between text-[10px] mt-1 text-surface/40 font-mono">
+                      <span>{{ formatarBytes(imp.readedSize) }}</span>
+                      <span>{{ formatarBytes(imp.fileSize) }}</span>
+                    </div>
                   </div>
 
                   <p-button
@@ -89,6 +113,10 @@ import { timer, tap, switchMap, finalize } from 'rxjs';
                 } @else {
                   <div class="text-sm space-y-1">
                     <div class="flex justify-between">
+                      <span class="text-surface/60">Duração total:</span>
+                      <span>{{ calcularDuracaoTotal(imp) }}</span>
+                    </div>
+                    <div class="flex justify-between">
                       <span class="text-surface/60">Última execução:</span>
                       <span>{{ imp.startedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
                     </div>
@@ -98,17 +126,13 @@ import { timer, tap, switchMap, finalize } from 'rxjs';
                         <span>{{ imp.finishedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
                       </div>
                     }
-                    @if (imp.metadata?.updatedAt) {
-                      <div class="flex justify-between pt-2 border-t border-surface/10">
-                        <span class="text-surface/60">Dados do Scryfall:</span>
-                        <span class="font-medium">{{ imp.metadata?.updatedAt | date: 'dd/MM/yyyy' }}</span>
-                      </div>
-                    }
                   </div>
                 }
 
                 @if (imp.status === 'falha' && imp.mensagemErro) {
-                  <div class="p-2 bg-red-500/10 border border-red-500/20 rounded text-red-500 text-xs italic">
+                  <div
+                    class="p-2 bg-red-500/10 border border-red-500/20 rounded text-red-500 text-xs italic"
+                  >
                     <i class="pi pi-exclamation-triangle mr-1"></i>
                     {{ imp.mensagemErro }}
                   </div>
@@ -139,31 +163,46 @@ import { timer, tap, switchMap, finalize } from 'rxjs';
               <th>Tipo</th>
               <th>Status</th>
               <th>Progresso</th>
+              <th>Duração</th>
               <th>Iniciado em</th>
-              <th>Finalizado em</th>
               <th class="text-center">Ações</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-imp>
             <tr>
-              <td><span class="font-mono text-xs">{{ imp.id }}</span></td>
               <td>
-                <span class="capitalize">{{ imp.tipo === 'bulk_data' ? 'Cartas' : 'Símbolos' }}</span>
+                <span class="font-mono text-xs">{{ imp.id }}</span>
+              </td>
+              <td>
+                <span class="capitalize">{{
+                  imp.tipo === 'bulk_data' ? 'Cartas' : 'Símbolos'
+                }}</span>
               </td>
               <td>
                 <p-tag [value]="imp.status" [severity]="getSeverity(imp.status)" />
               </td>
               <td class="w-32">
                 <div class="flex items-center gap-2">
-                  <p-progressBar [value]="imp.progresso" [showValue]="false" class="flex-1" styleClass="h-1" />
+                  <p-progressBar
+                    [value]="imp.progresso"
+                    [showValue]="false"
+                    class="flex-1"
+                    styleClass="h-1"
+                  />
                   <span class="text-xs">{{ imp.progresso }}%</span>
                 </div>
               </td>
-              <td><span class="text-sm">{{ imp.startedAt | date: 'dd/MM/yyyy HH:mm' }}</span></td>
               <td>
                 <span class="text-sm">
-                  {{ imp.finishedAt ? (imp.finishedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}
+                  {{
+                    imp.status === 'processando'
+                      ? calcularTempos(imp).decorrido
+                      : calcularDuracaoTotal(imp)
+                  }}
                 </span>
+              </td>
+              <td>
+                <span class="text-sm">{{ imp.startedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
               </td>
               <td class="text-center">
                 @if (imp.status === 'processando' || imp.status === 'pendente') {
@@ -210,6 +249,7 @@ export class ImportacaoScryfallComponent implements OnInit {
   carregando = signal(false);
   cancelandoId = signal<number | null>(null);
   tempoRestante = signal(5);
+  agora = signal(Date.now());
 
   private readonly INTERVALO_POLLING = 5; // segundos
 
@@ -219,6 +259,7 @@ export class ImportacaoScryfallComponent implements OnInit {
       .pipe(
         takeUntilDestroyed(),
         tap(() => {
+          this.agora.set(Date.now());
           // Decrementa o tempo restante
           this.tempoRestante.update((v) => (v <= 1 ? this.INTERVALO_POLLING : v - 1));
         }),
@@ -234,7 +275,7 @@ export class ImportacaoScryfallComponent implements OnInit {
           if (Array.isArray(dados)) {
             this.importacoes.set(dados);
           }
-        })
+        }),
       )
       .subscribe();
   }
@@ -247,7 +288,7 @@ export class ImportacaoScryfallComponent implements OnInit {
 
   estaImportando(tipo: string) {
     return this.importacoes().some(
-      (i) => i.tipo === tipo && (i.status === 'processando' || i.status === 'pendente')
+      (i) => i.tipo === tipo && (i.status === 'processando' || i.status === 'pendente'),
     );
   }
 
@@ -306,5 +347,51 @@ export class ImportacaoScryfallComponent implements OnInit {
       default:
         return 'info';
     }
+  }
+
+  calcularTempos(imp: ImportacaoScryfall) {
+    if (!imp.startedAt) return { decorrido: '-', restante: null };
+
+    const inicio = new Date(imp.startedAt).getTime();
+    const decorridoMs = this.agora() - inicio;
+
+    if (decorridoMs < 0) return { decorrido: '0s', restante: null };
+
+    const decorridoStr = this.formatarDuracao(decorridoMs);
+
+    // ETA: (Tempo Decorrido / Progresso) * (100 - Progresso)
+    if (imp.progresso > 0 && imp.progresso < 100) {
+      const totalEstimadoMs = (decorridoMs / imp.progresso) * 100;
+      const restanteMs = totalEstimadoMs - decorridoMs;
+      return { decorrido: decorridoStr, restante: this.formatarDuracao(restanteMs) };
+    }
+
+    return { decorrido: decorridoStr, restante: null };
+  }
+
+  calcularDuracaoTotal(imp: ImportacaoScryfall) {
+    if (!imp.startedAt || !imp.finishedAt) return '-';
+    const inicio = new Date(imp.startedAt).getTime();
+    const fim = new Date(imp.finishedAt).getTime();
+    return this.formatarDuracao(fim - inicio);
+  }
+
+  formatarDuracao(ms: number): string {
+    const totalSegundos = Math.floor(ms / 1000);
+    const horas = Math.floor(totalSegundos / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = totalSegundos % 60;
+
+    if (horas > 0) return `${horas}h ${minutos}m ${segundos}s`;
+    if (minutos > 0) return `${minutos}m ${segundos}s`;
+    return `${segundos}s`;
+  }
+
+  formatarBytes(bytes: number): string {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
