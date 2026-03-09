@@ -69,7 +69,7 @@ services:
       - "traefik.http.routers.front-prod.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/${PATH_PREFIX}`)"
       - "traefik.http.routers.front-prod.entrypoints=websecure"
       - "traefik.http.routers.front-prod.tls.certresolver=le"
-      - "traefik.http.services.front-prod.loadbalancer.server.port=80"
+      - "traefik.http.services.front-prod.loadbalancer.server.port=8080"
     networks:
       - proxy
 
