@@ -65,7 +65,7 @@ node_modules/
 /frontend/typings
 
 /frontend/.yarn
-/frontend/node_modules
+/**/node_modules
 /frontend/playwright-report/
 /frontend/test-results/
 
