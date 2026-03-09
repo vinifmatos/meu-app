@@ -12,7 +12,9 @@ RUN yarn install --immutable
 
 COPY . .
 
-RUN yarn build --base-href=/${PREFIX_PATH}/ --deploy-url=/${PREFIX_PATH}/
+ARG PATH_PREFIX
+
+RUN yarn build --base-href=/${PATH_PREFIX}/ --deploy-url=/${PATH_PREFIX}/
 
 FROM nginx:stable-alpine
 
