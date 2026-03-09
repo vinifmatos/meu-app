@@ -6,8 +6,14 @@
     <p-button label="Novo Usuário" icon="pi pi-plus" (click)="abrirDialogo()" raised></p-button>
   </div>
 
-  <p-table [value]="usuarios" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm"
-    [rowHover]="true">
+  <p-table
+    [value]="usuarios"
+    [paginator]="true"
+    [rows]="10"
+    responsiveLayout="scroll"
+    styleClass="p-datatable-sm"
+    [rowHover]="true"
+  >
     <ng-template pTemplate="header">
       <tr>
         <th>ID</th>
@@ -27,9 +33,19 @@
         <td>{{ usuario.createdAt | date: 'short' }}</td>
         <td>
           <div class="flex gap-2">
-            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" (click)="abrirDialogo(usuario)"></p-button>
-            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
-              (click)="excluirUsuario($event, usuario)"></p-button>
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              (click)="abrirDialogo(usuario)"
+            ></p-button>
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              (click)="excluirUsuario($event, usuario)"
+            ></p-button>
           </div>
         </td>
       </tr>

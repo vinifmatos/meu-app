@@ -1,0 +1,25 @@
+{
+  "name": "meu-app-root",
+  "packageManager": "yarn@4.13.0",
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^16.3.2"
+  },
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "backend/**/*.rb": [
+      "bundle exec rubocop -A --dir backend"
+    ],
+    "frontend/src/**/*.{ts,html}": [
+      "yarn --cwd frontend run lint --fix"
+    ],
+    "frontend/src/**/*.scss": [
+      "yarn --cwd frontend run lint:style --fix"
+    ],
+    "frontend/src/**/*.{ts,html,scss,json}": [
+      "yarn --cwd frontend run format"
+    ]
+  }
+}

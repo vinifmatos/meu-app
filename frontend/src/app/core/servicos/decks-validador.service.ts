@@ -8,13 +8,12 @@ export interface ResultadoValidacao {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DecksValidadorService {
-
   validar(deck: Deck | null): ResultadoValidacao {
     const erros: string[] = [];
-    
+
     if (!deck) return { valido: false, erros: ['Deck não carregado'] };
 
     const todasAsCartas: DeckCarta[] = Object.values(deck.cartas).flat();
@@ -36,7 +35,7 @@ export class DecksValidadorService {
 
     return {
       valido: erros.length === 0,
-      erros: erros
+      erros: erros,
     };
   }
 
@@ -61,21 +60,21 @@ export class DecksValidadorService {
     }
 
     this.validarLimiteCopias(cartas, 1, erros);
-    
+
     if (comandantes.length > 0) {
       this.validarIdentidadeCor(comandantes, cartas, erros);
     }
   }
 
   private validarLimiteCopias(cartas: DeckCarta[], limite: number, erros: string[]): void {
-    const contagem = new Map<string, { nome: string, total: number, basico: boolean }>();
+    const contagem = new Map<string, { nome: string; total: number; basico: boolean }>();
 
     for (const dc of cartas) {
       const oracleId = dc.carta.oracleId;
-      const atual = contagem.get(oracleId) || { 
-        nome: dc.carta.name, 
-        total: 0, 
-        basico: this.ehTerrenoBasico(dc.carta) 
+      const atual = contagem.get(oracleId) || {
+        nome: dc.carta.name,
+        total: 0,
+        basico: this.ehTerrenoBasico(dc.carta),
       };
       atual.total += dc.quantidade;
       contagem.set(oracleId, atual);
@@ -88,17 +87,21 @@ export class DecksValidadorService {
     });
   }
 
-  private validarIdentidadeCor(comandantes: DeckCarta[], todas: DeckCarta[], erros: string[]): void {
+  private validarIdentidadeCor(
+    comandantes: DeckCarta[],
+    todas: DeckCarta[],
+    erros: string[],
+  ): void {
     const identidadeDeck = new Set<string>();
-    comandantes.forEach(c => {
+    comandantes.forEach((c) => {
       if (c.carta.colorIdentity) {
-        c.carta.colorIdentity.forEach(cor => identidadeDeck.add(cor));
+        c.carta.colorIdentity.forEach((cor) => identidadeDeck.add(cor));
       }
     });
 
-    todas.forEach(dc => {
+    todas.forEach((dc) => {
       if (dc.carta.colorIdentity && dc.carta.colorIdentity.length > 0) {
-        const foraDaIdentidade = dc.carta.colorIdentity.some(cor => !identidadeDeck.has(cor));
+        const foraDaIdentidade = dc.carta.colorIdentity.some((cor) => !identidadeDeck.has(cor));
         if (foraDaIdentidade) {
           erros.push(`A carta '${dc.carta.name}' possui cores fora da identidade do comandante`);
         }
@@ -110,7 +113,7 @@ export class DecksValidadorService {
     const formato = deck.formato;
     const oracleIdsVistos = new Set<string>();
 
-    cartas.forEach(dc => {
+    cartas.forEach((dc) => {
       if (oracleIdsVistos.has(dc.carta.oracleId)) return;
       oracleIdsVistos.add(dc.carta.oracleId);
 
@@ -118,18 +121,23 @@ export class DecksValidadorService {
       if (status !== 'legal' && status !== 'restricted') {
         const statusHuman = status ? status.replace(/_/g, ' ') : 'desconhecido';
         const capitalizedStatus = statusHuman.charAt(0).toUpperCase() + statusHuman.slice(1);
-        erros.push(`A carta '${dc.carta.name}' não é permitida no formato ${this.capitalize(formato)} (Status: ${capitalizedStatus})`);
+        erros.push(
+          `A carta '${dc.carta.name}' não é permitida no formato ${this.capitalize(formato)} (Status: ${capitalizedStatus})`,
+        );
       }
     });
   }
 
   obterLimiteCopias(formato: string, carta: Carta): number {
     if (this.ehTerrenoBasico(carta)) return 999;
-    
+
     switch (formato) {
-      case 'pauper': return 4;
-      case 'commander': return 1;
-      default: return 4;
+      case 'pauper':
+        return 4;
+      case 'commander':
+        return 1;
+      default:
+        return 4;
     }
   }
 

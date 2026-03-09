@@ -18,7 +18,7 @@ import { Usuario } from '@core/interfaces/usuario.interface';
     ButtonModule,
     MessageModule,
     CardModule,
-    DatePipe
+    DatePipe,
   ],
   templateUrl: './perfil.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,24 +33,27 @@ export class PerfilComponent implements OnInit {
   erro = signal<string | null>(null);
 
   formNome = this.fb.group({
-    nome: ['', [Validators.required]]
+    nome: ['', [Validators.required]],
   });
 
   formEmail = this.fb.group({
-    email: ['', [Validators.required, Validators.email]]
+    email: ['', [Validators.required, Validators.email]],
   });
 
-  formSenha = this.fb.group({
-    current_password: ['', [Validators.required]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    password_confirmation: ['', [Validators.required]]
-  }, {
-    validators: (control) => {
-      const pass = control.get('password');
-      const confirm = control.get('password_confirmation');
-      return pass?.value === confirm?.value ? null : { passwordMismatch: true };
-    }
-  });
+  formSenha = this.fb.group(
+    {
+      current_password: ['', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      password_confirmation: ['', [Validators.required]],
+    },
+    {
+      validators: (control) => {
+        const pass = control.get('password');
+        const confirm = control.get('password_confirmation');
+        return pass?.value === confirm?.value ? null : { passwordMismatch: true };
+      },
+    },
+  );
 
   async ngOnInit() {
     await this.carregarPerfil();

@@ -9,27 +9,21 @@ import { SelectModule } from 'primeng/select';
 @Component({
   selector: 'app-criar-deck-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ButtonModule,
-    InputTextModule,
-    SelectModule
-  ],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, SelectModule],
   template: `
     <div class="flex flex-col gap-4 pt-2">
       <div class="flex flex-col gap-2">
         <label for="nome" class="font-bold text-surface">Nome do Deck</label>
-        <input 
-          pInputText 
-          id="nome" 
-          [(ngModel)]="nome" 
-          placeholder="Ex: Meu Mono Red" 
-          autofocus 
+        <input
+          pInputText
+          id="nome"
+          [(ngModel)]="nome"
+          placeholder="Ex: Meu Mono Red"
+          autofocus
           class="w-full"
         />
       </div>
-      
+
       <div class="flex flex-col gap-2">
         <label for="formato" class="font-bold text-surface">Formato</label>
         <p-select
@@ -43,21 +37,12 @@ import { SelectModule } from 'primeng/select';
       </div>
 
       <div class="flex justify-end gap-2 mt-6">
-        <p-button 
-          label="Cancelar" 
-          severity="secondary" 
-          [text]="true" 
-          (click)="fechar()"
-        ></p-button>
-        <p-button 
-          label="Criar Deck" 
-          (click)="confirmar()" 
-          [disabled]="!nome()"
-        ></p-button>
+        <p-button label="Cancelar" severity="secondary" [text]="true" (click)="fechar()"></p-button>
+        <p-button label="Criar Deck" (click)="confirmar()" [disabled]="!nome()"></p-button>
       </div>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CriarDeckComponent {
   private readonly ref = inject(DynamicDialogRef);
@@ -67,7 +52,7 @@ export class CriarDeckComponent {
 
   formatos = [
     { label: 'Pauper', value: 'pauper' },
-    { label: 'Commander', value: 'commander' }
+    { label: 'Commander', value: 'commander' },
   ];
 
   fechar() {
@@ -78,7 +63,7 @@ export class CriarDeckComponent {
     if (this.nome()) {
       this.ref.close({
         nome: this.nome(),
-        formato: this.formato()
+        formato: this.formato(),
       });
     }
   }

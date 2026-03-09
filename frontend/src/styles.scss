@@ -1,12 +1,11 @@
 @use 'primeicons/primeicons.css';
 @use 'tailwindcss';
-@use './styles/form.scss';
-
+@use './styles/form';
 @plugin 'tailwindcss-primeui';
 @layer tailwind, primeng;
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: Roboto, sans-serif;
 }
 
 html,

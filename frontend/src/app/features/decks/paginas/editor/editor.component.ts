@@ -657,7 +657,7 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
     });
   }
 
-  podeAdicionar(carta: Carta, comoComandante: boolean = false): boolean {
+  podeAdicionar(carta: Carta, comoComandante = false): boolean {
     const d = this.deck();
     if (!d) return false;
 
@@ -672,7 +672,7 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
     return quantidadeAtual < limite;
   }
 
-  adicionarAoDeckLocal(carta: Carta, comoComandante: boolean = false) {
+  adicionarAoDeckLocal(carta: Carta, comoComandante = false) {
     this.deck.update((d) => {
       if (!d) return null;
 
@@ -702,7 +702,7 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
     });
   }
 
-  removerDoDeckLocal(carta: Carta, comoComandante: boolean = false, tudo: boolean = false) {
+  removerDoDeckLocal(carta: Carta, comoComandante = false, tudo = false) {
     this.deck.update((d) => {
       if (!d) return null;
 

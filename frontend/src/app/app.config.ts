@@ -4,7 +4,7 @@ import {
   inject,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
-  LOCALE_ID
+  LOCALE_ID,
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { registerLocaleData } from '@angular/common';

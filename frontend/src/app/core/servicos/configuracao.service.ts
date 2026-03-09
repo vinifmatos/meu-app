@@ -3,7 +3,7 @@ import { AppConfig } from '../interfaces/app-configuracao.interface';
 import { ApiService } from './api.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConfiguracaoService {
   private readonly api = inject(ApiService);

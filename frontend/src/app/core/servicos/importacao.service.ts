@@ -13,7 +13,7 @@ export class ImportacaoService {
     return resposta.data?.importacoes ?? [];
   }
 
-  async iniciar(tipo: ImportacaoTipo, force: boolean = false): Promise<ImportacaoScryfall | null> {
+  async iniciar(tipo: ImportacaoTipo, force = false): Promise<ImportacaoScryfall | null> {
     const resposta = await this.api.post<ImportacaoScryfall>('admin/importacoes', {
       data: {
         importacao: { tipo },

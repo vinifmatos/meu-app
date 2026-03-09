@@ -5,19 +5,25 @@ import { adminGuard } from '@core/guards/admin.guard';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./core/paginas/inicio/inicio.component').then((m) => m.InicioComponent),
+    loadComponent: () =>
+      import('./core/paginas/inicio/inicio.component').then((m) => m.InicioComponent),
   },
   {
     path: 'login',
-    loadComponent: () => import('./core/paginas/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () =>
+      import('./core/paginas/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'registro',
-    loadComponent: () => import('./core/paginas/registro/registro').then((m) => m.RegistroComponent),
+    loadComponent: () =>
+      import('./core/paginas/registro/registro').then((m) => m.RegistroComponent),
   },
   {
     path: 'confirmar-conta',
-    loadComponent: () => import('./core/paginas/confirmar-conta/confirmar-conta').then((m) => m.ConfirmarContaComponent),
+    loadComponent: () =>
+      import('./core/paginas/confirmar-conta/confirmar-conta').then(
+        (m) => m.ConfirmarContaComponent,
+      ),
   },
   {
     path: 'perfil',
@@ -31,25 +37,38 @@ export const routes: Routes = [
   },
   {
     path: 'cartas',
-    loadComponent: () => import('./features/cartas/paginas/listagem/listagem.component').then(m => m.ListagemComponent)
+    loadComponent: () =>
+      import('./features/cartas/paginas/listagem/listagem.component').then(
+        (m) => m.ListagemComponent,
+      ),
   },
   {
     path: 'cartas/:id',
-    loadComponent: () => import('./features/cartas/paginas/detalhes/detalhes.component').then(m => m.DetalhesComponent)
+    loadComponent: () =>
+      import('./features/cartas/paginas/detalhes/detalhes.component').then(
+        (m) => m.DetalhesComponent,
+      ),
   },
   {
     path: 'decks',
-    loadComponent: () => import('./features/decks/paginas/listagem/listagem.component').then(m => m.ListagemDecksComponent)
+    loadComponent: () =>
+      import('./features/decks/paginas/listagem/listagem.component').then(
+        (m) => m.ListagemDecksComponent,
+      ),
   },
   {
     path: 'meus-decks',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/decks/paginas/listagem/listagem.component').then(m => m.ListagemDecksComponent),
-    data: { apenasMeus: true }
+    loadComponent: () =>
+      import('./features/decks/paginas/listagem/listagem.component').then(
+        (m) => m.ListagemDecksComponent,
+      ),
+    data: { apenasMeus: true },
   },
   {
     path: 'decks/:id',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/decks/paginas/editor/editor.component').then(m => m.EditorDeckComponent)
-  }
+    loadComponent: () =>
+      import('./features/decks/paginas/editor/editor.component').then((m) => m.EditorDeckComponent),
+  },
 ];

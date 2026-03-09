@@ -31,7 +31,7 @@ export const erroInterceptor: HttpInterceptorFn = (
             if (sucesso) {
               // Se o refresh deu certo, clona a requisição com o novo token e tenta de novo
               const novoReq = req.clone({
-                setHeaders: { Authorization: `Bearer ${authService.token()}` }
+                setHeaders: { Authorization: `Bearer ${authService.token()}` },
               });
               return next(novoReq);
             } else {
@@ -43,7 +43,7 @@ export const erroInterceptor: HttpInterceptorFn = (
               });
               return throwError(() => error);
             }
-          })
+          }),
         );
       }
 

@@ -24,7 +24,13 @@
 
         <div class="flex flex-col gap-1">
           <label for="email_confirmation">Confirme o E-mail</label>
-          <input pInputText id="email_confirmation" type="email" formControlName="email_confirmation" name="email_confirmation" />
+          <input
+            pInputText
+            id="email_confirmation"
+            type="email"
+            formControlName="email_confirmation"
+            name="email_confirmation"
+          />
           @if (form.errors?.['emailMismatch'] && form.get('email_confirmation')?.touched) {
             <small class="text-red-500">Os e-mails não coincidem</small>
           }
@@ -32,12 +38,28 @@
 
         <div class="flex flex-col gap-1">
           <label for="password">Senha</label>
-          <p-password id="password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" name="password" />
+          <p-password
+            id="password"
+            formControlName="password"
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            name="password"
+          />
         </div>
 
         <div class="flex flex-col gap-1">
           <label for="password_confirmation">Confirme a Senha</label>
-          <p-password id="password_confirmation" formControlName="password_confirmation" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" name="password_confirmation" />
+          <p-password
+            id="password_confirmation"
+            formControlName="password_confirmation"
+            [toggleMask]="true"
+            [feedback]="false"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            name="password_confirmation"
+          />
           @if (form.errors?.['passwordMismatch'] && form.get('password_confirmation')?.touched) {
             <small class="text-red-500">As senhas não coincidem</small>
           }
@@ -47,7 +69,14 @@
           <p-message severity="error" [text]="erro()!" />
         }
 
-        <p-button type="submit" label="Registrar" [loading]="carregando()" [disabled]="form.invalid" class="w-full" styleClass="w-full" />
+        <p-button
+          type="submit"
+          label="Registrar"
+          [loading]="carregando()"
+          [disabled]="form.invalid"
+          class="w-full"
+          styleClass="w-full"
+        />
 
         <div class="text-center mt-4 text-surface">
           Já tem uma conta? <a routerLink="/login" class="text-primary font-bold">Entre aqui</a>
