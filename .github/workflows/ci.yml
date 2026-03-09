@@ -31,8 +31,9 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.8.0"
-          cache: "yarn"
-          cache-dependency-path: frontend/yarn.lock
+
+      - name: Habilitar Corepack
+        run: corepack enable
 
       - name: Instalar Dependências (Frontend)
         working-directory: frontend
@@ -134,8 +135,9 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.8.0"
-          cache: "yarn"
-          cache-dependency-path: frontend/yarn.lock
+
+      - name: Habilitar Corepack
+        run: corepack enable
 
       - name: Instalar Dependências (Frontend)
         working-directory: frontend
