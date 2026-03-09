@@ -83,7 +83,7 @@ RSpec.describe Scryfall do
 
     it "importa cartas com sucesso do arquivo bzip2 mais recente" do
       fixture_content = File.read(Rails.root.join("spec", "fixtures", "cartas.json"))
-      
+
       compress_to_bzip("[]", bulk_path_old)
       compress_to_bzip(fixture_content, bulk_path_new)
 

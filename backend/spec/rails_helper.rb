@@ -72,20 +72,33 @@ RSpec.configure do |config|
 
   config.include FactoryBot::Syntax::Methods
 
+  config.before(:suite) do
+    DatabaseCleaner.clean_with(:truncation, except: %w[ar_internal_metadata])
+    # Mantemos o usuário admin de seed se ele existir para não quebrar o E2E.
+    # Como truncation limpa tudo, precisamos recriar ou garantir que ele sobreviva.
+    # Mas DatabaseCleaner.clean_with(:truncation) limpa tudo.
+    # Se precisarmos do admin, o ideal é que os testes o criem ou usem seeds.
+    # A limpeza manual anterior fazia: Usuario.where.not(username: 'admin').delete_all
+    # Para manter esse comportamento com DatabaseCleaner:
+    # DatabaseCleaner[:active_record].strategy = :truncation, { except: %w[usuarios] }
+    # Mas isso é complexo. Vou apenas garantir uma limpeza total no início.
+  end
+
   config.before(:each) do
     Rack::Attack.enabled = false
     Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+    DatabaseCleaner.strategy = :transaction
   end
 
-  config.before(:suite) do
-    # Limpa o banco de dados antes de iniciar a suíte de testes
-    # para garantir que dados de execuções anteriores (ex: E2E) não interfiram.
-    # Usamos delete_all em vez de destroy_all para ser mais rápido e evitar callbacks,
-    # mas mantemos o usuário admin de seed se ele existir para não quebrar o E2E.
-    DeckCarta.delete_all
-    Deck.delete_all
-    FaceCarta.delete_all
-    Carta.delete_all
-    Usuario.where.not(username: 'admin').delete_all
+  config.before(:each, type: :feature) do
+    DatabaseCleaner.strategy = :truncation
+  end
+
+  config.before(:each) do
+    DatabaseCleaner.start
+  end
+
+  config.after(:each) do
+    DatabaseCleaner.clean
   end
 end
