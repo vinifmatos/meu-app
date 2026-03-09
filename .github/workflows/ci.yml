@@ -102,6 +102,7 @@ jobs:
     name: Frontend (Build & E2E)
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
+    needs: lint
     services:
       postgres:
         image: postgres:16
