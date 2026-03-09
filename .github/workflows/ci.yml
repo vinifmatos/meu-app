@@ -183,6 +183,8 @@ jobs:
             APP_PATCH_VERSION=${{ github.run_number }} \
             docker compose -f docker-compose.preview.yml --project-name pr-${PR_NUMBER} up -d --build
 
+            docker image prune -f
+
   deploy-production:
     name: Deploy Produção
     runs-on: ubuntu-latest
