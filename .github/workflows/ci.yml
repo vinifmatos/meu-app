@@ -12,7 +12,7 @@ jobs:
   lint:
     name: Lint & Style Check
     runs-on: ubuntu-latest
-    if: github.event.action != 'closed'
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - uses: actions/checkout@v6
 
@@ -50,7 +50,7 @@ jobs:
   backend-tests:
     name: Testes Backend (Rails)
     runs-on: ubuntu-latest
-    if: github.event.action != 'closed'
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: lint
     services:
       postgres:
@@ -101,7 +101,7 @@ jobs:
   frontend-tests:
     name: Testes Frontend (Build & E2E)
     runs-on: ubuntu-latest
-    if: github.event.action != 'closed'
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: lint
     services:
       postgres:
@@ -230,7 +230,6 @@ jobs:
     name: Deploy Produção
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [backend-tests, frontend-tests]
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -257,9 +256,8 @@ jobs:
             fi
 
             cd production
-            git fetch origin
-            git checkout main
-            git pull origin main
+            git fetch origin --tags
+            git checkout ${TAG_NAME}
 
             APP_MAJOR_VERSION=$MAJOR \
             APP_MINOR_VERSION=$MINOR \
