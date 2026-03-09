@@ -3,8 +3,13 @@ require 'rails_helper'
 RSpec.describe "Rack::Attack", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
+  let(:cache_store) { ActiveSupport::Cache::MemoryStore.new }
+
   before do
-    Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+    # Garante que o Rack::Attack use a mesma loja de cache que estamos controlando
+    allow(Rack::Attack).to receive(:cache).and_return(Rack::Attack::Cache.new)
+    Rack::Attack.cache.store = cache_store
+    
     Rack::Attack.enabled = true
     BanimentoIp.delete_all
     Rails.cache.clear
@@ -37,7 +42,8 @@ RSpec.describe "Rack::Attack", type: :request do
       expect(BanimentoIp.exists?(ip: '127.0.0.1')).to be_truthy
 
       # 2ª tentativa: Deve ser bloqueado permanentemente (403)
-      get "/"
+      # Usamos uma rota válida para garantir que o bloqueio ocorra antes de chegar no router
+      get api_v1_config_path
       expect(response).to have_http_status(:forbidden)
       expect(JSON.parse(response.body)['message']).to include("permanentemente bloqueado")
     end
@@ -47,16 +53,19 @@ RSpec.describe "Rack::Attack", type: :request do
       3.times do
         # Esgota o throttle (5 tentativas)
         5.times { post api_v1_auth_login_path, params: login_params, headers: headers }
+        
         # O 6º post deve ser bloqueado por throttle (429)
         post api_v1_auth_login_path, params: login_params, headers: headers
         expect(response.status).to eq(429)
 
-        # Avança no tempo para limpar o throttle mas o Fail2Ban continua contando as violações
-        travel 21.seconds
+        # Avança no tempo para limpar o throttle (janela de 20s)
+        # Fail2Ban continua contando as violações (janela de 10min)
+        travel 30.seconds
       end
 
       # Após a 3ª violação de throttle, o IP deve ser banido (403)
-      get "/"
+      # Usamos uma rota válida
+      get api_v1_config_path
       expect(response).to have_http_status(:forbidden)
     end
   end

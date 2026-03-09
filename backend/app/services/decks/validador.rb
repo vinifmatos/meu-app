@@ -7,16 +7,16 @@ module Decks
 
     def validar!
       @erros = []
-      
+
       if @deck.deck_cartas.empty?
         @erros << "O deck não pode estar vazio"
         return @erros
       end
 
       case @deck.formato
-      when 'pauper'
+      when "pauper"
         validar_pauper
-      when 'commander'
+      when "commander"
         validar_commander
       end
 
@@ -47,7 +47,7 @@ module Decks
 
     def validar_limite_copias(limite)
       # Agrupamos por oracle_id para contar cópias da mesma carta independente da versão/set
-      @deck.deck_cartas.joins(:carta).group('cartas.oracle_id', 'cartas.name', 'cartas.printed_name', 'cartas.type_line').sum(:quantidade).each do |(oracle_id, name, printed_name, type_line), qtd|
+      @deck.deck_cartas.joins(:carta).group("cartas.oracle_id", "cartas.name", "cartas.printed_name", "cartas.type_line").sum(:quantidade).each do |(oracle_id, name, printed_name, type_line), qtd|
         next if terreno_basico?(type_line)
         nome_exibicao = printed_name || name
         @erros << "Limite excedido para '#{nome_exibicao}': máximo de #{limite} cópia(s)" if qtd > limite
@@ -56,7 +56,7 @@ module Decks
 
     def validar_identidade_cor(comandantes)
       identidade_deck = comandantes.map(&:color_identity).flatten.uniq.compact
-      
+
       @deck.cartas.each do |carta|
         next if carta.color_identity.nil?
         fora_da_identidade = (carta.color_identity - identidade_deck).any?
@@ -68,14 +68,14 @@ module Decks
       formato = @deck.formato
       @deck.cartas.distinct.each do |carta|
         status = carta.legalities&.[](formato)
-        if status != 'legal' && status != 'restricted'
+        if status != "legal" && status != "restricted"
           @erros << "A carta '#{carta.nome_exibicao}' não é permitida no formato #{formato.capitalize} (Status: #{status&.humanize || 'Desconhecido'})"
         end
       end
     end
 
     def terreno_basico?(type_line)
-      type_line&.include?('Basic') && type_line&.include?('Land')
+      type_line&.include?("Basic") && type_line&.include?("Land")
     end
   end
 end

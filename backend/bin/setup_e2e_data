@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+require 'json'
+require 'securerandom'
+
+# Caminhos
+project_root = File.expand_path('../..', __FILE__)
+data_dir = File.join(project_root, 'tmp', 'scryfall_test_data')
+
+FileUtils.mkdir_p(data_dir)
+
+def compress_to_bzip(content, path)
+  IO.popen(["bzip2", "-c"], "r+") do |pipe|
+    pipe.write(content)
+    pipe.close_write
+    File.write(path, pipe.read)
+  end
+end
+
+# 1. Simbolos
+simbolos_src = File.join(project_root, 'spec', 'fixtures', 'simbolos.json')
+simbolos_dest = File.join(data_dir, "simbolos.json.bz2")
+
+puts "Copiando fixture de simbolos..."
+
+if File.exist?(simbolos_src)
+  FileUtils.cp(simbolos_src, simbolos_dest)
+  puts "Fixture copiada para: #{simbolos_dest}"
+  simbolos_content = File.read(simbolos_src)
+  compress_to_bzip(simbolos_content, simbolos_dest)
+  puts "Criado: #{simbolos_dest}"
+else
+  puts "AVISO: Fixture não encontrada em #{simbolos_src}."
+end
+
+# 2. All Cards (Compactado)
+
+fixture_cards_src = File.join(project_root, 'spec', 'fixtures', 'cartas.json')
+timestamp = Time.now.strftime("%Y%m%d%H%M%S")
+fixture_cards_dest = File.join(data_dir, "all-cards-#{timestamp}.json.bz2")
+
+puts "Copiando fixture de cartas..."
+
+if File.exist?(fixture_cards_src)
+  FileUtils.cp(fixture_cards_src, fixture_cards_dest)
+  puts "Fixture copiada para: #{fixture_cards_dest}"
+
+  cards_path = File.join(data_dir, "all-cards-#{timestamp}.json.bz2")
+  cards_content = File.read(fixture_cards_src)
+
+  compress_to_bzip(cards_content, cards_path)
+  puts "Criado: #{cards_path}"
+else
+  puts "AVISO: Fixture não encontrada em #{fixture_cards_src}."
+end

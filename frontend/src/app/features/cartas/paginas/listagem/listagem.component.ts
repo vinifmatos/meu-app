@@ -100,10 +100,15 @@ import { TagModule } from 'primeng/tag';
               </div>
 
               <div class="text-center w-full">
-                <div class="text-lg font-bold mb-1 truncate text-surface group-hover:text-color-emphasis" [title]="carta.name">
+                <div
+                  class="text-lg font-bold mb-1 truncate text-surface group-hover:text-color-emphasis"
+                  [title]="carta.name"
+                >
                   {{ carta.name }}
                 </div>
-                <div class="text-sm text-surface group-hover:text-color-emphasis/80 mb-3 truncate">{{ carta.typeLine }}</div>
+                <div class="text-sm text-surface group-hover:text-color-emphasis/80 mb-3 truncate">
+                  {{ carta.typeLine }}
+                </div>
 
                 <div class="flex justify-center gap-2 flex-wrap">
                   <p-tag
@@ -232,7 +237,7 @@ export class ListagemComponent implements OnInit {
     if (carta.imageUris?.normal) return carta.imageUris.normal;
     if (carta.faces?.length > 0 && carta.faces[0].imageUris?.normal)
       return carta.faces[0].imageUris.normal;
-    return 'assets/images/placeholder-card.jpg';
+    return 'card.png';
   }
 
   obterRaridadeTraduzida(raridade: string): string {

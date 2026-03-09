@@ -10,9 +10,10 @@ test.describe('Gerenciamento de Importações Scryfall', () => {
       tipo: 'bulk_data',
       status: 'concluido',
       progresso: 100,
+      readedSize: 1024 * 1024 * 50, // 50MB
+      fileSize: 1024 * 1024 * 50,
       startedAt: '2026-03-05T10:00:00Z',
       finishedAt: '2026-03-05T10:15:00Z',
-      metadata: { updatedAt: '2026-03-01T00:00:00Z' },
       mensagemErro: null,
       createdAt: '2026-03-05T10:00:00Z',
     },
@@ -21,9 +22,10 @@ test.describe('Gerenciamento de Importações Scryfall', () => {
       tipo: 'simbolos',
       status: 'processando',
       progresso: 45,
-      startedAt: '2026-03-05T11:00:00Z',
+      readedSize: 1024 * 1024 * 4.5, // 4.5MB
+      fileSize: 1024 * 1024 * 10, // 10MB
+      startedAt: new Date(Date.now() - 10000).toISOString(), // 10 segundos atrás
       finishedAt: null,
-      metadata: null,
       mensagemErro: null,
       createdAt: '2026-03-05T11:00:00Z',
     },
@@ -64,13 +66,18 @@ test.describe('Gerenciamento de Importações Scryfall', () => {
     await expect(page.getByRole('cell', { name: 'Cartas' }).first()).toBeVisible();
     await expect(page.getByText('PROCESSANDO').first()).toBeVisible();
     await expect(page.getByText('45%').first()).toBeVisible();
+
+    // Verifica novos campos de tempo e bytes
+    await expect(page.locator('.pi-clock').first()).toBeVisible();
+    await expect(page.getByText('4.5 MB')).toBeVisible();
+    await expect(page.getByText('10 MB')).toBeVisible();
   });
 
   test('deve atualizar o contador de polling e buscar novos dados automaticamente', async ({ page }) => {
     await page.goto('/admin/importacoes');
 
-    // Verifica o contador inicial (5s no código)
-    const contador = page.locator('span.text-primary');
+    // Verifica o contador inicial (5s no código) - especificando o pai para evitar ambiguidade com o ETA
+    const contador = page.locator('p:has-text("Atualizando em") span.text-primary');
     await expect(contador).toBeVisible();
     
     // Aguarda o contador diminuir
@@ -85,6 +92,7 @@ test.describe('Gerenciamento de Importações Scryfall', () => {
       if (route.request().method() === 'GET') {
         const novosDados = JSON.parse(JSON.stringify(mockImportacoes));
         novosDados[1].progresso = 60;
+        novosDados[1].readedSize = 1024 * 1024 * 6;
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -95,6 +103,7 @@ test.describe('Gerenciamento de Importações Scryfall', () => {
 
     // Aguarda o polling (max 5s)
     await expect(page.getByText('60%').first()).toBeVisible({ timeout: 6000 });
+    await expect(page.getByText('6 MB')).toBeVisible();
   });
 
   test('deve permitir iniciar uma nova importação de símbolos e exibir toast', async ({ page }) => {
@@ -137,13 +146,15 @@ test.describe('Gerenciamento de Importações Scryfall', () => {
   });
 
   test('deve exibir mensagem de erro detalhada em caso de falha', async ({ page }) => {
-    // Mock com erro (usando camelCase para os campos)
+    // Mock com erro
     const mockErro = [
       {
         id: 4,
         tipo: 'bulk_data',
         status: 'falha',
         progresso: 10,
+        readedSize: 100,
+        fileSize: 1000,
         startedAt: '2026-03-05T12:00:00Z',
         mensagemErro: 'Erro de conexão com o Scryfall (Timeout)',
         createdAt: '2026-03-05T12:00:00Z',

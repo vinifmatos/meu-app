@@ -8,8 +8,8 @@ FactoryBot.define do
     oracle_text { "Draw a card." }
     power { "1" }
     toughness { "1" }
-    colors { ["U"] }
-    color_identity { ["U"] }
+    colors { [ "U" ] }
+    color_identity { [ "U" ] }
     set { "m21" }
     collector_number { "1" }
     lang { "en" }

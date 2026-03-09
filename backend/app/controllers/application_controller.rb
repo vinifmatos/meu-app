@@ -9,11 +9,11 @@ class ApplicationController < ActionController::API
   private
 
   def carregar_usuario_atual
-    header = request.headers['Authorization']
-    token = header.split(' ').last if header.present?
-    
+    header = request.headers["Authorization"]
+    token = header.split(" ").last if header.present?
+
     payload = Auth::TokenService.decode(token) if token
-    
+
     if payload
       @current_user = Usuario.find_by(id: payload[:user_id])
     end

@@ -55,11 +55,11 @@ json.cartas do
 
   json.outros do
     # Pegar o que sobrou
-    tipos_conhecidos = ['Land', 'Creature', 'Instant', 'Sorcery', 'Artifact', 'Enchantment', 'Planeswalker']
+    tipos_conhecidos = [ "Land", "Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker" ]
     ids_categorizados = deck.deck_cartas.joins(:carta).where(
       tipos_conhecidos.map { |t| "cartas.type_line ILIKE '%#{t}%'" }.join(" OR ")
     ).pluck(:id)
-    
+
     render_grupo.call(cartas_no_deck.where.not(id: ids_categorizados).where(eh_comandante: false))
   end
 end

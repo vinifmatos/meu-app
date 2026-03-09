@@ -40,7 +40,7 @@ module Api
       def update_email
         @current_user.unconfirmed_email = params[:usuario][:email]
         @current_user.generate_confirmation_token
-        
+
         if @current_user.save(validate: false)
           UsuarioMailer.confirmacao_email(@current_user).deliver_later
           render_json_success(message: "Um e-mail de confirmação foi enviado para o novo endereço. A alteração será efetivada após a confirmação.", template: nil, data: { usuario: current_user_data })

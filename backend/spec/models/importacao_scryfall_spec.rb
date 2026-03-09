@@ -16,16 +16,16 @@ RSpec.describe ImportacaoScryfall, type: :model do
   end
 
   describe 'métodos auxiliares' do
-    let(:importacao) { create(:importacao_scryfall, :processando, metadata: { "size" => 100 }, size_processado: 0) }
+    let(:importacao) { create(:importacao_scryfall, :processando, file_size: 100, readed_size: 0) }
 
     it 'calcula o progresso corretamente' do
       importacao.update_progresso!(50)
-      expect(importacao.progresso).to eq(50)
+      expect(importacao.reload.progresso).to eq(50)
     end
 
     it 'finaliza a importação com sucesso' do
       importacao.finalizar!
-      expect(importacao.status).to eq('concluido')
+      expect(importacao.reload.status).to eq('concluido')
       expect(importacao.finished_at).to be_present
       expect(importacao.progresso).to eq(100)
     end

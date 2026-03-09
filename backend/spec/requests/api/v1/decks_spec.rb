@@ -25,7 +25,7 @@ RSpec.describe "Api::V1::Decks", type: :request do
       expect(response).to have_http_status(:success)
       json_response = JSON.parse(response.body)
       expect(json_response["data"]["decks"].size).to eq(3)
-      
+
       # Valida que todos os decks retornados pertencem de fato ao usuário
       ids_retornados = json_response["data"]["decks"].map { |d| d["id"] }
       expect(ids_retornados).to match_array(decks.map(&:id))

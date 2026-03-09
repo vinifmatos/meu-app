@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_05_181422) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_09_004054) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -98,14 +98,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_181422) do
   create_table "importacoes_scryfall", force: :cascade do |t|
     t.integer "tipo"
     t.integer "status"
-    t.integer "progresso"
-    t.integer "size_processado"
+    t.float "progresso", default: 0.0, null: false
+    t.integer "readed_size", default: 0, null: false
     t.text "mensagem_erro"
-    t.jsonb "metadata"
     t.datetime "started_at"
     t.datetime "finished_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "file_path"
+    t.bigint "file_size"
   end
 
   create_table "refresh_tokens", force: :cascade do |t|

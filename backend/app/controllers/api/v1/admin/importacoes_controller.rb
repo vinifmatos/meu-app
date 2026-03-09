@@ -12,10 +12,7 @@ module Api
         def create
           @importacao = ImportacaoScryfall.create!(importacao_params)
 
-          ScryfallImportJob.perform_later(
-            @importacao.id,
-            force: params[:data][:force] == true
-          )
+          ScryfallImportJob.perform_later(@importacao.id)
 
           render_json_success(
             template: "api/v1/admin/importacoes/show",

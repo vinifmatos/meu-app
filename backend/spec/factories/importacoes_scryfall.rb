@@ -3,8 +3,9 @@ FactoryBot.define do
     tipo { :bulk_data }
     status { :pendente }
     progresso { 0 }
-    size_processado { 0 }
-    metadata { {} }
+    readed_size { 0 }
+    file_size { 1000 }
+    file_path { "tmp/scryfall/all-cards.json.bz2" }
 
     trait :processando do
       status { :processando }

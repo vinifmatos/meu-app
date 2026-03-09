@@ -808,6 +808,6 @@ export class EditorDeckComponent implements OnInit, OnDestroy {
   }
 
   obterImagemSmall(c: Carta): string {
-    return c.imageUris?.small ?? c.faces[0]?.imageUris?.small ?? '';
+    return c.imageUris?.small ?? c.faces[0]?.imageUris?.small ?? '/card.png';
   }
 }

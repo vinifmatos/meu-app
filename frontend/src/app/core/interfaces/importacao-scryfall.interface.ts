@@ -6,14 +6,10 @@ export interface ImportacaoScryfall {
   tipo: ImportacaoTipo;
   status: ImportacaoStatus;
   progresso: number;
-  sizeProcessado: number;
+  readedSize: number;
+  fileSize: number;
+  filePath?: string;
   mensagemErro?: string;
-  metadata?: {
-    id?: string;
-    updatedAt?: string;
-    size?: number;
-    downloadUri?: string;
-  };
   startedAt?: string;
   finishedAt?: string;
   createdAt: string;

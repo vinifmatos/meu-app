@@ -187,6 +187,52 @@ Recupera a lista de símbolos de mana e outros ícones do jogo (Scryfall).
 
 ---
 
+## 5. Admin - Importações (`/api/v1/admin/importacoes`)
+Gerenciamento das importações de dados do Scryfall (Apenas para administradores).
+
+### Listar Importações
+Retorna o histórico das últimas 50 importações.
+
+- **Método:** `GET`
+- **Autenticação:** Requer token JWT (Admin).
+- **Resposta `data`:**
+  ```json
+  {
+    "importacoes": [
+      {
+        "id": 1,
+        "tipo": "bulk_data",
+        "status": "processando",
+        "progresso": 45.5,
+        "readedSize": 10485760,
+        "fileSize": 209715200,
+        "filePath": "/opt/app/scryfall/all-cards-20260308.json.bz2",
+        "startedAt": "2026-03-08T20:00:00Z",
+        "finishedAt": null
+      }
+    ]
+  }
+  ```
+
+### Iniciar Importação
+Enfileira uma nova tarefa de importação em segundo plano.
+
+- **Método:** `POST`
+- **Autenticação:** Requer token JWT (Admin).
+- **Parâmetros `data[importacao]`:**
+  - `tipo` (String): `bulk_data` (cartas) ou `simbolos`.
+- **Resposta:** `201 Created`
+
+### Cancelar Importação
+Solicita o cancelamento de uma importação que está em status `pendente` ou `processando`.
+
+- **Método:** `DELETE`
+- **URL:** `/api/v1/admin/importacoes/:id`
+- **Autenticação:** Requer token JWT (Admin).
+- **Resposta:** `200 OK`
+
+---
+
 ## Erros Comuns
 
 - **404 Not Found:** Retornado quando um recurso não existe.

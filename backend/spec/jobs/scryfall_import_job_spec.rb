@@ -24,9 +24,9 @@ RSpec.describe ScryfallImportJob, type: :job do
       let(:tipo) { "simbolos" }
 
       it "chama o importador de simbolos" do
-        allow(Scryfall::Importador).to receive(:importar_simbolos)
+        allow(Scryfall).to receive(:importar_simbolos)
         ScryfallImportJob.new.perform(record.id)
-        expect(Scryfall::Importador).to have_received(:importar_simbolos).with(record: record)
+        expect(Scryfall).to have_received(:importar_simbolos).with(record: record)
       end
     end
 
@@ -34,9 +34,9 @@ RSpec.describe ScryfallImportJob, type: :job do
       let(:tipo) { "bulk_data" }
 
       it "chama o importador de cartas" do
-        allow(Scryfall::Importador).to receive(:importar_cartas)
-        ScryfallImportJob.new.perform(record.id, force: true)
-        expect(Scryfall::Importador).to have_received(:importar_cartas).with(record: record, force: true)
+        allow(Scryfall).to receive(:importar_cartas)
+        ScryfallImportJob.new.perform(record.id)
+        expect(Scryfall).to have_received(:importar_cartas).with(record: record)
       end
     end
   end

@@ -6,12 +6,16 @@ class ImportacaoScryfall < ApplicationRecord
 
   before_validation :set_default_status, on: :create
 
-  def update_progresso!(processado)
-    return if metadata["size"].to_i.zero?
+  def update_progresso!(bytes_processados)
+    return if bytes_processados <= 0 || file_size.to_i.zero?
 
-    self.size_processado += processado
-    percentual = (size_processado.to_f / metadata["size"].to_f * 100).round(2)
-    update!(progresso: percentual, size_processado: size_processado)
+    # Atualização atômica no banco de dados: evita reloads e race conditions.
+    # O PostgreSQL faz o incremento e o cálculo do percentual em uma única operação.
+    self.class.where(id: id).update_all([
+      "readed_size = readed_size + ?, " \
+      "progresso = LEAST(100.0, ROUND(((readed_size + ?)::float / file_size * 100)::numeric, 2))",
+      bytes_processados, bytes_processados
+    ])
   end
 
   def finalizar!
@@ -20,6 +24,10 @@ class ImportacaoScryfall < ApplicationRecord
 
   def falhar!(erro)
     update!(status: :falha, finished_at: Time.current, mensagem_erro: erro)
+  end
+
+  def cancelado?
+    status == "cancelado"
   end
 
   private

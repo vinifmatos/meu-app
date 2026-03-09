@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Decks::Validador, type: :service do
   let(:usuario) { Usuario.find_by(username: 'admin') || create(:usuario) }
-  
+
   describe '#validar!' do
     it 'valida que o deck não pode estar vazio' do
       deck_vazio = create(:deck, usuario: usuario)
@@ -83,12 +83,12 @@ RSpec.describe Decks::Validador, type: :service do
       end
 
       it 'valida a identidade de cor baseada no comandante' do
-        comandante = create(:carta, color_identity: ['U'])
-        carta_vermelha = create(:carta, color_identity: ['R'])
-        
+        comandante = create(:carta, color_identity: [ 'U' ])
+        carta_vermelha = create(:carta, color_identity: [ 'R' ])
+
         create(:deck_carta, deck: deck, carta: comandante, quantidade: 1, eh_comandante: true)
         create(:deck_carta, deck: deck, carta: carta_vermelha, quantidade: 1)
-        
+
         erros = validador.validar!
         expect(erros).to include(match(/fora da identidade do comandante/))
       end

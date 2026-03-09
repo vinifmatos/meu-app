@@ -31,6 +31,6 @@ export class PreviewCartaComponent {
   y = input<number>(0);
 
   obterImagemNormal(c: Carta): string {
-    return c.imageUris?.normal ?? c.faces[0]?.imageUris?.normal ?? '';
+    return c.imageUris?.normal ?? c.faces[0]?.imageUris?.normal ?? '/card.png';
   }
 }

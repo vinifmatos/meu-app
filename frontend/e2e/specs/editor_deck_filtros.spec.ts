@@ -33,8 +33,8 @@ test.describe('Filtros de Pesquisa no Editor', () => {
     await page.waitForLoadState('networkidle');
 
     // Seleciona as cores Red (R) e Blue (U)
-    const btnRed = page.locator('[data-test-id="filtro-cores"]').getByText('{R}', { exact: true });
-    const btnBlue = page.locator('[data-test-id="filtro-cores"]').getByText('{U}', { exact: true });
+    const btnRed = page.getByTestId('filtro-cores').getByAltText('{R}', { exact: true });
+    const btnBlue = page.getByTestId('filtro-cores').getByAltText('{U}', { exact: true });
 
     await expect(btnRed).toBeVisible({ timeout: 15000 });
 
@@ -75,7 +75,9 @@ test.describe('Filtros de Pesquisa no Editor', () => {
     await responsePromiseBusca;
 
     // Aguarda os resultados aparecerem no DOM
-    await expect(page.getByTestId('btn-adicionar-comandante').first()).toBeVisible();
+    await expect(page.getByTestId('btn-adicionar-comandante').first()).toBeVisible({
+      timeout: 15000,
+    });
 
     // Clica no botão de estrela para adicionar como comandante
     const btnEstrela = page.getByTestId('btn-adicionar-comandante').first().getByRole('button');
@@ -84,13 +86,14 @@ test.describe('Filtros de Pesquisa no Editor', () => {
     const toggleIdentidade = page.locator('[data-test-id="toggle-identidade"]');
     await expect(toggleIdentidade).toBeVisible({ timeout: 15000 });
 
+    // Click desativa, click ativa de novo para disparar a busca com identidade
+    await toggleIdentidade.click();
+
     const responsePromiseFiltro = page.waitForResponse(
       (r) => r.url().includes('/api/v1/cartas') && r.url().includes('color_identity'),
       { timeout: 15000 },
     );
 
-    // Click desativa, click ativa de novo para disparar a busca com identidade
-    await toggleIdentidade.click();
     await toggleIdentidade.click();
 
     const response = await responsePromiseFiltro;

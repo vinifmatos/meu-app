@@ -9,7 +9,7 @@ RSpec.describe "Api::V1::Auth (Segurança Adicional)", type: :request do
     it "realiza o login retornando access_token e refresh_token" do
       post api_v1_auth_login_path, params: { data: { auth: { username: usuario.username, password: 'Password123@' } } }.to_json, headers: headers
       expect(response).to have_http_status(:ok)
-      
+
       json = JSON.parse(response.body)
       expect(json['data']['token']).to be_present
       expect(json['data']['refreshToken']).to be_present
@@ -20,12 +20,12 @@ RSpec.describe "Api::V1::Auth (Segurança Adicional)", type: :request do
 
       post api_v1_auth_refresh_path, params: { data: { refreshToken: refresh_token.token } }.to_json, headers: headers
       expect(response).to have_http_status(:ok)
-      
+
       json = JSON.parse(response.body)
       expect(json['data']['token']).to be_present
       expect(json['data']['refreshToken']).to be_present
       expect(json['data']['refreshToken']).not_to eq(refresh_token.token) # Deve rotacionar
-      
+
       expect(refresh_token.reload).to be_revoked
     end
 
@@ -40,8 +40,8 @@ RSpec.describe "Api::V1::Auth (Segurança Adicional)", type: :request do
       refresh_token = usuario.refresh_tokens.create!
 
       # O logout usa DELETE e precisa de token de acesso (current_user)
-      delete api_v1_auth_logout_path, 
-             params: { data: { refreshToken: refresh_token.token } }.to_json, 
+      delete api_v1_auth_logout_path,
+             params: { data: { refreshToken: refresh_token.token } }.to_json,
              headers: headers_auth
 
       expect(response).to have_http_status(:ok)
