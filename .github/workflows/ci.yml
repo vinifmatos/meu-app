@@ -48,7 +48,7 @@ jobs:
         run: yarn lint:style
 
   backend-tests:
-    name: Backend (Rails)
+    name: Testes Backend (Rails)
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
     needs: lint
@@ -99,7 +99,7 @@ jobs:
         run: bundle exec rspec
 
   frontend-tests:
-    name: Frontend (Build & E2E)
+    name: Testes Frontend (Build & E2E)
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
     needs: lint
