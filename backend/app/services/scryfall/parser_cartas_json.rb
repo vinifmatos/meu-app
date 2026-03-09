@@ -1,7 +1,7 @@
 module Scryfall
   class ParserCartasJson
     BATCH_SIZE = Rails.env.production? ? 2000 : 5000
-    CANCELLATION_CHECK_INTERVAL = 50
+    CANCELLATION_CHECK_INTERVAL = Rails.env.test? ? 1 : 50
 
     def initialize(record: nil)
       @parser = Yajl::FFI::Parser.new

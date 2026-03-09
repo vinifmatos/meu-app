@@ -20,12 +20,12 @@ RSpec.describe ImportacaoScryfall, type: :model do
 
     it 'calcula o progresso corretamente' do
       importacao.update_progresso!(50)
-      expect(importacao.progresso).to eq(50)
+      expect(importacao.reload.progresso).to eq(50)
     end
 
     it 'finaliza a importação com sucesso' do
       importacao.finalizar!
-      expect(importacao.status).to eq('concluido')
+      expect(importacao.reload.status).to eq('concluido')
       expect(importacao.finished_at).to be_present
       expect(importacao.progresso).to eq(100)
     end
