@@ -71,6 +71,8 @@ services:
       - "traefik.http.routers.front-prod.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`/${PATH_PREFIX}`)"
       - "traefik.http.routers.front-prod.entrypoints=websecure"
       - "traefik.http.routers.front-prod.tls.certresolver=le"
+      - "traefik.http.routers.front-prod.middlewares=front-prod-strip"
+      - "traefik.http.middlewares.front-prod-strip.stripprefix.prefixes=/${PATH_PREFIX}"
       - "traefik.http.services.front-prod.loadbalancer.server.port=8080"
     networks:
       - proxy
